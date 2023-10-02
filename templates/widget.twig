@@ -1,0 +1,45 @@
+    <script>
+        
+async function askChatGPT() {
+    const prompt = document.getElementById('chatgpt-prompt').value;
+    const responseField = document.getElementById('chatgpt-answer');
+    const outputMessage = document.getElementById('output-message');
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/engines/text-davinci-002/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+                'Authorization': 'Bearer {{api_key}}'
+            },
+            body: JSON.stringify({ 
+                prompt: prompt,
+                max_tokens: 1000  // Set the maximum number of tokens for the generated output
+            })
+        });
+
+        const data = await response.json();
+        const answer = data.choices[0].text.trim();
+        responseField.innerText = answer;
+        outputMessage.innerText = 'success';
+    } catch (error) {
+        outputMessage.innerText = 'error';
+    }
+}
+
+    </script>
+<div class="widgetBody">
+    <div class="input-field">
+        <input type="text" class="control_text" id="chatgpt-prompt" required>
+        <label for="chatgpt-prompt">Enter your question for ChatGPT</label>
+    </div>
+    <button type="button" class="btn" onclick="askChatGPT()">Ask ChatGPT</button>
+    <span id="output-message"></span>
+
+    <div class="input-field">
+        <p>ChatGPT's Answer</p>
+        <p id="chatgpt-answer"></p>
+    </div>
+
+ 
+</div>
