@@ -1,7 +1,7 @@
 {
     "name": "ChatGPT",
     "description": "A ChatGPT widget",
-    "version": "1.1.1",
+    "version": "4.1.2",
     "theme": false,
     "require": {
         "matomo": ">=4.0.0,<5.0.0-b1"
@@ -13,6 +13,12 @@
             "homepage": "https://ronan-chardonneau.com"
         }
     ],
+    "support": {
+        "email": "contact@ronan-chardonneau.com",
+        "issues": "https://github.com/Chardonneaur/ChatGPT/issues",
+        "source": "https://github.com/Chardonneaur/ChatGPT"
+    },
+    "homepage":  "https://github.com/Chardonneaur/ChatGPT",
     "license": "GPL v3+",
     "keywords": [
         "ChatGPT", "Chat", "GPT"
