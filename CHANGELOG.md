@@ -1,3 +1,5 @@
 ## Changelog
 
-Here goes the changelog text.
+### v1.1.0
+
+- Update codebase and refactor

@@ -1,29 +1,20 @@
 {
     "name": "ChatGPT",
     "description": "A ChatGPT widget",
-    "version": "0.1.0",
+    "version": "1.1.0",
     "theme": false,
     "require": {
         "matomo": ">=4.0.0,<5.0.0-b1"
     },
     "authors": [
         {
-            "name": "Matomo",
-            "email": "",
-            "homepage": ""
+            "name": "Ronan CHARDONNEAU and Ronan HELLO",
+            "email": "contact@ronan-chardonneau.com",
+            "homepage": "https://ronan-chardonneau.com"
         }
     ],
-    "support": {
-        "email": "",
-        "issues": "",
-        "forum": "",
-        "irc": "",
-        "wiki": "",
-        "source": "",
-        "docs": "",
-        "rss": ""
-    },
-    "homepage": "",
     "license": "GPL v3+",
-    "keywords": []
+    "keywords": [
+        "ChatGPT", "Chat", "GPT"
+    ]
 }
