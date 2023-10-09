@@ -16,7 +16,8 @@ namespace Piwik\Plugins\ChatGPT;
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getChatGptResponse($idSite, $period, $date, $prompt){
+    public function getChatGptResponse($idSite, $period, $date, $prompt)
+    {
         $settings = new \Piwik\Plugins\ChatGPT\UserSettings();
 
         // Retrieve the API key value
@@ -26,54 +27,37 @@ class API extends \Piwik\Plugin\API
             "messages" => [
                 [
                     "role" => "user",
-                    "content" => $prompt,
+                    "content" => htmlspecialchars($prompt),
                 ],
             ],
-            //"response_format" => "json",
             "temperature" => 1,
             "max_tokens" => 256,
             "top_p" => 1,
             "frequency_penalty" => 0,
             "presence_penalty" => 0,
         ];
-    
+
         $headers = [
-            
-            //'Content-Type: application/x-www-form-urlencoded',
-            //added
             'Content-Type: application/json',
             'Accept: application/json',
-            'Authorization: Bearer ' . $api_key,     
-                 
+            'Authorization: Bearer ' . $api_key,
         ];
-    
+
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POST, 1);
-//added
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // Send data as JSON
-
-        //curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        
-
-    
         $response = curl_exec($ch);
-    
+
         if ($response === false) {
             echo json_encode(['success' => false, 'error' => 'cURL Error: ' . curl_error($ch)]);
             exit;
         }
-    
+
         curl_close($ch);
-    
-        // Log the full API response (for debugging)
-        error_log('API Response: ' . $response);
-    
+
         // Decode the API response
-        $responseData = json_decode($response, true);
-        return $responseData;
-
+        return json_decode($response, true);
     }
-
 }

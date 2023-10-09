@@ -1,69 +1,51 @@
 <div class="widgetBody">
-    <div class="input-field">
-        <input type="text" class="control_text" id="chatgpt-prompt" required>
-        <label for="chatgpt-prompt">Enter your question for ChatGPT</label>
-    </div>
-    <button type="button" class="btn" onclick="askChatGPT()">Ask ChatGPT</button>
-    <span id="output-message"></span>
 
-    <div class="input-field">
-        <p>ChatGPT's Answer</p>
-        <p id="chatgpt-answer"></p>
+    <form id="chat-gpt-form" action="#"  style="padding-bottom: 0.75rem">
+        <div class="input-field">
+            <input type="text" class="control_text" id="chatgpt-prompt" required>
+            <label for="chatgpt-prompt">Enter your question for ChatGPT</label>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-content: center; align-items: center; justify-content:  flex-start">
+            <button type="submit" class="btn">Ask ChatGPT</button>
+            <span id="state-message"></span>
+        </div>
+    </form>
+
+    <div id="response-container" style="display: none">
+        <strong class="m-bottom-1" style="display: block">ChatGPT's Answer</strong>
+        <blockquote id="chatgpt-answer" style="display: block; padding-bottom: .75rem;"></blockquote>
     </div>
 </div>
 
-
 <script>
-    console.log(piwik)
-async function askChatGPT() {
-    console.log('askChatGPT function called'); // Add this line for debugging
-    const prompt = document.getElementById('chatgpt-prompt').value.trim();
-    console.log('Prompt:', prompt);
+    let promptInput = document.getElementById('chatgpt-prompt');
+    const stateMessage = document.getElementById('state-message');
     const responseField = document.getElementById('chatgpt-answer');
-    const outputMessage = document.getElementById('output-message');
+    const responseContainer = document.getElementById('response-container');
 
-    if (prompt === "") {
-        outputMessage.innerText = 'Error: Please enter a question';
-        return;
-    }
+    let form = document.getElementById('chat-gpt-form');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-    try {
-        let formdata = new FormData;
-        formdata.append('prompt', prompt)
+        try {
+            stateMessage.innerText = 'Loading...';
+            let prompt = encodeURIComponent(promptInput.value);
+            let ajaxHelper = window.ajaxHelper;
+            let ajax = new ajaxHelper();
 
-
-        var ajaxHelper = window.ajaxHelper;
-
-    var ajax = new ajaxHelper();
-    ajax.setUrl(`index.php?module=API&method=ChatGPT.getChatGptResponse&idSite=${piwik.idSite}&prompt=${prompt}`);
-    ajax.setCallback(function (response) {
-        console.log(response);
-        responseField.innerText = response.choices[0].message.content
-    });
-    ajax.setFormat('json'); // the expected response format
-    ajax.send();
-
-
-        /*const response = await fetch(`/?module=API&method=ChatGPT.getChatGptResponse&idSite=${piwik.idSite}&token_auth=${piwik.token_auth}&format=json`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                
-            },
-            body:formdata,
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            responseField.innerText = data.answer;
-            outputMessage.innerText = 'Success';
-        } else {
-            outputMessage.innerText = 'Error: ' + data.error;
+            ajax.setUrl(`index.php?module=API&method=ChatGPT.getChatGptResponse&format=json&idSite=${piwik.idSite}&prompt=${prompt}`);
+            ajax.setCallback(function (response) {
+                if (response.choices.length) {
+                    responseContainer.style.display = 'block';
+                    stateMessage.innerText = '';
+                    responseField.innerText = response.choices[0].message.content;
+                }
+            });
+            ajax.setFormat('json'); // the expected response format
+            ajax.send();
+        } catch (error) {
+            stateMessage.innerText = 'Error: An error occurred';
         }
-        */
-    } catch (error) {
-        outputMessage.innerText = 'Error: An error occurred';
-    }
-}
+    })
 </script>
