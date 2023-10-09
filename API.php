@@ -20,8 +20,16 @@ class API extends \Piwik\Plugin\API
     {
         $settings = new \Piwik\Plugins\ChatGPT\UserSettings();
 
-        // Retrieve the API key value
         $api_key = $settings->apiKey->getValue();
+
+        if(!$api_key){
+            error_log('You must enter a valid API Key');
+        }
+
+        if(!$prompt){
+            error_log('You must enter a valid prompt');
+        }
+
         $data = [
             "model" => "gpt-3.5-turbo",
             "messages" => [
@@ -50,14 +58,12 @@ class API extends \Piwik\Plugin\API
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // Send data as JSON
         $response = curl_exec($ch);
 
-        if ($response === false) {
-            echo json_encode(['success' => false, 'error' => 'cURL Error: ' . curl_error($ch)]);
-            exit;
+        if (!$response) {
+            error_log('An error occurred with the request');
         }
 
         curl_close($ch);
 
-        // Decode the API response
         return json_decode($response, true);
     }
 }
