@@ -70,13 +70,7 @@ class GetChatGPT extends Widget
      */
     public function render()
     {
-        // or: return $this->renderTemplate('myViewTemplate', array(...view variables...));
-        $settings = new \Piwik\Plugins\ChatGPT\UserSettings();
-
-        // Retrieve the API key value
-        $api_key = $settings->apiKey->getValue();
-
-        return $this->renderTemplate('widget', ['api_key'=>$api_key]);
+        return $this->renderTemplate('widget');
     }
 
 }

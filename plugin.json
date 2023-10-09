@@ -1,21 +1,21 @@
 {
     "name": "ChatGPT",
-    "description": "A ChatGPT widget in order to integrate ChatGPT on your dashboard",
+    "description": "A ChatGPT widget",
     "version": "0.1.0",
     "theme": false,
     "require": {
-        "matomo": ">=4.0.0,<5.0.0-b1"
+        "matomo": ">=5.0.0-b5,<6.0.0-b1"
     },
     "authors": [
         {
-            "name": "Ronan Chardonneau and Ronan Hello",
+            "name": "Matomo",
             "email": "",
-            "homepage": "https://github.com/Chardonneaur/ChatGPT/"
+            "homepage": ""
         }
     ],
     "support": {
         "email": "",
-        "issues": "https://github.com/Chardonneaur/ChatGPT/issues",
+        "issues": "",
         "forum": "",
         "irc": "",
         "wiki": "",
@@ -23,7 +23,7 @@
         "docs": "",
         "rss": ""
     },
-    "homepage": "https://github.com/Chardonneaur/ChatGPT/",
+    "homepage": "",
     "license": "GPL v3+",
-    "keywords": ["chatgpt", "widget"]
+    "keywords": []
 }
