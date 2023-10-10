@@ -1,7 +1,7 @@
 ## Documentation
 
 ### Get your API Key from OpenAI
-get your API jey and past it in your User Settings panel under ChatGPT API Key section.
+get your API key and paste it in your User Settings panel under ChatGPT API Key section.
 
 ### API Endpoint
 
