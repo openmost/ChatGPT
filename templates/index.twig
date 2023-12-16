@@ -1,0 +1,15 @@
+{% extends 'admin.twig' %}
+
+{% set title %}Ask ChatGPT{% endset %}
+
+{% block content %}
+
+    <h1>ChatGPT</h1>
+    <p style="max-width: 650px;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. At atque expedita harum
+        molestias nihil rem suscipit! Ab dolor dolorem eaque id molestiae odio porro ratione, sed, tempore, vel voluptas
+        voluptatem?</p>
+
+
+    {{ include('@ChatGPT/_form.twig') }}
+
+{% endblock %}
