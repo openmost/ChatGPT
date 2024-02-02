@@ -1,5 +1,9 @@
 ## Changelog
 
+### v4.2.1
+
+- Update documentation
+
 ### v4.2.0
 
 - Update plugin from MistralAI base
