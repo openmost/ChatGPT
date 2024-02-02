@@ -1,5 +1,9 @@
 ## Changelog
 
+### v4.2.0
+
+- Update plugin from MistralAI base
+
 ### v4.1.2
 
 - Fix plugin.json definition
