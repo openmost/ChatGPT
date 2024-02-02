@@ -9,6 +9,8 @@
 
 namespace Piwik\Plugins\ChatGPT;
 
+use Piwik\API\Request;
+
 /**
  * API for plugin ChatGPT
  *
@@ -16,33 +18,46 @@ namespace Piwik\Plugins\ChatGPT;
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getChatGptResponse($idSite, $period, $date, $prompt)
+    public function getResponse($idSite, $period, $date, $prompt)
     {
-        $host = \Piwik\SettingsPiwik::getPiwikUrl();
-        $tokenAuth = "c59d0eb4ff95cbe632a41e4c86f3707d"; // \Piwik\Piwik::getCurrentUserTokenAuth();
+        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
+        $chatBasePrompt = $settings->chatBasePrompt->getValue() ?: "You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.";
 
-        $basePrompt = "You are Matomo Analytics expert and you know perfectly the Matomo Reporting API documentation.
-        here is the host : $host
-        here is the token auth : $tokenAuth
-        here is the idSite : $idSite
-        
-        return only the url as a <a> html tag ready to click that redirect to the working API url asked in the user prompt.
-        Don't add anything more and don't format in markdown, we only need the HTML tag. The <a> tag should have .btn class, the text is 'Do the action and add padding of 2 rtem a t the top with a ChatGPT icon in SVG before the text'.
-        
-        here is the user prompt : 
-        $prompt";
-
-        return $this->fetchChatGpt($basePrompt);
+        return $this->fetchChatGPT("$chatBasePrompt $prompt");
     }
 
-    function fetchChatGpt($prompt)
+    public function getInsights($idSite, $period, $date, $reportId)
     {
-        $settings = new \Piwik\Plugins\ChatGPT\UserSettings();
+        $data = Request::processRequest($reportId, array(
+            'idSite' => $idSite,
+            'date' => $date,
+            'period' => $period,
+            'format' => 'json',
+        ));
 
+        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
+        $insightBasePrompt = $settings->insightBasePrompt->getValue() ?: "Give me insights from the dataset formatted in JSON provided below, add bold style to most important metrics of your answer :";
+
+        return $this->fetchChatGPT("$insightBasePrompt $data");
+    }
+
+    function fetchChatGPT($prompt)
+    {
+        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
+        $host = $settings->host->getValue();
         $api_key = $settings->apiKey->getValue();
+        $model = $settings->model->getValue();
+
+        if (!$host) {
+            error_log('You must enter a valid host');
+        }
 
         if (!$api_key) {
             error_log('You must enter a valid API Key');
+        }
+
+        if (!$model) {
+            error_log('You must enter a valid model');
         }
 
         if (!$prompt) {
@@ -50,18 +65,13 @@ class API extends \Piwik\Plugin\API
         }
 
         $data = [
-            "model" => "gpt-4",
+            "model" => $model[0],
             "messages" => [
                 [
                     "role" => "user",
-                    "content" => htmlspecialchars($prompt),
-                ],
-            ],
-            "temperature" => 1,
-            "max_tokens" => 256,
-            "top_p" => 1,
-            "frequency_penalty" => 0,
-            "presence_penalty" => 0,
+                    "content" => urldecode($prompt)
+                ]
+            ]
         ];
 
         $headers = [
@@ -70,7 +80,7 @@ class API extends \Piwik\Plugin\API
             'Authorization: Bearer ' . $api_key,
         ];
 
-        $ch = curl_init('https://api.openai.com/v1/chat/completions');
+        $ch = curl_init($host);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

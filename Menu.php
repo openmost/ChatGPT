@@ -27,10 +27,10 @@ class Menu extends \Piwik\Plugin\Menu
     public function configureAdminMenu(MenuAdmin $menu)
     {
         // reuse an existing category. Execute the showList() method within the controller when menu item was clicked
-        // $menu->addManageItem('ChatGPT_MyUserItem', $this->urlForAction('showList'), $orderId = 30);
-        // $menu->addPlatformItem('ChatGPT_MyUserItem', $this->urlForDefaultAction(), $orderId = 30);
+        // $menu->addManageItem('MistralAI_MyUserItem', $this->urlForAction('showList'), $orderId = 30);
+        // $menu->addPlatformItem('MistralAI_MyUserItem', $this->urlForDefaultAction(), $orderId = 30);
 
         // or create a custom category
-        $menu->addItem('ChatGPT', 'Ask ChatGPT', $this->urlForDefaultAction(), $orderId = 30);
+        // $menu->addItem('CoreAdminHome_MenuManage', 'MistralAI_MyUserItem', $this->urlForDefaultAction(), $orderId = 30);
     }
 }

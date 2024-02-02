@@ -1,15 +1,17 @@
-{% extends 'admin.twig' %}
-
-{% set title %}Ask ChatGPT{% endset %}
+{% extends 'dashboard.twig' %}
 
 {% block content %}
 
-    <h1>ChatGPT</h1>
-    <p style="max-width: 650px;">Lorem ipsum dolor sit amet, consectetur adipisicing elit. At atque expedita harum
-        molestias nihil rem suscipit! Ab dolor dolorem eaque id molestiae odio porro ratione, sed, tempore, vel voluptas
-        voluptatem?</p>
+    {% if(api_key) %}
 
+        <div vue-entry="ChatGPT.ChatIndexPage"></div>
 
-    {{ include('@ChatGPT/_form.twig') }}
+    {% else %}
+
+        <div class="alert alert-info">
+            <strong>API Key is missing!</strong> You need to set your API Key in the general settings as a superuser.
+        </div>
+
+    {% endif %}
 
 {% endblock %}
