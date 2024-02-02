@@ -1,13 +1,5 @@
 ## Changelog
 
-### v4.1.2
+### 5.0.0
 
-- Fix plugin.json definition
-
-### v4.1.1
-
-- Update documentation
-
-### v4.1.0
-
-- Update codebase and refactor
+Setup plugin from v4.2.0

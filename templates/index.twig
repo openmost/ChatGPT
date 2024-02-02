@@ -1,0 +1,17 @@
+{% extends 'dashboard.twig' %}
+
+{% block content %}
+
+    {% if(api_key) %}
+
+        <div vue-entry="ChatGPT.ChatIndexPage"></div>
+
+    {% else %}
+
+        <div class="alert alert-info">
+            <strong>API Key is missing!</strong> You need to set your API Key in the general settings as a superuser.
+        </div>
+
+    {% endif %}
+
+{% endblock %}

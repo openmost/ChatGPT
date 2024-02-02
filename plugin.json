@@ -1,26 +1,29 @@
 {
     "name": "ChatGPT",
-    "description": "A ChatGPT widget",
+    "description": "ChatGPT support for Matomo",
     "version": "5.0.0",
     "theme": false,
     "require": {
-        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+        "matomo": ">=5.0.0,<6.0.0-b1"
     },
     "authors": [
         {
-            "name": "Ronan CHARDONNEAU and Ronan HELLO",
-            "email": "contact@ronan-chardonneau.com",
-            "homepage": "https://ronan-chardonneau.com"
+            "name": "Openmost & Ronan CHARDONNEAU",
+            "email": "ronan@openmost.io",
+            "homepage": "https:\/\/openmost.io"
         }
     ],
     "support": {
-        "email": "contact@ronan-chardonneau.com",
-        "issues": "https://github.com/Chardonneaur/ChatGPT/issues",
-        "source": "https://github.com/Chardonneaur/ChatGPT"
+        "email": "ronan@openmost.io",
+        "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
+        "source": "https:\/\/github.com\/openmost\/ChatGPT"
     },
-    "homepage":  "https://github.com/Chardonneaur/ChatGPT",
+    "homepage": "https:\/\/openmost.io",
     "license": "GPL v3+",
     "keywords": [
-        "ChatGPT", "Chat", "GPT"
+        "chatgpt",
+        "chat",
+        "gpt",
+        "ai"
     ]
 }
