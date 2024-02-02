@@ -65,14 +65,14 @@ export default defineComponent({
 });
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .ai-chat-insight-trigger-button {
   cursor: pointer;
   float: right;
   padding: 4px;
-  border: 1px solid #3450a3;
+  border: 1px solid #00A67E;
   background-color: #fff;
-  color: #3450a3;
+  color: #00A67E;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -82,7 +82,7 @@ export default defineComponent({
   &:hover,
   &:focus {
     color: #fff;
-    background-color: #3450a3;
+    background-color: #00A67E;
   }
 
   svg {

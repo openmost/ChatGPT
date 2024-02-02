@@ -11,7 +11,7 @@ import { defineComponent } from 'vue';
 export default defineComponent({});
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .ai-chat-loader {
   color: #2e2e2e;
   display: flex;
