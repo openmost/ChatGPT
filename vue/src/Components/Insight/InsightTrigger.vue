@@ -45,7 +45,7 @@ export default defineComponent({
       this.loading = true;
       AjaxHelper
         .fetch({
-          method: 'MistralAI.getInsights',
+          method: 'ChatGPT.getInsights',
           reportId: this.reportId,
         })
         .then((response) => {

@@ -13,7 +13,7 @@ use Piwik\Settings\FieldConfig;
 use Piwik\Validators\NotEmpty;
 
 /**
- * Defines Settings for MistralAI.
+ * Defines Settings for ChatGPT.
  *
  * Usage like this:
  * $settings = new SystemSettings();

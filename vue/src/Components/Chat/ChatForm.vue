@@ -5,10 +5,10 @@
       <div class="ai-chat-form-group">
         <input v-model="prompt"
                type="text"
-               name="mistral-prompt"
+               name="chatgpt-prompt"
                id="ai-chat-prompt"
-               placeholder="Message Mistral AI..."
-               aria-label="Mistral AI Prompt"
+               placeholder="Message ChatGPT..."
+               aria-label="ChatGPT Prompt"
                minlength="1"
                required
                autofocus
@@ -44,7 +44,7 @@ export default defineComponent({
       this.loading = true;
       AjaxHelper
         .fetch({
-          method: 'MistralAI.getResponse',
+          method: 'ChatGPT.getResponse',
           prompt: this.prompt,
         })
         .then((response) => {
