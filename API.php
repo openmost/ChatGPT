@@ -46,7 +46,7 @@ class API extends \Piwik\Plugin\API
         return $this->fetchChatGPT("$insightBasePrompt $data");
     }
 
-    function fetchChatGPT($prompt)
+    private function fetchChatGPT($prompt)
     {
         $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
         $host = $settings->host->getValue();
