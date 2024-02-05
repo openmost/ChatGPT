@@ -10,6 +10,7 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\API\Request;
+use Piwik\Piwik;
 
 /**
  * API for plugin ChatGPT
@@ -20,6 +21,8 @@ class API extends \Piwik\Plugin\API
 {
     public function getResponse($idSite, $period, $date, $prompt)
     {
+        Piwik::checkUserHasSomeViewAccess();
+
         $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
         $chatBasePrompt = $settings->chatBasePrompt->getValue() ?: "You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.";
 
@@ -28,6 +31,8 @@ class API extends \Piwik\Plugin\API
 
     public function getInsights($idSite, $period, $date, $reportId)
     {
+        Piwik::checkUserHasSomeViewAccess();
+
         $data = Request::processRequest($reportId, array(
             'idSite' => $idSite,
             'date' => $date,

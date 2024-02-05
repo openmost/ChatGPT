@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.0.3
+
+Fix security issue in API privileges
+
 ### 5.0.2
 
 Update documentation
