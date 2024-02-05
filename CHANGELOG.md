@@ -1,5 +1,9 @@
 ## Changelog
 
+### v4.2.2
+
+- Fix security issue in API privileges
+
 ### v4.2.1
 
 - Update documentation
