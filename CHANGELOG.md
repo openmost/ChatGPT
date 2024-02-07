@@ -1,5 +1,9 @@
 ## Changelog
 
+### v4.2.4
+
+- Update Marketplace links
+
 ### v4.2.3
 
 - Fix security issue in API

@@ -1,14 +1,14 @@
 {
     "name": "ChatGPT",
     "description": "A ChatGPT widget",
-    "version": "4.2.3",
+    "version": "4.2.4",
     "theme": false,
     "require": {
         "matomo": ">=4.0.0,<5.0.0-b1"
     },
     "authors": [
         {
-            "name": "Openmost & Ronan CHARDONNEAU",
+            "name": "Openmost",
             "email": "ronan@openmost.io",
             "homepage": "https:\/\/openmost.io"
         }
