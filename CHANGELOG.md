@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.0.5
+
+Update Marketplace links
+
 ### 5.0.4
 
 Fix security issue in API
