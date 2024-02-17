@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.0.6
+
+Support error messages handling
+
 ### 5.0.5
 
 Update Marketplace links

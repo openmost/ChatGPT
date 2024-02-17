@@ -49,9 +49,16 @@ export default defineComponent({
           reportId: this.reportId,
         })
         .then((response) => {
-          this.markdown = response.choices[0].message.content;
+          if (response.choices && response.choices.length) {
+            this.markdown = response.choices[0].message.content;
+          } else {
+            this.errored = true;
+            console.error(response.message);
+            this.markdown = response.message;
+          }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error(error);
           this.errored = true;
         })
         .finally(() => {
@@ -59,6 +66,7 @@ export default defineComponent({
         });
     },
     onClose() {
+      this.errored = false;
       this.displayOffcanvas = false;
     },
   },

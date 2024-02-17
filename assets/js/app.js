@@ -3,9 +3,6 @@ window.addEventListener("widget:loaded", function (e) {
   let element = e.detail[0].element[0];
   let reportId = parameters.module + "." + parameters.action;
 
-  console.log("-------------------");
-  console.log(reportId);
-  console.log(element);
   let titleWrapper = element.querySelector(".enrichedHeadline");
 
   let insightTrigger = document.createElement("div");

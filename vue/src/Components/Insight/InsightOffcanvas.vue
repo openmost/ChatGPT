@@ -13,11 +13,11 @@
     </div>
     <div class="ai-chat-insight-offcanvas-body">
 
-      <Alert v-if="errored" severity="danger">Ooops, AI have encountered an error.</Alert>
+      <Alert v-if="errored" severity="danger">{{ markdown }}</Alert>
 
       <ChatLoading v-if="loading"/>
 
-      <Markdown v-else :markdown="markdown"/>
+      <Markdown v-if="!errored && !loading" :markdown="markdown"/>
 
     </div>
   </div>
