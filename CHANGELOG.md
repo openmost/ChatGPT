@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.0.7
+
+Update documentation url
+
 ### 5.0.6
 
 Support error messages handling
