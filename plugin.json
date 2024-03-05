@@ -1,7 +1,7 @@
 {
     "name": "ChatGPT",
     "description": "A ChatGPT widget",
-    "version": "4.2.4",
+    "version": "4.2.5",
     "theme": false,
     "require": {
         "matomo": ">=4.0.0,<5.0.0-b1"
@@ -18,7 +18,7 @@
         "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
         "source": "https:\/\/github.com\/openmost\/ChatGPT"
     },
-    "homepage": "https:\/\/openmost.io",
+    "homepage": "https://openmost.io/products/chatgpt/",
     "license": "GPL v3+",
     "keywords": [
         "chatgpt",

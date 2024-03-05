@@ -1,5 +1,9 @@
 ## Changelog
 
+### v4.2.5
+
+- Update documentation
+
 ### v4.2.4
 
 - Update Marketplace links
