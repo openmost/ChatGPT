@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.1.1
+
+Update : Pass all params as PostParams in AjaxHelper function
+
 ### 5.1.0
 
 Update conversation memory, IA can remember previous messages

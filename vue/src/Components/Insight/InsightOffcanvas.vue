@@ -92,8 +92,11 @@ export default defineComponent({
       AjaxHelper
         .fetch({
           method: 'ChatGPT.getInsights',
-          reportId: this.reportId,
-          messages: this.messages,
+        }, {
+          postParams: {
+            reportId: this.reportId,
+            messages: this.messages,
+          },
         })
         .then((response) => {
           if (response.choices && response.choices.length > 0) {

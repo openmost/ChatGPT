@@ -53,7 +53,10 @@ export default defineComponent({
       AjaxHelper
         .fetch({
           method: 'ChatGPT.getResponse',
-          messages: this.messages,
+        }, {
+          postParams: {
+            messages: this.messages,
+          },
         })
         .then((response) => {
           if (response.choices && response.choices.length > 0) {
