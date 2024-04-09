@@ -1,5 +1,10 @@
 ## Changelog
 
+### 5.1.0
+
+Update conversation memory, IA can remember previous messages
+Update Add conversation mode to Insights
+
 ### 5.0.7
 
 Update documentation url

@@ -1,14 +1,25 @@
 <template>
-  <li class="ai-chat-loader">
+  <div class="ai-chat-loader">
     <span class="ai-chat-spinner"></span>
     Waiting for response...
-  </li>
+  </div>
 </template>
 
 <script lang="ts" scoped>
 import { defineComponent } from 'vue';
 
-export default defineComponent({});
+export default defineComponent({
+  props: {
+    ai: {
+      type: String,
+      required: true,
+    },
+    primaryColor: {
+      type: String,
+      default: '#3450a3',
+    },
+  },
+});
 </script>
 
 <style lang="less" scoped>
@@ -23,7 +34,7 @@ export default defineComponent({});
 .ai-chat-spinner {
   width: 22px;
   height: 22px;
-  border: 4px solid #00A67E;
+  border: 4px solid v-bind(primaryColor);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;

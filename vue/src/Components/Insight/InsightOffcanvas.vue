@@ -13,30 +13,35 @@
     </div>
     <div class="ai-chat-insight-offcanvas-body">
 
-      <Alert v-if="errored" severity="danger">{{ markdown }}</Alert>
-
-      <ChatLoading v-if="loading"/>
-
-      <Markdown v-if="!errored && !loading" :markdown="markdown"/>
+      <Chat
+        ref="chat"
+        :loading="loading"
+        :errored="errored"
+        :messages="messages"
+        :ai="ai"
+        :primary-color="primaryColor"
+        @prompt="onSubmit"
+      />
 
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import { AjaxHelper } from 'CoreHome';
 import { defineComponent } from 'vue';
-import { Alert } from 'CoreHome';
-
 import IconMagic from '../Icon/IconMagic.vue';
 import IconClose from '../Icon/IconClose.vue';
-import ChatLoading from '../Chat/ChatLoading.vue';
-import Markdown from '../Markdown.vue';
+import Chat from '../Chat/Chat.vue';
+
+interface MessageState {
+  role: string,
+  content: string,
+}
 
 export default defineComponent({
   components: {
-    Alert,
-    Markdown,
-    ChatLoading,
+    Chat,
     IconMagic,
     IconClose,
   },
@@ -45,18 +50,25 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    loading: {
-      type: Boolean,
-      required: true,
-    },
-    errored: {
-      type: Boolean,
-      required: true,
-    },
-    markdown: {
+    reportId: {
       type: String,
-      default: '',
+      required: true,
     },
+    ai: {
+      type: String,
+      required: true,
+    },
+    primaryColor: {
+      type: String,
+      default: '#3450a3',
+    },
+  },
+  data() {
+    return {
+      loading: true,
+      errored: false,
+      messages: [],
+    };
   },
   computed: {
     offcanvasClass(): Array<string> {
@@ -69,6 +81,32 @@ export default defineComponent({
   methods: {
     onClose() {
       this.$emit('close');
+    },
+    onSubmit(userPrompt = null) {
+      this.loading = true;
+      if (userPrompt !== null) {
+        this.messages.push(userPrompt);
+      }
+      // eslint-disable-next-line
+      (this.$refs.chat as any).scrollDown() ;
+      AjaxHelper
+        .fetch({
+          method: 'ChatGPT.getInsights',
+          reportId: this.reportId,
+          messages: this.messages,
+        })
+        .then((response) => {
+          if (response.choices && response.choices.length > 0) {
+            this.messages.push(response.choices[0].message);
+          }
+        })
+        .catch(() => {
+          this.errored = true;
+        })
+        .finally(() => {
+          this.loading = false;
+          this.$refs.chat.scrollDown();
+        });
     },
   },
 });
@@ -92,7 +130,7 @@ export default defineComponent({
   }
 
   .ai-chat-insight-offcanvas-header {
-    padding: 20px 2.5rem;
+    padding: 20px 1.5rem;
     border-bottom: 1px solid #dcdcdc;
     display: flex;
     justify-content: space-between;
@@ -141,10 +179,10 @@ export default defineComponent({
   }
 
   .ai-chat-insight-offcanvas-body {
-    padding: 20px 2.5rem;
-    overflow-y: auto;
+    padding: 0 1.5rem 1.5rem 1.5rem;
     height: calc(100vh - 65px);
-    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
 
     * {
       font-size: 1rem;

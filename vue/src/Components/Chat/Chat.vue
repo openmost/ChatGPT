@@ -1,7 +1,14 @@
 <template>
   <div class="ai-chat-interface-wrapper">
-    <ChatMessagesList :loading="loading" :errored="errored" :messages="messages"/>
-    <ChatForm @formSubmit="onFormSubmit" @success="onSuccess" @error="onError"/>
+    <ChatMessagesList
+      ref="messagesList"
+      :loading="loading"
+      :errored="errored"
+      :messages="messages"
+      :ai="ai"
+      :primary-color="primaryColor"
+    />
+    <ChatForm :loading="loading" @prompt="onSubmit"/>
   </div>
 </template>
 
@@ -11,14 +18,8 @@ import ChatForm from './ChatForm.vue';
 import ChatMessagesList from './ChatMessagesList.vue';
 
 interface MessageState {
-  author: string,
-  body: string,
-}
-
-interface DataState {
-  errored: boolean;
-  loading: boolean;
-  messages: Array<MessageState>;
+  role: string,
+  content: string,
 }
 
 export default defineComponent({
@@ -26,42 +27,47 @@ export default defineComponent({
     ChatMessagesList,
     ChatForm,
   },
-  data(): DataState {
-    return {
-      errored: false,
-      loading: false,
-      messages: [],
-    };
+  props: {
+    ai: {
+      type: String,
+      required: true,
+    },
+    primaryColor: {
+      type: String,
+      default: '#3450a3',
+    },
+    errored: {
+      type: Boolean,
+      default: false,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    messages: {
+      type: Array,
+      default: () => [],
+    },
   },
   methods: {
-    onFormSubmit(prompt: string) {
-      this.messages.push({
-        author: 'user',
-        body: prompt,
-      });
-      this.loading = true;
-      this.scrollDown();
-    },
-    onSuccess(response: string) {
-      this.messages.push({
-        author: 'ai',
-        body: response,
-      });
-      this.loading = false;
-      this.scrollDown();
-    },
-    onError() {
-      this.errored = true;
+    onSubmit(userPrompt: MessageState) {
+      this.$emit('prompt', userPrompt);
     },
     scrollDown() {
-      setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 1);
+      this.$refs.messagesList.scrollDown();
     },
   },
 });
 </script>
 
 <style lang="less" scoped>
-.ai-chat-conversation-wrapper {
+.ai-chat-interface-wrapper {
   position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  max-height: 100%;
 }
 </style>

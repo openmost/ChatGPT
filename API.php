@@ -19,19 +19,33 @@ use Piwik\Piwik;
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getResponse($idSite, $period, $date, $prompt)
+    public function getResponse($idSite, $period, $date, $messages = [])
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
         $chatBasePrompt = $settings->chatBasePrompt->getValue() ?: "You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.";
+        $conversationBase = [
+            [
+                "role" => "system",
+                "name" => "AI",
+                "content" => $chatBasePrompt,
+            ]
+        ];
 
-        return $this->fetchChatGPT("$chatBasePrompt $prompt");
+        return $this->fetchChatGPT(array_merge($conversationBase, $messages));
     }
 
-    public function getInsights($idSite, $period, $date, $reportId)
+    public function getInsights($idSite, $period, $date, $reportId, $messages = [])
     {
         Piwik::checkUserHasSomeViewAccess();
+
+        if(!$reportId){
+            error_log('You must enter a valid reportId');
+        }
+
+        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
+        $insightBasePrompt = $settings->insightBasePrompt->getValue() ?: "Give me insights from the dataset formatted in JSON provided below, add bold style to most important metrics of your answer :";
 
         $data = Request::processRequest($reportId, array(
             'idSite' => $idSite,
@@ -40,13 +54,18 @@ class API extends \Piwik\Plugin\API
             'format' => 'json',
         ));
 
-        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
-        $insightBasePrompt = $settings->insightBasePrompt->getValue() ?: "Give me insights from the dataset formatted in JSON provided below, add bold style to most important metrics of your answer :";
+        $conversationBase = [
+            [
+                "role" => "system",
+                "name" => "AI",
+                "content" => "$insightBasePrompt $data",
+            ]
+        ];
 
-        return $this->fetchChatGPT("$insightBasePrompt $data");
+        return $this->fetchChatGPT(array_merge($conversationBase, $messages));
     }
 
-    private function fetchChatGPT($prompt)
+    private function fetchChatGPT($conversation)
     {
         $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
         $host = $settings->host->getValue();
@@ -65,18 +84,9 @@ class API extends \Piwik\Plugin\API
             error_log('You must enter a valid model');
         }
 
-        if (!$prompt) {
-            error_log('You must enter a valid prompt');
-        }
-
         $data = [
             "model" => $model[0],
-            "messages" => [
-                [
-                    "role" => "user",
-                    "content" => urldecode($prompt)
-                ]
-            ]
+            "messages" => $conversation,
         ];
 
         $headers = [

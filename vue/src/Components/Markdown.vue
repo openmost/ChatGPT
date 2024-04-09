@@ -26,12 +26,12 @@ export default defineComponent({
 .markdown-wrapper {
   font-size: 1rem;
 
-  &:first-child {
-    margin-top: 0;
+  & > :first-child {
+    margin-top: 0 !important;
   }
 
-  &:last-child {
-    margin-bottom: 0;
+  & > :last-child {
+    margin-bottom: 0 !important;
   }
 
   h1, h2, h3, h4, h5, h6 {

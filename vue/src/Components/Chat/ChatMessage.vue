@@ -1,13 +1,13 @@
 <template>
   <li :class="chatResponseClasses">
     <div class="ai-chat-response-avatar">
-      <IconAi v-if="message.author === 'ai'"/>
-      <IconUser v-if="message.author === 'user'"/>
+      <IconAi v-if="message.role === 'assistant'" :ai="ai"/>
+      <IconUser v-if="message.role === 'user'"/>
     </div>
     <div class="ai-chat-response-content-wrapper">
       <span class="ai-chat-response-username">{{ chatAuthorName }}</span>
       <div class="ai-chat-response-body">
-        <Markdown :markdown="message.body"/>
+        <Markdown :markdown="message.content"/>
       </div>
     </div>
   </li>
@@ -30,16 +30,24 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    ai: {
+      type: String,
+      required: true,
+    },
+    primaryColor: {
+      type: String,
+      default: '#3450a3',
+    },
   },
   computed: {
     chatResponseClasses(): Array<string> {
       return [
         'ai-chat-response',
-        `ai-chat-${this.message.author}-response`,
+        `ai-chat-${this.message.role}-response`,
       ];
     },
     chatAuthorName(): string {
-      return this.message.author === 'user' ? 'You' : 'AI';
+      return this.message.role === 'user' ? 'You' : 'AI';
     },
   },
 });
@@ -51,9 +59,9 @@ export default defineComponent({
   display: flex;
   gap: .5rem;
 
-  &.ai-chat-ai-response .ai-chat-response-avatar {
-    background-color: #00A67E;
-    border-color: #00A67E;
+  &.ai-chat-assistant-response .ai-chat-response-avatar {
+    background-color: v-bind(primaryColor);
+    border-color: v-bind(primaryColor);
   }
 
   &.ai-chat-user-response .ai-chat-response-avatar {
@@ -73,6 +81,7 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 4px;
 
     svg {
       width: .875rem;

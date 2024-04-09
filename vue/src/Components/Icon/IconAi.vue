@@ -1,5 +1,5 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="47" height="47" viewBox="0 0 47 47" fill="none">
+  <svg v-if="ai === 'chat-gpt'" xmlns="http://www.w3.org/2000/svg" width="47" height="47" viewBox="0 0 47 47" fill="none">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M18.5904 3.88928C15.0129 4.9812 12.47 7.67654
     12.47 10.3096V22.3736L15.88 24.3425V12.54C15.88 12.0041 16.1659 11.5089 16.6301 11.2409L26.5833
     5.49495C24.5916 3.37408 21.5426 2.98821 18.5904 3.88928ZM29.3485 4.11218C26.4179 0.320005
@@ -24,10 +24,68 @@
      24.5386C9.7559 24.2707 9.47001 23.7755 9.47001 23.2396V11.7495C6.63736 12.4159
      4.77915 14.8624 4.08389 17.8666C3.24131 21.5075 4.30448 25.0587 6.59075 26.381" fill="white"/>
   </svg>
+
+  <svg v-if="ai === 'mistral-ai'" width="256px" height="233px" viewBox="0 0 256 233" version="1.1"
+       xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+    <g>
+      <rect fill="#000000" x="186.181818" y="0" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#F7D046" x="209.454545" y="0" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#000000" x="0" y="0" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#000000" x="0" y="46.5454545" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#000000" x="0" y="93.0909091" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#000000" x="0" y="139.636364" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#000000" x="0" y="186.181818" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#F7D046" x="23.2727273" y="0" width="46.5454545" height="46.5454545"></rect>
+      <rect fill="#F2A73B" x="209.454545" y="46.5454545" width="46.5454545" height="46.5454545">
+
+      </rect>
+      <rect fill="#F2A73B" x="23.2727273" y="46.5454545" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#000000" x="139.636364" y="46.5454545" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#F2A73B" x="162.909091" y="46.5454545" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#F2A73B" x="69.8181818" y="46.5454545" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EE792F" x="116.363636" y="93.0909091" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EE792F" x="162.909091" y="93.0909091" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EE792F" x="69.8181818" y="93.0909091" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#000000" x="93.0909091" y="139.636364" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EB5829" x="116.363636" y="139.636364" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EE792F" x="209.454545" y="93.0909091" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EE792F" x="23.2727273" y="93.0909091" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#000000" x="186.181818" y="139.636364" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EB5829" x="209.454545" y="139.636364" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#000000" x="186.181818" y="186.181818" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EB5829" x="23.2727273" y="139.636364" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EA3326" x="209.454545" y="186.181818" width="46.5454545"
+            height="46.5454545"></rect>
+      <rect fill="#EA3326" x="23.2727273" y="186.181818" width="46.5454545"
+            height="46.5454545"></rect>
+    </g>
+  </svg>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-export default defineComponent({});
+export default defineComponent({
+  props: {
+    ai: {
+      type: String,
+      required: true,
+    },
+  },
+});
 </script>

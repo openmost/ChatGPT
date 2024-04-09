@@ -1,6 +1,6 @@
 <template>
   <div class="ai-chat-form-wrapper">
-    <form class="ai-chat-form" @submit.prevent="onFormSubmit">
+    <form class="ai-chat-form" @submit.prevent="onSubmit">
 
       <div class="ai-chat-form-group">
         <input v-model="prompt"
@@ -24,37 +24,30 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { AjaxHelper } from 'CoreHome';
 
 interface DataState {
   prompt: string;
-  loading: boolean;
 }
 
 export default defineComponent({
+  props: {
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data(): DataState {
     return {
       prompt: '',
-      loading: false,
     };
   },
   methods: {
-    onFormSubmit() {
-      this.$emit('formSubmit', this.prompt);
-      this.loading = true;
-      AjaxHelper
-        .fetch({
-          method: 'ChatGPT.getResponse',
-          prompt: this.prompt,
-        })
-        .then((response) => {
-          this.prompt = '';
-          this.$emit('success', response.choices[0].message.content);
-        })
-        .catch((error) => this.$emit('error', error))
-        .finally(() => {
-          this.loading = false;
-        });
+    onSubmit() {
+      this.$emit('prompt', {
+        role: 'user',
+        content: this.prompt,
+      });
+      this.prompt = '';
     },
   },
 });
@@ -62,17 +55,14 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .ai-chat-form-wrapper {
-  z-index: 1;
-  position: fixed;
+  position: absolute;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
   width: 100%;
-  padding: 1.5rem;
 
   .ai-chat-form {
     background-color: #eff0f1;
-    box-shadow: 0 0 80px 5px #eff0f1;
     margin-left: auto;
     margin-right: auto;
     max-width: 800px;
