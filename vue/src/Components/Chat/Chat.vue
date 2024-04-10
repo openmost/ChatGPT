@@ -5,10 +5,10 @@
       :loading="loading"
       :errored="errored"
       :messages="messages"
-      :ai="ai"
-      :primary-color="primaryColor"
+      :ai-name="aiName"
+      :ai-color="aiColor"
     />
-    <ChatForm :loading="loading" @prompt="onSubmit"/>
+    <ChatForm :loading="loading" :ai-label="aiLabel" @prompt="onSubmit"/>
   </div>
 </template>
 
@@ -28,11 +28,15 @@ export default defineComponent({
     ChatForm,
   },
   props: {
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiLabel: {
+      type: String,
+      required: true,
+    },
+    aiColor: {
       type: String,
       default: '#3450a3',
     },

@@ -6,12 +6,16 @@
         v-for="(message, index) in messages"
         :message="message"
         :key="index"
-        :ai="ai"
-        :primary-color="primaryColor"
+        :ai-name="aiName"
+        :ai-color="aiColor"
       />
     </ul>
 
-    <ChatLoading v-if="loading && !errored" :ai="ai" :primary-color="primaryColor"/>
+    <ChatLoading
+      v-if="loading && !errored"
+      :ai-name="aiName"
+      :ai-color="aiColor"
+    />
     <Alert v-if="errored" severity="danger">Ooops, AI have encountered an error.</Alert>
   </div>
 </template>
@@ -42,11 +46,11 @@ export default defineComponent({
       type: Array,
       default: () => [],
     },
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiColor: {
       type: String,
       default: '#3450a3',
     },

@@ -5,16 +5,16 @@
   </div>
 </template>
 
-<script lang="ts" scoped>
+<script lang="ts">
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiColor: {
       type: String,
       default: '#3450a3',
     },
@@ -34,7 +34,7 @@ export default defineComponent({
 .ai-chat-spinner {
   width: 22px;
   height: 22px;
-  border: 4px solid v-bind(primaryColor);
+  border: 4px solid v-bind(aiColor);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;

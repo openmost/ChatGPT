@@ -9,8 +9,9 @@ window.addEventListener("widget:loaded", function (e) {
   insightTrigger.classList.add("ai-chat-insight-trigger-vue-wrapper");
   insightTrigger.setAttribute("vue-entry", "ChatGPT.InsightTrigger");
   insightTrigger.setAttribute("report-id", reportId);
-  insightTrigger.setAttribute("ai", "chat-gpt");
-  insightTrigger.setAttribute("primary-color", "#00A67E");
+  insightTrigger.setAttribute("ai-name", "chat-gpt");
+  insightTrigger.setAttribute("ai-label", "ChatGPT");
+  insightTrigger.setAttribute("ai-color", "#00A67E");
   titleWrapper.append(insightTrigger);
 
   piwikHelper.compileVueEntryComponents(insightTrigger);

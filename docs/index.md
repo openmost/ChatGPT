@@ -32,6 +32,8 @@ Now you tried and love this plugin, don't hesitate to share the good news !
 
 You can use this plugin via API with two endpoints :
 
-`ChatGPT.getResponse` with parameters `$idSite`, `$period`, `$date`, `$prompt`
+`ChatGPT.getResponse` with parameters `$idSite`, `$period`, `$date`, `$messages`
 
-`ChatGPT.getInsights` with parameters `$idSite`, `$period`, `$date`, `$reportId`
+`ChatGPT.getInsights` with parameters `$idSite`, `$period`, `$date`, `$reportId`, `$messages`
+
+Where `$messages` is in the ChatGPT conversation format.

@@ -5,10 +5,10 @@
       <div class="ai-chat-form-group">
         <input v-model="prompt"
                type="text"
-               name="chatgpt-prompt"
+               name="ai-chat-prompt"
                id="ai-chat-prompt"
-               placeholder="Message ChatGPT..."
-               aria-label="ChatGPT Prompt"
+               :placeholder="`Message ${aiLabel}...`"
+               :aria-label="`Message ${aiLabel}...`"
                minlength="1"
                required
                autofocus
@@ -31,6 +31,10 @@ interface DataState {
 
 export default defineComponent({
   props: {
+    aiLabel: {
+      type: String,
+      required: true,
+    },
     loading: {
       type: Boolean,
       default: false,

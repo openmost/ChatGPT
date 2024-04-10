@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.1.2
+
+Fix: Chat form placeholder IA name
+
 ### 5.1.1
 
 Update : Pass all params as PostParams in AjaxHelper function

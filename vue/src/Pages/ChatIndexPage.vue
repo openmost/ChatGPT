@@ -5,8 +5,9 @@
       :loading="loading"
       :errored="errored"
       :messages="messages"
-      :ai="ai"
-      :primary-color="primaryColor"
+      :ai-name="aiName"
+      :ai-label="aiLabel"
+      :ai-color="aiColor"
       @prompt="onSubmit"
     />
   </div>
@@ -27,11 +28,15 @@ export default defineComponent({
     Chat,
   },
   props: {
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiLabel: {
+      type: String,
+      required: true,
+    },
+    aiColor: {
       type: String,
       default: '#3450a3',
     },

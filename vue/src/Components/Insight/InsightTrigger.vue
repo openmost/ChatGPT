@@ -8,8 +8,9 @@
       ref="offCanvas"
       :display-offcanvas="displayOffcanvas"
       :report-id="reportId"
-      :ai="ai"
-      :primary-color="primaryColor"
+      :ai-name="aiName"
+      :ai-label="aiLabel"
+      :ai-color="aiColor"
       @close="onClose"/>
 
   </div>
@@ -30,11 +31,15 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiLabel: {
+      type: String,
+      required: true,
+    },
+    aiColor: {
       type: String,
       default: '#3450a3',
     },
@@ -62,8 +67,8 @@ export default defineComponent({
   padding: 0;
   cursor: pointer;
   float: right;
-  border: 1px solid v-bind(primaryColor);
-  color: v-bind(primaryColor);
+  border: 1px solid v-bind(aiColor);
+  color: v-bind(aiColor);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,7 +80,7 @@ export default defineComponent({
   &:hover,
   &:focus {
     color: #fff;
-    background-color: v-bind(primaryColor);
+    background-color: v-bind(aiColor);
   }
 
   svg {

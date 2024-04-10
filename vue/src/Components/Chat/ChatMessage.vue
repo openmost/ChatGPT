@@ -1,7 +1,7 @@
 <template>
   <li :class="chatResponseClasses">
     <div class="ai-chat-response-avatar">
-      <IconAi v-if="message.role === 'assistant'" :ai="ai"/>
+      <IconAi v-if="message.role === 'assistant'" :aiName="aiName"/>
       <IconUser v-if="message.role === 'user'"/>
     </div>
     <div class="ai-chat-response-content-wrapper">
@@ -30,11 +30,11 @@ export default defineComponent({
       type: Object,
       required: true,
     },
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiColor: {
       type: String,
       default: '#3450a3',
     },
@@ -60,8 +60,8 @@ export default defineComponent({
   gap: .5rem;
 
   &.ai-chat-assistant-response .ai-chat-response-avatar {
-    background-color: v-bind(primaryColor);
-    border-color: v-bind(primaryColor);
+    background-color: v-bind(aiColor);
+    border-color: v-bind(aiColor);
   }
 
   &.ai-chat-user-response .ai-chat-response-avatar {

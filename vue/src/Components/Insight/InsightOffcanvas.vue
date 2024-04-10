@@ -18,8 +18,9 @@
         :loading="loading"
         :errored="errored"
         :messages="messages"
-        :ai="ai"
-        :primary-color="primaryColor"
+        :ai-name="aiName"
+        :ai-label="aiLabel"
+        :ai-color="aiColor"
         @prompt="onSubmit"
       />
 
@@ -33,11 +34,6 @@ import { defineComponent } from 'vue';
 import IconMagic from '../Icon/IconMagic.vue';
 import IconClose from '../Icon/IconClose.vue';
 import Chat from '../Chat/Chat.vue';
-
-interface MessageState {
-  role: string,
-  content: string,
-}
 
 export default defineComponent({
   components: {
@@ -54,11 +50,15 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    ai: {
+    aiName: {
       type: String,
       required: true,
     },
-    primaryColor: {
+    aiLabel: {
+      type: String,
+      required: true,
+    },
+    aiColor: {
       type: String,
       default: '#3450a3',
     },
