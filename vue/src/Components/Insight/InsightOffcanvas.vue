@@ -12,18 +12,14 @@
       </div>
     </div>
     <div class="ai-chat-insight-offcanvas-body">
-
       <Chat
         ref="chat"
-        :loading="loading"
-        :errored="errored"
-        :messages="messages"
         :ai-name="aiName"
         :ai-label="aiLabel"
         :ai-color="aiColor"
-        @prompt="onSubmit"
+        :api-method="apiMethod"
+        :report-id="reportId"
       />
-
     </div>
   </div>
 </template>
@@ -86,34 +82,8 @@ export default defineComponent({
     onClose() {
       this.$emit('close');
     },
-    onSubmit(userPrompt = null) {
-      this.loading = true;
-      if (userPrompt !== null) {
-        this.messages.push(userPrompt);
-      }
-      // eslint-disable-next-line
-      (this.$refs.chat as any).scrollDown() ;
-      AjaxHelper
-        .fetch({
-          method: this.apiMethod,
-        }, {
-          postParams: {
-            reportId: this.reportId,
-            messages: this.messages,
-          },
-        })
-        .then((response) => {
-          if (response.choices && response.choices.length > 0) {
-            this.messages.push(response.choices[0].message);
-          }
-        })
-        .catch(() => {
-          this.errored = true;
-        })
-        .finally(() => {
-          this.loading = false;
-          this.$refs.chat.scrollDown();
-        });
+    onSubmit() {
+      this.$refs.chat.onSubmit();
     },
   },
 });

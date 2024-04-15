@@ -14,6 +14,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { AjaxHelper } from 'CoreHome';
 import ChatForm from './ChatForm.vue';
 import ChatMessagesList from './ChatMessagesList.vue';
 
@@ -40,22 +41,53 @@ export default defineComponent({
       type: String,
       default: '#3450a3',
     },
-    errored: {
-      type: Boolean,
-      default: false,
+    apiMethod: {
+      type: String,
+      required: true,
     },
-    loading: {
-      type: Boolean,
-      default: false,
+    reportId: {
+      type: String,
+      default: '',
     },
-    messages: {
-      type: Array,
-      default: () => [],
-    },
+  },
+  data() {
+    return {
+      loading: false,
+      errored: false,
+      messages: [],
+    };
   },
   methods: {
     onSubmit(userPrompt: MessageState) {
-      this.$emit('prompt', userPrompt);
+      this.loading = true;
+      if (userPrompt) {
+        this.messages.push(userPrompt);
+      }
+      this.scrollDown();
+      AjaxHelper
+        .fetch({
+          method: this.apiMethod,
+          reportId: this.reportId,
+        }, {
+          postParams: {
+            messages: this.messages,
+          },
+        })
+        .then((response) => {
+          if (response.choices && response.choices.length > 0) {
+            this.messages.push({
+              role: response.choices[0].message.role,
+              content: response.choices[0].message.content,
+            });
+          }
+        })
+        .catch(() => {
+          this.errored = true;
+        })
+        .finally(() => {
+          this.loading = false;
+          this.scrollDown();
+        });
     },
     scrollDown() {
       this.$refs.messagesList.scrollDown();

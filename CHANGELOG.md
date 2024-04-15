@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.2.2
+
+Update: Refactor Chat.vue component with AJAX Helper
+
 ### 5.2.1
 
 Update: API method name in js file
