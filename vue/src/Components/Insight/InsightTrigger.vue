@@ -11,6 +11,7 @@
       :ai-name="aiName"
       :ai-label="aiLabel"
       :ai-color="aiColor"
+      :api-method="apiMethod"
       @close="onClose"/>
 
   </div>
@@ -42,6 +43,10 @@ export default defineComponent({
     aiColor: {
       type: String,
       default: '#3450a3',
+    },
+    apiMethod: {
+      type: String,
+      required: true,
     },
   },
   data() {

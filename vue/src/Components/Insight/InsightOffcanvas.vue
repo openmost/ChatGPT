@@ -62,6 +62,10 @@ export default defineComponent({
       type: String,
       default: '#3450a3',
     },
+    apiMethod: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -91,7 +95,7 @@ export default defineComponent({
       (this.$refs.chat as any).scrollDown() ;
       AjaxHelper
         .fetch({
-          method: 'ChatGPT.getInsights',
+          method: this.apiMethod,
         }, {
           postParams: {
             reportId: this.reportId,

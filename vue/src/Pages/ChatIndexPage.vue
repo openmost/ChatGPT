@@ -40,6 +40,10 @@ export default defineComponent({
       type: String,
       default: '#3450a3',
     },
+    apiMethod: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -57,7 +61,7 @@ export default defineComponent({
       this.$refs.chat.scrollDown();
       AjaxHelper
         .fetch({
-          method: 'ChatGPT.getResponse',
+          method: this.apiMethod,
         }, {
           postParams: {
             messages: this.messages,

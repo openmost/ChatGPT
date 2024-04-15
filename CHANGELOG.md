@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.2.1
+
+Update: API method name in js file
+
 ### 5.2.0
 
 Add : Measurable settings with override system settings ability
