@@ -1,7 +1,7 @@
 {
     "name": "ChatGPT",
     "description": "ChatGPT support for Matomo",
-    "version": "5.1.2",
+    "version": "5.2.0",
     "theme": false,
     "require": {
         "matomo": ">=5.0.0,<6.0.0-b1"
@@ -18,7 +18,7 @@
         "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
         "source": "https:\/\/github.com\/openmost\/ChatGPT"
     },
-    "homepage": "https://openmost.io/products/chatgpt/",
+    "homepage": "https:\/\/openmost.io\/products\/chatgpt\/",
     "license": "GPL v3+",
     "keywords": [
         "chatgpt",

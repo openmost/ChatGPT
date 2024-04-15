@@ -1,5 +1,10 @@
 ## Changelog
 
+### 5.2.0
+
+Add : Measurable settings with override system settings ability
+Add : API Call logger info
+
 ### 5.1.2
 
 Fix: Chat form placeholder IA name

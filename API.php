@@ -10,7 +10,9 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\API\Request;
+use Piwik\Common;
 use Piwik\Piwik;
+use Piwik\Plugins\LogViewer\Log\Log;
 
 /**
  * API for plugin ChatGPT
@@ -19,12 +21,21 @@ use Piwik\Piwik;
  */
 class API extends \Piwik\Plugin\API
 {
+    private $logger;
+
+    public function __construct(\Piwik\Log\LoggerInterface $logger) {
+        $this->logger = $logger;
+    }
+
     public function getResponse($idSite, $period, $date, $messages = [])
     {
         Piwik::checkUserHasSomeViewAccess();
 
-        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
-        $chatBasePrompt = $settings->chatBasePrompt->getValue() ?: "You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.";
+        $idSite = Common::getRequestVar('idSite');
+        $systemSettings = new SystemSettings();
+        $measurableSettings = new MeasurableSettings($idSite);
+        $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
+
         $conversationBase = [
             [
                 "role" => "system",
@@ -33,7 +44,7 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchChatGPT(array_merge($conversationBase, $messages));
+        return $this->fetchModelAi(array_merge($conversationBase, $messages));
     }
 
     public function getInsights($idSite, $period, $date, $reportId, $messages = [])
@@ -44,8 +55,10 @@ class API extends \Piwik\Plugin\API
             error_log('You must enter a valid reportId');
         }
 
-        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
-        $insightBasePrompt = $settings->insightBasePrompt->getValue() ?: "Give me insights from the dataset formatted in JSON provided below, add bold style to most important metrics of your answer :";
+        $idSite = Common::getRequestVar('idSite');
+        $systemSettings = new SystemSettings();
+        $measurableSettings = new MeasurableSettings($idSite);
+        $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
 
         $data = Request::processRequest($reportId, array(
             'idSite' => $idSite,
@@ -62,15 +75,21 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchChatGPT(array_merge($conversationBase, $messages));
+        return $this->fetchModelAi(array_merge($conversationBase, $messages));
     }
 
-    private function fetchChatGPT($conversation)
+    private function fetchModelAi($conversation)
     {
-        $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
-        $host = $settings->host->getValue();
-        $api_key = $settings->apiKey->getValue();
-        $model = $settings->model->getValue();
+        $idSite = Common::getRequestVar('idSite');
+        $systemSettings = new SystemSettings();
+        $measurableSettings = new MeasurableSettings($idSite);
+
+        $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
+        $api_key = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
+        $model = $systemSettings->model->getValue();
+        if(is_array($measurableSettings->model->getValue()) && count($measurableSettings->model->getValue()) && $measurableSettings->model->getValue()[0]){
+            $model = $measurableSettings->model->getValue();
+        }
 
         if (!$host) {
             error_log('You must enter a valid host');
@@ -103,6 +122,7 @@ class API extends \Piwik\Plugin\API
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // Send data as JSON
         $response = curl_exec($ch);
+        $this->logger->info('Data provided to ChatGPT API: ' . json_encode($data));
 
         if (!$response) {
             error_log('An error occurred with the request');
