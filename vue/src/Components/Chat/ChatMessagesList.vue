@@ -1,6 +1,5 @@
 <template>
   <div ref="conversationWrapper" class="ai-chat-conversation-wrapper">
-
     <ul class="ai-chat-conversation" v-if="messages.length">
       <ChatMessage
         v-for="(message, index) in messages"
@@ -10,13 +9,12 @@
         :ai-color="aiColor"
       />
     </ul>
-
     <ChatLoading
       v-if="loading && !errored"
       :ai-name="aiName"
       :ai-color="aiColor"
     />
-    <Alert v-if="errored" severity="danger">Ooops, AI have encountered an error.</Alert>
+    <Alert v-if="errored" severity="danger">{{ errorMessage }}</Alert>
   </div>
 </template>
 
@@ -37,6 +35,10 @@ export default defineComponent({
     errored: {
       type: Boolean,
       default: false,
+    },
+    errorMessage: {
+      type: String,
+      default: 'Ooops, AI have encountered an error.',
     },
     loading: {
       type: Boolean,

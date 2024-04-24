@@ -51,6 +51,8 @@ export default defineComponent({
   .ai-chat-form-wrapper {
     position: fixed;
     bottom: 20px;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 </style>

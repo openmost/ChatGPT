@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.2.3
+
+Update: Handle error message in chat response
+
 ### 5.2.2
 
 Update: Refactor Chat.vue component with AJAX Helper

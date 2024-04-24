@@ -4,6 +4,7 @@
       ref="messagesList"
       :loading="loading"
       :errored="errored"
+      :error-message="errorMessage"
       :messages="messages"
       :ai-name="aiName"
       :ai-color="aiColor"
@@ -54,6 +55,7 @@ export default defineComponent({
     return {
       loading: false,
       errored: false,
+      errorMessage: '',
       messages: [],
     };
   },
@@ -74,6 +76,9 @@ export default defineComponent({
           },
         })
         .then((response) => {
+          if (response.error) {
+            this.handleError(response.error.message);
+          }
           if (response.choices && response.choices.length > 0) {
             this.messages.push({
               role: response.choices[0].message.role,
@@ -81,8 +86,8 @@ export default defineComponent({
             });
           }
         })
-        .catch(() => {
-          this.errored = true;
+        .catch((error) => {
+          this.handleError(error);
         })
         .finally(() => {
           this.loading = false;
@@ -91,6 +96,11 @@ export default defineComponent({
     },
     scrollDown() {
       this.$refs.messagesList.scrollDown();
+    },
+    handleError(error) {
+      this.errored = true;
+      this.errorMessage = error;
+      console.error(error);
     },
   },
 });
