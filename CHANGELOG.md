@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.2.4
+
+Update: Support gpt-4-turbo and gpt-4o
+
 ### 5.2.3
 
 Update: Handle error message in chat response
