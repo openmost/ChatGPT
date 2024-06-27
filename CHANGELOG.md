@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.2.5
+
+Update : plugin category and _cover.png
+
 ### 5.2.4
 
 Update: Support gpt-4-turbo and gpt-4o
