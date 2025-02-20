@@ -66,10 +66,12 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
             $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
             $field->description = 'Select the model you want to use';
             $field->availableValues = array(
-                'gpt-3.5-turbo' => 'GPT 3.5 turbo',
+                'o1-mini' => 'o1 mini',
+                'gpt-4o' => 'GPT 4o',
+                'gpt-4o-mini' => 'GPT 4o mini',
                 'gpt-4' => 'GPT 4',
                 'gpt-4-turbo' => 'GPT 4 Turbo',
-                'gpt-4o' => 'GPT 4o',
+                'gpt-3.5-turbo' => 'GPT 3.5 turbo',
             );
             $field->validators[] = new NotEmpty();
         });

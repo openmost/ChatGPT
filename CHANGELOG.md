@@ -1,5 +1,12 @@
 ## Changelog
 
+### 5.3.0
+
+Update: ChatGPT models list:
+
+- o1-mini
+- gpt-4o-mini
+
 ### 5.2.5
 
 Update : plugin category and _cover.png
