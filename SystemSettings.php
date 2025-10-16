@@ -25,7 +25,8 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     /** @var Setting */
     public $host;
     public $apiKey;
-    public $model;
+    public $modelPreset;
+    public $modelCustom;
     public $chatBasePrompt;
     public $insightBasePrompt;
 
@@ -34,7 +35,8 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
         // System setting --> allows selection of a single value
         $this->host = $this->createHostSetting();
         $this->apiKey = $this->createApiKeySetting();
-        $this->model = $this->createModelSetting();
+        $this->modelPreset = $this->createModelSetting();
+        $this->modelCustom = $this->createModelCustomSetting();
         $this->chatBasePrompt = $this->createChatBasePromptSetting();
         $this->insightBasePrompt = $this->createInsightBasePromptSetting();
     }
@@ -64,7 +66,7 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
         return $this->makeSetting('model', $default = 'gpt-3.5-turbo', FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
             $field->title = 'Model';
             $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
-            $field->description = 'Select the model you want to use';
+            $field->description = 'Select the model you want to use v2';
             $field->availableValues = array(
                 'o1-mini' => 'o1 mini',
                 'gpt-4o' => 'GPT 4o',
@@ -73,6 +75,16 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
                 'gpt-4-turbo' => 'GPT 4 Turbo',
                 'gpt-3.5-turbo' => 'GPT 3.5 turbo',
             );
+            $field->validators[] = new NotEmpty();
+        });
+    }
+
+    private function createModelCustomSetting()
+    {
+        return $this->makeSetting('modelCustom', $default = '', FieldConfig::TYPE_STRING, function (FieldConfig $field) {
+            $field->title = 'Custom Model';
+            $field->uiControl = FieldConfig::UI_CONTROL_TEXT;
+            $field->description = 'Enter a custom model name.';
             $field->validators[] = new NotEmpty();
         });
     }

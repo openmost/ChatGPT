@@ -26,7 +26,8 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
     /** @var Setting */
     public $host;
     public $apiKey;
-    public $model;
+    public $modelCustom;
+    public $modelPreset;
     public $chatBasePrompt;
     public $insightBasePrompt;
 
@@ -35,7 +36,8 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
         // System setting --> allows selection of a single value
         $this->host = $this->createHostSetting();
         $this->apiKey = $this->createApiKeySetting();
-        $this->model = $this->createModelSetting();
+        $this->modelPreset = $this->createModelSetting();
+        $this->modelCustom = $this->createModelCustomSetting();
         $this->chatBasePrompt = $this->createChatBasePromptSetting();
         $this->insightBasePrompt = $this->createInsightBasePromptSetting();
     }
@@ -73,6 +75,16 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
                 'gpt-4-turbo' => 'GPT 4 Turbo',
                 'gpt-3.5-turbo' => 'GPT 3.5 turbo',
             );
+        });
+    }
+
+    private function createModelCustomSetting()
+    {
+        return $this->makeSetting('modelCustom', $default = '', FieldConfig::TYPE_STRING, function (FieldConfig $field) {
+            $field->title = 'Custom Model';
+            $field->uiControl = FieldConfig::UI_CONTROL_TEXT;
+            $field->description = 'Enter a custom model name.';
+            $field->validators[] = new NotEmpty();
         });
     }
 

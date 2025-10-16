@@ -86,10 +86,9 @@ class API extends \Piwik\Plugin\API
 
         $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
         $api_key = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
-        $model = $systemSettings->model->getValue();
-        if(is_array($measurableSettings->model->getValue()) && count($measurableSettings->model->getValue()) && $measurableSettings->model->getValue()[0]){
-            $model = $measurableSettings->model->getValue();
-        }
+        $modelCustom = $systemSettings->modelCustom->getValue();
+        $modelPreset = $systemSettings->modelPreset->getValue();
+        $model = !empty($modelCustom) ? $modelCustom : $modelPreset;
 
         if (!$host) {
             error_log('You must enter a valid host');
@@ -104,7 +103,7 @@ class API extends \Piwik\Plugin\API
         }
 
         $data = [
-            "model" => $model[0],
+            "model" => $model,
             "messages" => $conversation,
         ];
 

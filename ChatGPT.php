@@ -38,8 +38,9 @@ class ChatGPT extends \Piwik\Plugin
         $settings = new \Piwik\Plugins\ChatGPT\SystemSettings();
         $host = $settings->host->getValue();
         $apiKey = $settings->apiKey->getValue();
-        $model = $settings->model->getValue();
-
+        $modelCustom = $settings->modelCustom->getValue();
+        $modelPreset = $settings->modelPreset->getValue();
+        $model = !empty($modelCustom) ? $modelCustom : $modelPreset;
         return $host && $apiKey && $model;
     }
 }
