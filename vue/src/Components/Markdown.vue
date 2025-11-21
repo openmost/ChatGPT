@@ -1,12 +1,101 @@
 <template>
-  <div class="markdown-wrapper" v-html="markdownToHtml"></div>
+  <div class="markdown-wrapper" v-html="sanitizedHtml"></div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Converter } from 'showdown';
 
-const converter = new Converter();
+const converter = new Converter({
+  headerLevelStart: 3,
+  simplifiedAutoLink: true,
+  excludeTrailingPunctuationFromURLs: true,
+  strikethrough: true,
+  tables: true,
+  tasklists: true,
+  disableForced4SpacesIndentedSublists: true,
+});
+
+/**
+ * Sanitizes HTML to prevent XSS attacks
+ * Allows only safe HTML tags and attributes
+ */
+function sanitizeHtml(html: string): string {
+  if (!html) {
+    return '';
+  }
+
+  const allowedTags = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr',
+    'ul', 'ol', 'li',
+    'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
+    'a', 'code', 'pre', 'blockquote',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'input', // for tasklists
+  ];
+
+  const allowedAttributes: Record<string, string[]> = {
+    a: ['href', 'title', 'target', 'rel'],
+    input: ['type', 'checked', 'disabled'],
+    th: ['align'],
+    td: ['align'],
+  };
+
+  // Create a temporary div to parse HTML safely
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+
+  function sanitizeNode(node: Node): void {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      const tagName = element.tagName.toLowerCase();
+
+      if (!allowedTags.includes(tagName)) {
+        // Replace disallowed element with its text content
+        const text = document.createTextNode(element.textContent || '');
+        element.parentNode?.replaceChild(text, element);
+        return;
+      }
+
+      // Remove disallowed attributes
+      const attrs = Array.from(element.attributes);
+      for (const attr of attrs) {
+        const allowedAttrs = allowedAttributes[tagName] || [];
+        if (!allowedAttrs.includes(attr.name)) {
+          element.removeAttribute(attr.name);
+        }
+      }
+
+      // Sanitize href attributes to prevent javascript: URLs
+      if (tagName === 'a') {
+        const href = element.getAttribute('href');
+        if (href && (href.toLowerCase().startsWith('javascript:') || href.toLowerCase().startsWith('data:'))) {
+          element.setAttribute('href', '#');
+        }
+        // Add security attributes for external links
+        element.setAttribute('rel', 'noopener noreferrer');
+      }
+
+      // Only allow checkbox inputs for tasklists
+      if (tagName === 'input') {
+        const type = element.getAttribute('type');
+        if (type !== 'checkbox') {
+          element.parentNode?.removeChild(element);
+          return;
+        }
+        element.setAttribute('disabled', 'disabled');
+      }
+
+      // Recursively sanitize children
+      Array.from(element.childNodes).forEach(sanitizeNode);
+    }
+  }
+
+  Array.from(tempDiv.childNodes).forEach(sanitizeNode);
+  return tempDiv.innerHTML;
+}
+
 export default defineComponent({
   props: {
     markdown: {
@@ -15,8 +104,9 @@ export default defineComponent({
     },
   },
   computed: {
-    markdownToHtml(): string {
-      return converter.makeHtml(this.markdown);
+    sanitizedHtml(): string {
+      const rawHtml = converter.makeHtml(this.markdown);
+      return sanitizeHtml(rawHtml);
     },
   },
 });

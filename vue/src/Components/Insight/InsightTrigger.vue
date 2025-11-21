@@ -1,13 +1,13 @@
 <template>
   <div>
-    <button class="ai-chat-insight-trigger-button" @click="onClick">
-      <IconMagic/>
+    <button class="ai-chat-insight-trigger-button" @click="onClick" :title="`Ask ${aiLabel} a question about this report`">
+      <IconAi :ai-name="aiName"/>
     </button>
 
     <InsightOffcanvas
       ref="offCanvas"
       :display-offcanvas="displayOffcanvas"
-      :report-id="reportId"
+      :widget-params="widgetParams"
       :ai-name="aiName"
       :ai-label="aiLabel"
       :ai-color="aiColor"
@@ -21,15 +21,17 @@
 import { defineComponent } from 'vue';
 import InsightOffcanvas from './InsightOffcanvas.vue';
 import IconMagic from '../Icon/IconMagic.vue';
+import IconAi from "../Icon/IconAi.vue";
 
 export default defineComponent({
   components: {
+    IconAi,
     InsightOffcanvas,
     IconMagic,
   },
   props: {
-    reportId: {
-      type: String,
+    widgetParams: {
+      type: Object,
       required: true,
     },
     aiName: {
@@ -69,7 +71,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .ai-chat-insight-trigger-button {
   background-color: transparent;
-  padding: 0;
+  padding: 3px;
   cursor: pointer;
   float: right;
   border: 1px solid v-bind(aiColor);

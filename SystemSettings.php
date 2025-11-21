@@ -61,20 +61,92 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 
     private function createModelSetting()
     {
-        return $this->makeSetting('model', $default = 'gpt-3.5-turbo', FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
+        return $this->makeSetting('model', $default = '', FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
             $field->title = 'Model';
             $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
-            $field->description = 'Select the model you want to use';
-            $field->availableValues = array(
-                'o1-mini' => 'o1 mini',
-                'gpt-4o' => 'GPT 4o',
-                'gpt-4o-mini' => 'GPT 4o mini',
-                'gpt-4' => 'GPT 4',
-                'gpt-4-turbo' => 'GPT 4 Turbo',
-                'gpt-3.5-turbo' => 'GPT 3.5 turbo',
-            );
+            $field->description = 'Select the model you want to use. Models are fetched dynamically from the API when Host and API Key are configured.';
+            $field->availableValues = $this->getAvailableModelsForSetting();
             $field->validators[] = new NotEmpty();
         });
+    }
+
+    /**
+     * Récupère les modèles disponibles depuis l'API ou retourne les valeurs par défaut
+     */
+    private function getAvailableModelsForSetting()
+    {
+        // Liste par défaut si l'API n'est pas disponible
+        $defaultModels = array(
+            'o1-mini' => 'o1 mini',
+            'o1' => 'o1',
+            'gpt-4o' => 'GPT 4o',
+            'gpt-4o-mini' => 'GPT 4o mini',
+            'gpt-4' => 'GPT 4',
+            'gpt-4-turbo' => 'GPT 4 Turbo',
+            'gpt-3.5-turbo' => 'GPT 3.5 turbo',
+        );
+
+        try {
+            // Essayer de récupérer les valeurs sauvegardées pour host et apiKey
+            $host = $this->host->getValue();
+            $apiKey = $this->apiKey->getValue();
+
+            if (empty($host) || empty($apiKey)) {
+                return $defaultModels;
+            }
+
+            // Construire l'URL pour l'endpoint /models
+            $baseUrl = preg_replace('#/v1/.*$#', '/v1', $host);
+            $modelsUrl = $baseUrl . '/models';
+
+            $headers = [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ];
+
+            $ch = curl_init($modelsUrl);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if (!$response || $httpCode !== 200) {
+                return $defaultModels;
+            }
+
+            $data = json_decode($response, true);
+
+            if (!isset($data['data']) || !is_array($data['data'])) {
+                return $defaultModels;
+            }
+
+            // Filtrer et trier les modèles (garder seulement les modèles de chat/completion)
+            $models = [];
+            foreach ($data['data'] as $model) {
+                $modelId = $model['id'];
+                // Filtrer les modèles pertinents pour le chat
+                if (preg_match('/^(gpt|o1|o3|chatgpt)/i', $modelId)) {
+                    $models[$modelId] = $modelId;
+                }
+            }
+
+            if (empty($models)) {
+                return $defaultModels;
+            }
+
+            // Trier par nom
+            ksort($models);
+
+            return $models;
+        } catch (\Exception $e) {
+            return $defaultModels;
+        }
     }
 
     private function createChatBasePromptSetting()

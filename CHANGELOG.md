@@ -1,5 +1,13 @@
 ## Changelog
 
+### 5.4.0
+
+update: trigger icon
+Auto update model listing
+fix: Evolution graph errors
+fix:IL  Custom reports error
+fix: Custom dimensions errors
+
 ### 5.3.0
 
 Update: ChatGPT models list:

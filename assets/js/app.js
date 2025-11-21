@@ -1,18 +1,20 @@
-window.addEventListener("widget:loaded", function (e) {
-  let parameters = e.detail[0].parameters;
-  let element = e.detail[0].element[0];
-  let reportId = parameters.module + "." + parameters.action;
+window.addEventListener('widget:loaded', function (e) {
+  var parameters = e.detail[0].parameters;
+  var element = e.detail[0].element[0];
+  var titleWrapper = element.querySelector('.enrichedHeadline');
 
-  let titleWrapper = element.querySelector(".enrichedHeadline");
+  if (!titleWrapper) {
+    return;
+  }
 
-  let insightTrigger = document.createElement("div");
-  insightTrigger.classList.add("ai-chat-insight-trigger-vue-wrapper");
-  insightTrigger.setAttribute("vue-entry", "ChatGPT.InsightTrigger");
-  insightTrigger.setAttribute("report-id", reportId);
-  insightTrigger.setAttribute("ai-name", "chat-gpt");
-  insightTrigger.setAttribute("ai-label", "ChatGPT");
-  insightTrigger.setAttribute("ai-color", "#00A67E");
-  insightTrigger.setAttribute("api-method", "ChatGPT.getInsights");
+  var insightTrigger = document.createElement('div');
+  insightTrigger.classList.add('ai-chat-insight-trigger-vue-wrapper');
+  insightTrigger.setAttribute('vue-entry', 'ChatGPT.InsightTrigger');
+  insightTrigger.setAttribute('widget-params', JSON.stringify(parameters));
+  insightTrigger.setAttribute('ai-name', 'chat-gpt');
+  insightTrigger.setAttribute('ai-label', 'ChatGPT');
+  insightTrigger.setAttribute('ai-color', '#00A67E');
+  insightTrigger.setAttribute('api-method', 'ChatGPT.getInsights');
   titleWrapper.append(insightTrigger);
 
   piwikHelper.compileVueEntryComponents(insightTrigger);

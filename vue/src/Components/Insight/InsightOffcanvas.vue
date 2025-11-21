@@ -18,7 +18,7 @@
         :ai-label="aiLabel"
         :ai-color="aiColor"
         :api-method="apiMethod"
-        :report-id="reportId"
+        :widget-params="widgetParams"
       />
     </div>
   </div>
@@ -42,8 +42,8 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    reportId: {
-      type: String,
+    widgetParams: {
+      type: Object,
       required: true,
     },
     aiName: {

@@ -46,9 +46,9 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    reportId: {
-      type: String,
-      default: '',
+    widgetParams: {
+      type: Object,
+      default: () => ({}),
     },
   },
   data() {
@@ -62,45 +62,72 @@ export default defineComponent({
   methods: {
     onSubmit(userPrompt: MessageState) {
       this.loading = true;
+      this.errored = false;
+      this.errorMessage = '';
+
       if (userPrompt) {
         this.messages.push(userPrompt);
       }
       this.scrollDown();
+
       AjaxHelper
         .fetch({
           method: this.apiMethod,
-          reportId: this.reportId,
         }, {
           postParams: {
             messages: this.messages,
+            widgetParams: this.widgetParams,
           },
         })
         .then((response) => {
-          if (response.error) {
-            this.handleError(response.error.message);
+          if (!response || typeof response !== 'object') {
+            this.handleError('Invalid response from server');
+            return;
           }
-          if (response.choices && response.choices.length > 0) {
+
+          if (response.error) {
+            const errorMsg = response.error.message || 'An error occurred';
+            this.handleError(errorMsg);
+            return;
+          }
+
+          if (this.isValidResponse(response)) {
+            const message = response.choices[0].message;
             this.messages.push({
-              role: response.choices[0].message.role,
-              content: response.choices[0].message.content,
+              role: String(message.role || 'assistant'),
+              content: String(message.content || ''),
             });
           }
         })
         .catch((error) => {
-          this.handleError(error);
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          this.handleError(errorMsg);
         })
         .finally(() => {
           this.loading = false;
           this.scrollDown();
         });
     },
+    isValidResponse(response: unknown): boolean {
+      if (!response || typeof response !== 'object') {
+        return false;
+      }
+      const r = response as Record<string, unknown>;
+      if (!Array.isArray(r.choices) || r.choices.length === 0) {
+        return false;
+      }
+      const choice = r.choices[0] as Record<string, unknown>;
+      if (!choice.message || typeof choice.message !== 'object') {
+        return false;
+      }
+      return true;
+    },
     scrollDown() {
       this.$refs.messagesList.scrollDown();
     },
-    handleError(error) {
+    handleError(error: string) {
       this.errored = true;
       this.errorMessage = error;
-      console.error(error);
     },
   },
 });
