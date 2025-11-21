@@ -3,14 +3,16 @@
     <ul class="ai-chat-conversation" v-if="messages.length">
       <ChatMessage
         v-for="(message, index) in messages"
+        :ref="index === messages.length - 1 ? 'lastMessage' : undefined"
         :message="message"
         :key="index"
         :ai-name="aiName"
         :ai-color="aiColor"
+        :is-streaming="streaming && index === messages.length - 1 && message.role === 'assistant'"
       />
     </ul>
     <ChatLoading
-      v-if="loading && !errored"
+      v-if="loading && !streaming && !errored"
       :ai-name="aiName"
       :ai-color="aiColor"
     />
@@ -38,9 +40,13 @@ export default defineComponent({
     },
     errorMessage: {
       type: String,
-      default: 'Ooops, AI have encountered an error.',
+      default: '',
     },
     loading: {
+      type: Boolean,
+      default: false,
+    },
+    streaming: {
       type: Boolean,
       default: false,
     },
@@ -60,8 +66,18 @@ export default defineComponent({
   methods: {
     scrollDown() {
       setTimeout(() => {
-        this.$refs.conversationWrapper.scrollTo(0, document.body.scrollHeight);
-      }, 1);
+        const wrapper = this.$refs.conversationWrapper as HTMLElement | undefined;
+        type VueRef = { $el?: HTMLElement } | HTMLElement;
+        const lastMsg = this.$refs.lastMessage as VueRef[] | undefined;
+        if (wrapper && lastMsg && lastMsg[0]) {
+          // Scroll to the top of the last message
+          const ref = lastMsg[0];
+          const el = ('$el' in ref && ref.$el) ? ref.$el : ref as HTMLElement;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (wrapper) {
+          wrapper.scrollTo({ top: wrapper.scrollHeight, behavior: 'smooth' });
+        }
+      }, 10);
     },
   },
 });

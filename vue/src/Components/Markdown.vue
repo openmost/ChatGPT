@@ -4,7 +4,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Converter } from 'showdown';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { Converter } = require('showdown');
 
 const converter = new Converter({
   headerLevelStart: 3,
@@ -54,23 +55,31 @@ function sanitizeHtml(html: string): string {
       if (!allowedTags.includes(tagName)) {
         // Replace disallowed element with its text content
         const text = document.createTextNode(element.textContent || '');
-        element.parentNode?.replaceChild(text, element);
+        if (element.parentNode) {
+          element.parentNode.replaceChild(text, element);
+        }
         return;
       }
 
       // Remove disallowed attributes
       const attrs = Array.from(element.attributes);
-      for (const attr of attrs) {
+      attrs.forEach((attr) => {
         const allowedAttrs = allowedAttributes[tagName] || [];
         if (!allowedAttrs.includes(attr.name)) {
           element.removeAttribute(attr.name);
         }
-      }
+      });
 
-      // Sanitize href attributes to prevent javascript: URLs
+      // Sanitize href attributes to prevent unsafe URLs
       if (tagName === 'a') {
         const href = element.getAttribute('href');
-        if (href && (href.toLowerCase().startsWith('javascript:') || href.toLowerCase().startsWith('data:'))) {
+        const hrefLower = href?.toLowerCase() || '';
+        // eslint-disable-next-line no-script-url
+        const jsPrefix = 'javascript:';
+        const dataPrefix = 'data:';
+        const isUnsafe = hrefLower.startsWith(jsPrefix)
+          || hrefLower.startsWith(dataPrefix);
+        if (href && isUnsafe) {
           element.setAttribute('href', '#');
         }
         // Add security attributes for external links
@@ -81,7 +90,9 @@ function sanitizeHtml(html: string): string {
       if (tagName === 'input') {
         const type = element.getAttribute('type');
         if (type !== 'checkbox') {
-          element.parentNode?.removeChild(element);
+          if (element.parentNode) {
+            element.parentNode.removeChild(element);
+          }
           return;
         }
         element.setAttribute('disabled', 'disabled');

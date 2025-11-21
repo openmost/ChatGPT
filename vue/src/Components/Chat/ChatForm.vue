@@ -7,14 +7,14 @@
                type="text"
                name="ai-chat-prompt"
                id="ai-chat-prompt"
-               :placeholder="`Message ${aiLabel}...`"
-               :aria-label="`Message ${aiLabel}...`"
+               :placeholder="placeholderText"
+               :aria-label="placeholderText"
                minlength="1"
                required
                autofocus
         >
         <button type="submit" class="btn" id="ai-chat-submit-button" :disabled="loading">
-          {{ loading ? 'Loading' : 'Submit' }}
+          {{ submitText }}
         </button>
       </div>
 
@@ -24,6 +24,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { translate } from 'CoreHome';
 
 interface DataState {
   prompt: string;
@@ -38,6 +39,16 @@ export default defineComponent({
     loading: {
       type: Boolean,
       default: false,
+    },
+  },
+  computed: {
+    submitText(): string {
+      return this.loading
+        ? translate('ChatGPT_Loading')
+        : translate('ChatGPT_Submit');
+    },
+    placeholderText(): string {
+      return translate('ChatGPT_MessagePlaceholder', this.aiLabel);
     },
   },
   data(): DataState {

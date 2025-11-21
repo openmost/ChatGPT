@@ -8,6 +8,7 @@
       <span class="ai-chat-response-username">{{ chatAuthorName }}</span>
       <div class="ai-chat-response-body">
         <Markdown :markdown="message.content"/>
+        <span v-if="isStreaming" class="streaming-cursor">▊</span>
       </div>
     </div>
   </li>
@@ -15,6 +16,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { translate } from 'CoreHome';
 import Markdown from '../Markdown.vue';
 import IconAi from '../Icon/IconAi.vue';
 import IconUser from '../Icon/IconUser.vue';
@@ -38,16 +40,26 @@ export default defineComponent({
       type: String,
       default: '#3450a3',
     },
+    isStreaming: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     chatResponseClasses(): Array<string> {
-      return [
+      const classes = [
         'ai-chat-response',
         `ai-chat-${this.message.role}-response`,
       ];
+      if (this.isStreaming) {
+        classes.push('ai-chat-streaming');
+      }
+      return classes;
     },
     chatAuthorName(): string {
-      return this.message.role === 'user' ? 'You' : 'AI';
+      return this.message.role === 'user'
+        ? translate('ChatGPT_You')
+        : translate('ChatGPT_AI');
     },
   },
 });
@@ -68,6 +80,14 @@ export default defineComponent({
     background-color: #3450a3;
     color: #152b6c;
     border-color: #3450a3;
+  }
+
+  &.ai-chat-streaming {
+    .ai-chat-response-body {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
   }
 
   .ai-chat-response-avatar {
@@ -99,6 +119,19 @@ export default defineComponent({
       font-size: 1.125rem;
       margin-bottom: 4px;
     }
+
+    .streaming-cursor {
+      display: inline-block;
+      color: v-bind(aiColor);
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+      font-weight: normal;
+    }
   }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 </style>

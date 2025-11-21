@@ -10,7 +10,9 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\API\Request;
+use Piwik\Cache;
 use Piwik\Common;
+use Piwik\Option;
 use Piwik\Piwik;
 use Exception;
 
@@ -26,20 +28,33 @@ class API extends \Piwik\Plugin\API
     /**
      * Request timeout in seconds
      */
-    private const CURL_TIMEOUT = 60;
-    private const CURL_CONNECT_TIMEOUT = 10;
+    private const REQUEST_TIMEOUT = 60;
+
+    /**
+     * Cache TTL for models list (1 hour)
+     */
+    private const MODELS_CACHE_TTL = 3600;
+
+    /**
+     * Rate limit settings
+     */
+    private const RATE_LIMIT_REQUESTS = 30;
+    private const RATE_LIMIT_WINDOW = 3600; // 1 hour
 
     public function __construct(\Piwik\Log\LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
 
-    public function getResponse($idSite, $period, $date, $messages = [])
+    public function getResponse(int $idSite, string $period, string $date, array $messages = []): array
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
+
+        // Check rate limit
+        $this->checkRateLimit($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
@@ -53,15 +68,18 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchModelAi(array_merge($conversationBase, $messages));
+        return $this->fetchModelAi(array_merge($conversationBase, $messages), $idSite);
     }
 
-    public function getInsights($idSite, $period, $date, $messages = [], $widgetParams = [])
+    public function getInsights(int $idSite, string $period, string $date, array $messages = [], array $widgetParams = []): array
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
+
+        // Check rate limit
+        $this->checkRateLimit($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
@@ -87,17 +105,80 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchModelAi(array_merge($conversationBase, $messages));
+        return $this->fetchModelAi(array_merge($conversationBase, $messages), $idSite);
+    }
+
+    /**
+     * Streams a response from the AI model using Server-Sent Events
+     * Call this endpoint directly for streaming support
+     */
+    public function getStreamingResponse(int $idSite, string $period, string $date, array $messages = []): void
+    {
+        Piwik::checkUserHasSomeViewAccess();
+
+        $idSite = (int) Common::getRequestVar('idSite');
+        Piwik::checkUserHasViewAccess($idSite);
+
+        $this->checkRateLimit($idSite);
+
+        $systemSettings = new SystemSettings();
+        $measurableSettings = new MeasurableSettings($idSite);
+        $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
+
+        $conversationBase = [
+            [
+                "role" => "system",
+                "name" => "AI",
+                "content" => $chatBasePrompt,
+            ]
+        ];
+
+        $this->streamModelAi(array_merge($conversationBase, $messages), $idSite);
+    }
+
+    /**
+     * Check and enforce rate limits per site
+     * @throws Exception if rate limit exceeded
+     */
+    private function checkRateLimit(int $idSite): void
+    {
+        $userLogin = Piwik::getCurrentUserLogin();
+        $rateLimitKey = 'ChatGPT_ratelimit_' . $idSite . '_' . $userLogin;
+
+        $currentTime = time();
+        $rateData = Option::get($rateLimitKey);
+
+        if ($rateData) {
+            $rateData = json_decode($rateData, true);
+            $windowStart = $rateData['window_start'] ?? 0;
+            $requestCount = $rateData['count'] ?? 0;
+
+            // Reset window if expired
+            if ($currentTime - $windowStart > self::RATE_LIMIT_WINDOW) {
+                $rateData = ['window_start' => $currentTime, 'count' => 0];
+            }
+
+            // Check limit
+            if ($rateData['count'] >= self::RATE_LIMIT_REQUESTS) {
+                $resetTime = $windowStart + self::RATE_LIMIT_WINDOW - $currentTime;
+                throw new Exception("Rate limit exceeded. Please wait {$resetTime} seconds before making another request.");
+            }
+        } else {
+            $rateData = ['window_start' => $currentTime, 'count' => 0];
+        }
+
+        // Increment counter
+        $rateData['count']++;
+        Option::set($rateLimitKey, json_encode($rateData));
     }
 
     /**
      * Builds request parameters from widget parameters with proper validation
      */
-    private function buildRequestParams($widgetParams, $idSite, $date, $period)
+    private function buildRequestParams(array $widgetParams, int $idSite, string $date, string $period): array
     {
-        // Validate and sanitize base parameters
         $requestParams = [
-            'idSite' => (int) $idSite,
+            'idSite' => $idSite,
             'date' => $this->sanitizeDate($date),
             'period' => $this->sanitizePeriod($period),
             'format' => 'json',
@@ -133,15 +214,14 @@ class API extends \Piwik\Plugin\API
     /**
      * Sanitizes a parameter value based on its type
      */
-    private function sanitizeParam($value, $type)
+    private function sanitizeParam($value, string $type)
     {
         switch ($type) {
             case 'int':
                 return (int) $value;
             case 'bool':
-                return (bool) $value ? 1 : 0;
+                return $value ? 1 : 0;
             case 'segment':
-                // Allow Matomo segment syntax but remove potential injection characters
                 return Common::unsanitizeInputValue($value);
             default:
                 return Common::sanitizeInputValue($value);
@@ -151,9 +231,8 @@ class API extends \Piwik\Plugin\API
     /**
      * Validates and sanitizes date parameter
      */
-    private function sanitizeDate($date)
+    private function sanitizeDate(string $date): string
     {
-        // Allow common Matomo date formats
         if (preg_match('/^(today|yesterday|last\d+|previous\d+|\d{4}-\d{2}-\d{2}(,\d{4}-\d{2}-\d{2})?)$/', $date)) {
             return $date;
         }
@@ -163,7 +242,7 @@ class API extends \Piwik\Plugin\API
     /**
      * Validates and sanitizes period parameter
      */
-    private function sanitizePeriod($period)
+    private function sanitizePeriod(string $period): string
     {
         $allowedPeriods = ['day', 'week', 'month', 'year', 'range'];
         return in_array($period, $allowedPeriods, true) ? $period : 'day';
@@ -173,10 +252,8 @@ class API extends \Piwik\Plugin\API
      * Resolves the API method from widget parameters
      * Handles evolution graph controller actions by extracting the real API method
      */
-    private function resolveReportMethod($reportId, $widgetParams = [])
+    private function resolveReportMethod(string $reportId, array $widgetParams = []): string
     {
-        // Evolution graph actions are controller actions, not API methods
-        // They typically have an 'apiMethod' or 'method' param specifying the real API
         $evolutionActions = ['getEvolutionGraph', 'getEvolutionOverview', 'getRowEvolution'];
 
         $parts = explode('.', $reportId, 2);
@@ -188,14 +265,12 @@ class API extends \Piwik\Plugin\API
         $action = $parts[1];
 
         if (in_array($action, $evolutionActions, true)) {
-            // Check if widgetParams contains the actual API method
             if (!empty($widgetParams['apiMethod'])) {
                 return $widgetParams['apiMethod'];
             }
             if (!empty($widgetParams['method'])) {
                 return $widgetParams['method'];
             }
-            // Fallback: use the module's default 'get' method for summary modules
             return $module . '.get';
         }
 
@@ -204,11 +279,14 @@ class API extends \Piwik\Plugin\API
 
     /**
      * Retrieves the list of available models from the OpenAI API
-     * @param string|null $host API base URL (optional, uses default settings)
-     * @param string|null $apiKey API Key (optional, uses default settings)
+     * Results are cached for performance
+     *
+     * @param string|null $host API base URL (optional)
+     * @param string|null $apiKey API Key (optional)
+     * @param bool $forceRefresh Force cache refresh
      * @return array List of available models
      */
-    public function getAvailableModels($host = null, $apiKey = null)
+    public function getAvailableModels(?string $host = null, ?string $apiKey = null, bool $forceRefresh = false): array
     {
         Piwik::checkUserHasSomeViewAccess();
 
@@ -221,11 +299,22 @@ class API extends \Piwik\Plugin\API
             return ['error' => 'Host and API Key must be configured first', 'models' => []];
         }
 
-        // Validate host URL
         if (!$this->isValidApiUrl($configuredHost)) {
             return ['error' => 'Invalid API host URL', 'models' => []];
         }
 
+        // Check cache first (unless force refresh)
+        $cacheKey = 'ChatGPT_models_' . md5($configuredHost);
+        $cache = Cache::getLazyCache();
+
+        if (!$forceRefresh) {
+            $cachedModels = $cache->fetch($cacheKey);
+            if ($cachedModels !== false) {
+                return ['models' => $cachedModels, 'error' => null, 'cached' => true];
+            }
+        }
+
+        // Fetch from API
         $baseUrl = preg_replace('#/v1/.*$#', '/v1', $configuredHost);
         $modelsUrl = $baseUrl . '/models';
 
@@ -241,7 +330,7 @@ class API extends \Piwik\Plugin\API
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, self::CURL_CONNECT_TIMEOUT);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -249,12 +338,16 @@ class API extends \Piwik\Plugin\API
         curl_close($ch);
 
         if ($curlError) {
-            $this->logger->warning('ChatGPT API curl error: ' . $curlError);
+            $this->logger->warning('ChatGPT API error fetching models: ' . $curlError);
             return ['error' => 'Connection error: ' . $curlError, 'models' => []];
         }
 
-        if (!$response || $httpCode !== 200) {
-            return ['error' => 'Failed to fetch models from API (HTTP ' . $httpCode . ')', 'models' => []];
+        if ($httpCode !== 200) {
+            return ['error' => 'Failed to fetch models (HTTP ' . $httpCode . ')', 'models' => []];
+        }
+
+        if (empty($response)) {
+            return ['error' => 'Empty response from API', 'models' => []];
         }
 
         $data = json_decode($response, true);
@@ -278,13 +371,36 @@ class API extends \Piwik\Plugin\API
         }
 
         ksort($models);
-        return ['models' => $models, 'error' => null];
+
+        // Cache the results
+        $cache->save($cacheKey, $models, self::MODELS_CACHE_TTL);
+
+        return ['models' => $models, 'error' => null, 'cached' => false];
+    }
+
+    /**
+     * Clears the models cache
+     */
+    public function clearModelsCache(): array
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        $systemSettings = new SystemSettings();
+        $configuredHost = $systemSettings->host->getValue();
+
+        if ($configuredHost) {
+            $cacheKey = 'ChatGPT_models_' . md5($configuredHost);
+            $cache = Cache::getLazyCache();
+            $cache->delete($cacheKey);
+        }
+
+        return ['success' => true];
     }
 
     /**
      * Validates that the URL is a valid HTTPS API endpoint
      */
-    private function isValidApiUrl($url)
+    private function isValidApiUrl(?string $url): bool
     {
         if (empty($url)) {
             return false;
@@ -295,11 +411,145 @@ class API extends \Piwik\Plugin\API
 
     /**
      * Sends a conversation to the AI model and returns the response
+     *
      * @throws Exception if configuration is missing or API call fails
      */
-    private function fetchModelAi($conversation)
+    private function fetchModelAi(array $conversation, int $idSite): array
     {
-        $idSite = (int) Common::getRequestVar('idSite');
+        $config = $this->getAiConfig($idSite);
+
+        // Sanitize conversation messages
+        $sanitizedConversation = $this->sanitizeConversation($conversation);
+
+        $data = [
+            "model" => $config['model'],
+            "messages" => $sanitizedConversation,
+        ];
+
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $config['apiKey'],
+        ];
+
+        $ch = curl_init($config['host']);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_TIMEOUT, self::REQUEST_TIMEOUT);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        $this->logger->info('ChatGPT API request to model: ' . $config['model']);
+
+        if ($curlError) {
+            $this->logger->error('ChatGPT API curl error: ' . $curlError);
+            throw new Exception('Connection error: ' . $curlError);
+        }
+
+        if (empty($response)) {
+            throw new Exception('Empty response from ChatGPT API');
+        }
+
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid JSON response from ChatGPT API');
+        }
+
+        if (isset($result['error'])) {
+            $errorMessage = $result['error']['message'] ?? 'Unknown API error';
+            $this->logger->warning('ChatGPT API error: ' . $errorMessage);
+            return ['error' => ['message' => $errorMessage]];
+        }
+
+        if ($httpCode !== 200) {
+            throw new Exception('ChatGPT API returned HTTP ' . $httpCode);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Streams a conversation response using Server-Sent Events
+     * This method outputs directly to the response stream
+     */
+    private function streamModelAi(array $conversation, int $idSite): void
+    {
+        $config = $this->getAiConfig($idSite);
+        $sanitizedConversation = $this->sanitizeConversation($conversation);
+
+        $data = [
+            "model" => $config['model'],
+            "messages" => $sanitizedConversation,
+            "stream" => true,
+        ];
+
+        // Disable all output buffering for streaming
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Disable PHP time limit for long streams
+        set_time_limit(0);
+
+        // Set SSE headers
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no'); // Nginx
+        header('X-Content-Type-Options: nosniff');
+
+        // Immediately flush headers
+        flush();
+
+        $ch = curl_init($config['host']);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $config['apiKey'],
+            'Content-Type: application/json',
+            'Accept: text/event-stream',
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0); // No timeout for streaming
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+
+        // Stream the response chunk by chunk
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $chunk) {
+            echo $chunk;
+            flush();
+            return strlen($chunk);
+        });
+
+        curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            echo "data: " . json_encode(['error' => ['message' => $error]]) . "\n\n";
+            flush();
+        }
+
+        echo "data: [DONE]\n\n";
+        flush();
+    }
+
+    /**
+     * Gets AI configuration for a site
+     * @throws Exception if configuration is invalid
+     */
+    private function getAiConfig(int $idSite): array
+    {
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
 
@@ -312,7 +562,6 @@ class API extends \Piwik\Plugin\API
             $model = $measurableModel;
         }
 
-        // Validate configuration
         if (empty($host)) {
             throw new Exception('ChatGPT host is not configured');
         }
@@ -329,71 +578,17 @@ class API extends \Piwik\Plugin\API
             throw new Exception('Invalid API host URL - HTTPS required');
         }
 
-        // Sanitize conversation messages
-        $sanitizedConversation = $this->sanitizeConversation($conversation);
-
-        $modelName = is_array($model) ? $model[0] : $model;
-        $data = [
-            "model" => $modelName,
-            "messages" => $sanitizedConversation,
+        return [
+            'host' => $host,
+            'apiKey' => $apiKey,
+            'model' => is_array($model) ? $model[0] : $model,
         ];
-
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Authorization: Bearer ' . $apiKey,
-        ];
-
-        $ch = curl_init($host);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_TIMEOUT, self::CURL_TIMEOUT);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, self::CURL_CONNECT_TIMEOUT);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        // Log request (without sensitive data)
-        $this->logger->info('ChatGPT API request to model: ' . $modelName);
-
-        if ($curlError) {
-            $this->logger->error('ChatGPT API curl error: ' . $curlError);
-            throw new Exception('Connection error: ' . $curlError);
-        }
-
-        if (!$response) {
-            throw new Exception('Empty response from ChatGPT API');
-        }
-
-        $result = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Invalid JSON response from ChatGPT API');
-        }
-
-        // Handle API error responses
-        if (isset($result['error'])) {
-            $errorMessage = isset($result['error']['message']) ? $result['error']['message'] : 'Unknown API error';
-            $this->logger->warning('ChatGPT API error: ' . $errorMessage);
-            return ['error' => ['message' => $errorMessage]];
-        }
-
-        if ($httpCode !== 200) {
-            throw new Exception('ChatGPT API returned HTTP ' . $httpCode);
-        }
-
-        return $result;
     }
 
     /**
      * Sanitizes conversation messages to prevent injection
      */
-    private function sanitizeConversation($conversation)
+    private function sanitizeConversation(array $conversation): array
     {
         $sanitized = [];
         $allowedRoles = ['system', 'user', 'assistant'];
@@ -403,17 +598,16 @@ class API extends \Piwik\Plugin\API
                 continue;
             }
 
-            $role = isset($message['role']) ? $message['role'] : '';
+            $role = $message['role'] ?? '';
             if (!in_array($role, $allowedRoles, true)) {
                 continue;
             }
 
             $sanitizedMessage = [
                 'role' => $role,
-                'content' => isset($message['content']) ? (string) $message['content'] : '',
+                'content' => (string) ($message['content'] ?? ''),
             ];
 
-            // Only include name if present and valid
             if (isset($message['name']) && preg_match('/^[a-zA-Z0-9_-]+$/', $message['name'])) {
                 $sanitizedMessage['name'] = $message['name'];
             }
@@ -422,5 +616,58 @@ class API extends \Piwik\Plugin\API
         }
 
         return $sanitized;
+    }
+
+    /**
+     * Returns plugin settings for the frontend
+     */
+    public function getSettings(): array
+    {
+        Piwik::checkUserHasSomeViewAccess();
+
+        $systemSettings = new SystemSettings();
+
+        return [
+            'enableStreaming' => (bool) $systemSettings->enableStreaming->getValue(),
+        ];
+    }
+
+    /**
+     * Returns current rate limit status for the user
+     */
+    public function getRateLimitStatus(int $idSite): array
+    {
+        Piwik::checkUserHasSomeViewAccess();
+
+        $userLogin = Piwik::getCurrentUserLogin();
+        $rateLimitKey = 'ChatGPT_ratelimit_' . $idSite . '_' . $userLogin;
+
+        $rateData = Option::get($rateLimitKey);
+        $currentTime = time();
+
+        if ($rateData) {
+            $rateData = json_decode($rateData, true);
+            $windowStart = $rateData['window_start'] ?? 0;
+            $requestCount = $rateData['count'] ?? 0;
+
+            if ($currentTime - $windowStart > self::RATE_LIMIT_WINDOW) {
+                $requestCount = 0;
+                $windowStart = $currentTime;
+            }
+
+            return [
+                'requests_used' => $requestCount,
+                'requests_limit' => self::RATE_LIMIT_REQUESTS,
+                'requests_remaining' => max(0, self::RATE_LIMIT_REQUESTS - $requestCount),
+                'reset_in_seconds' => max(0, $windowStart + self::RATE_LIMIT_WINDOW - $currentTime),
+            ];
+        }
+
+        return [
+            'requests_used' => 0,
+            'requests_limit' => self::RATE_LIMIT_REQUESTS,
+            'requests_remaining' => self::RATE_LIMIT_REQUESTS,
+            'reset_in_seconds' => self::RATE_LIMIT_WINDOW,
+        ];
     }
 }

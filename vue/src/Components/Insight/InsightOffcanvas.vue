@@ -3,7 +3,7 @@
     <div class="ai-chat-insight-offcanvas-header">
       <div class="title-wrapper">
         <IconMagic/>
-        <h3>Insights</h3>
+        <h3>{{ insightsTitle }}</h3>
       </div>
       <div class="actions-wrapper">
         <button class="close-button" @click="onClose">
@@ -19,14 +19,15 @@
         :ai-color="aiColor"
         :api-method="apiMethod"
         :widget-params="widgetParams"
+        :use-streaming="useStreaming"
       />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { AjaxHelper } from 'CoreHome';
 import { defineComponent } from 'vue';
+import { translate } from 'CoreHome';
 import IconMagic from '../Icon/IconMagic.vue';
 import IconClose from '../Icon/IconClose.vue';
 import Chat from '../Chat/Chat.vue';
@@ -62,6 +63,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    useStreaming: {
+      type: Boolean,
+      default: false, // Insights don't support streaming by default (needs different API)
+    },
   },
   data() {
     return {
@@ -77,13 +82,16 @@ export default defineComponent({
         this.displayOffcanvas ? 'active' : '',
       ];
     },
+    insightsTitle(): string {
+      return translate('ChatGPT_Insights');
+    },
   },
   methods: {
     onClose() {
       this.$emit('close');
     },
     onSubmit() {
-      this.$refs.chat.onSubmit();
+      (this.$refs.chat as InstanceType<typeof Chat>).onSubmit();
     },
   },
 });
@@ -152,11 +160,10 @@ export default defineComponent({
         }
       }
     }
-
   }
 
   .ai-chat-insight-offcanvas-body {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0 1rem 1rem 1rem;
     height: calc(100vh - 65px);
     display: flex;
     flex-direction: column;

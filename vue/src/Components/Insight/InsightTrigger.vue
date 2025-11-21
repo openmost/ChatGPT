@@ -1,6 +1,10 @@
 <template>
   <div>
-    <button class="ai-chat-insight-trigger-button" @click="onClick" :title="`Ask ${aiLabel} a question about this report`">
+    <button
+      class="ai-chat-insight-trigger-button"
+      :title="buttonTitle"
+      @click="onClick"
+    >
       <IconAi :ai-name="aiName"/>
     </button>
 
@@ -19,15 +23,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { translate } from 'CoreHome';
 import InsightOffcanvas from './InsightOffcanvas.vue';
-import IconMagic from '../Icon/IconMagic.vue';
-import IconAi from "../Icon/IconAi.vue";
+import IconAi from '../Icon/IconAi.vue';
 
 export default defineComponent({
   components: {
     IconAi,
     InsightOffcanvas,
-    IconMagic,
   },
   props: {
     widgetParams: {
@@ -56,10 +59,15 @@ export default defineComponent({
       displayOffcanvas: false,
     };
   },
+  computed: {
+    buttonTitle(): string {
+      return translate('ChatGPT_AskQuestion', this.aiLabel);
+    },
+  },
   methods: {
     onClick() {
       this.displayOffcanvas = !this.displayOffcanvas;
-      this.$refs.offCanvas.onSubmit();
+      (this.$refs.offCanvas as InstanceType<typeof InsightOffcanvas>).onSubmit();
     },
     onClose() {
       this.displayOffcanvas = false;

@@ -8,6 +8,9 @@
 
 namespace Piwik\Plugins\ChatGPT;
 
+use Piwik\Cache;
+use Piwik\Http;
+use Piwik\Piwik;
 use Piwik\Settings\Setting;
 use Piwik\Settings\FieldConfig;
 use Piwik\Validators\NotEmpty;
@@ -26,25 +29,35 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     public $host;
     public $apiKey;
     public $model;
+    public $enableStreaming;
     public $chatBasePrompt;
     public $insightBasePrompt;
 
     protected function init()
     {
-        // System setting --> allows selection of a single value
         $this->host = $this->createHostSetting();
         $this->apiKey = $this->createApiKeySetting();
         $this->model = $this->createModelSetting();
+        $this->enableStreaming = $this->createEnableStreamingSetting();
         $this->chatBasePrompt = $this->createChatBasePromptSetting();
         $this->insightBasePrompt = $this->createInsightBasePromptSetting();
+    }
+
+    private function createEnableStreamingSetting()
+    {
+        return $this->makeSetting('enableStreaming', $default = false, FieldConfig::TYPE_BOOL, function (FieldConfig $field) {
+            $field->title = Piwik::translate('ChatGPT_EnableStreaming');
+            $field->uiControl = FieldConfig::UI_CONTROL_CHECKBOX;
+            $field->description = Piwik::translate('ChatGPT_EnableStreamingDescription');
+        });
     }
 
     private function createHostSetting()
     {
         return $this->makeSetting('host', $default = 'https://api.openai.com/v1/chat/completions', FieldConfig::TYPE_STRING, function (FieldConfig $field) {
-            $field->title = 'Host';
+            $field->title = Piwik::translate('ChatGPT_Host');
             $field->uiControl = FieldConfig::UI_CONTROL_URL;
-            $field->description = 'Change the host to connect your own GPT instance';
+            $field->description = Piwik::translate('ChatGPT_HostDescription');
             $field->validators[] = new NotEmpty();
         });
     }
@@ -52,9 +65,9 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     private function createApiKeySetting()
     {
         return $this->makeSetting('apiKey', $default = null, FieldConfig::TYPE_STRING, function (FieldConfig $field) {
-            $field->title = 'API Key';
+            $field->title = Piwik::translate('ChatGPT_ApiKey');
             $field->uiControl = FieldConfig::UI_CONTROL_PASSWORD;
-            $field->description = 'Add your ChatGPT API Key here';
+            $field->description = Piwik::translate('ChatGPT_ApiKeyDescription');
             $field->validators[] = new NotEmpty();
         });
     }
@@ -62,21 +75,25 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     private function createModelSetting()
     {
         return $this->makeSetting('model', $default = '', FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
-            $field->title = 'Model';
+            $field->title = Piwik::translate('ChatGPT_Model');
             $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
-            $field->description = 'Select the model you want to use. Models are fetched dynamically from the API when Host and API Key are configured.';
+            $field->description = Piwik::translate('ChatGPT_ModelDescription');
             $field->availableValues = $this->getAvailableModelsForSetting();
             $field->validators[] = new NotEmpty();
         });
     }
 
     /**
-     * Récupère les modèles disponibles depuis l'API ou retourne les valeurs par défaut
+     * Cache TTL for models list (1 hour)
      */
-    private function getAvailableModelsForSetting()
+    private const MODELS_CACHE_TTL = 3600;
+
+    /**
+     * Retrieves available models from API with caching
+     */
+    private function getAvailableModelsForSetting(): array
     {
-        // Liste par défaut si l'API n'est pas disponible
-        $defaultModels = array(
+        $defaultModels = [
             'o1-mini' => 'o1 mini',
             'o1' => 'o1',
             'gpt-4o' => 'GPT 4o',
@@ -84,10 +101,9 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
             'gpt-4' => 'GPT 4',
             'gpt-4-turbo' => 'GPT 4 Turbo',
             'gpt-3.5-turbo' => 'GPT 3.5 turbo',
-        );
+        ];
 
         try {
-            // Essayer de récupérer les valeurs sauvegardées pour host et apiKey
             $host = $this->host->getValue();
             $apiKey = $this->apiKey->getValue();
 
@@ -95,28 +111,40 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
                 return $defaultModels;
             }
 
-            // Construire l'URL pour l'endpoint /models
+            // Check cache first
+            $cacheKey = 'ChatGPT_models_' . md5($host);
+            $cache = Cache::getLazyCache();
+            $cachedModels = $cache->fetch($cacheKey);
+
+            if ($cachedModels !== false && is_array($cachedModels) && !empty($cachedModels)) {
+                return $cachedModels;
+            }
+
+            // Fetch from API using Matomo's HTTP client
             $baseUrl = preg_replace('#/v1/.*$#', '/v1', $host);
             $modelsUrl = $baseUrl . '/models';
 
-            $headers = [
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer ' . $apiKey,
-            ];
+            $response = Http::sendHttpRequest(
+                $modelsUrl,
+                10,
+                null,
+                null,
+                0,
+                false,
+                false,
+                false,
+                'GET',
+                null,
+                null,
+                null,
+                [
+                    'Authorization: Bearer ' . $apiKey,
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ]
+            );
 
-            $ch = curl_init($modelsUrl);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if (!$response || $httpCode !== 200) {
+            if (empty($response)) {
                 return $defaultModels;
             }
 
@@ -126,12 +154,13 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
                 return $defaultModels;
             }
 
-            // Filtrer et trier les modèles (garder seulement les modèles de chat/completion)
             $models = [];
             foreach ($data['data'] as $model) {
+                if (!isset($model['id'])) {
+                    continue;
+                }
                 $modelId = $model['id'];
-                // Filtrer les modèles pertinents pour le chat
-                if (preg_match('/^(gpt|o1|o3|chatgpt)/i', $modelId)) {
+                if (preg_match('/^(gpt|o1|o3|chatgpt|claude)/i', $modelId)) {
                     $models[$modelId] = $modelId;
                 }
             }
@@ -140,8 +169,10 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
                 return $defaultModels;
             }
 
-            // Trier par nom
             ksort($models);
+
+            // Cache the results
+            $cache->save($cacheKey, $models, self::MODELS_CACHE_TTL);
 
             return $models;
         } catch (\Exception $e) {
@@ -151,20 +182,22 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 
     private function createChatBasePromptSetting()
     {
-        return $this->makeSetting('chatBasePrompt', $default = 'You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.', FieldConfig::TYPE_STRING, function (FieldConfig $field) {
-            $field->title = 'Chat base prompt';
+        $defaultPrompt = Piwik::translate('ChatGPT_ChatBasePromptDefault');
+        return $this->makeSetting('chatBasePrompt', $default = $defaultPrompt, FieldConfig::TYPE_STRING, function (FieldConfig $field) {
+            $field->title = Piwik::translate('ChatGPT_ChatBasePrompt');
             $field->uiControl = FieldConfig::UI_CONTROL_TEXTAREA;
-            $field->description = 'Adapt the prompt to get more precise answer in the chat feature';
+            $field->description = Piwik::translate('ChatGPT_ChatBasePromptDescription');
             $field->validators[] = new NotEmpty();
         });
     }
 
     private function createInsightBasePromptSetting()
     {
-        return $this->makeSetting('insightBasePrompt', $default = 'Give me insights from the dataset formatted in JSON provided below, add bold style to most important metrics of your answer :', FieldConfig::TYPE_STRING, function (FieldConfig $field) {
-            $field->title = 'Insight base prompt';
+        $defaultPrompt = Piwik::translate('ChatGPT_InsightBasePromptDefault');
+        return $this->makeSetting('insightBasePrompt', $default = $defaultPrompt, FieldConfig::TYPE_STRING, function (FieldConfig $field) {
+            $field->title = Piwik::translate('ChatGPT_InsightBasePrompt');
             $field->uiControl = FieldConfig::UI_CONTROL_TEXTAREA;
-            $field->description = 'Adapt the prompt to get more precise insights for your reports';
+            $field->description = Piwik::translate('ChatGPT_InsightBasePromptDescription');
             $field->validators[] = new NotEmpty();
         });
     }

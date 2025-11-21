@@ -16,7 +16,24 @@ class ChatGPT extends \Piwik\Plugin
         return array(
             'AssetManager.getJavaScriptFiles' => 'getJavaScriptFiles',
             'AssetManager.getStylesheetFiles' => 'getStylesheetFiles',
+            'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys',
         );
+    }
+
+    public function getClientSideTranslationKeys(&$translationKeys)
+    {
+        $translationKeys[] = 'ChatGPT_Insights';
+        $translationKeys[] = 'ChatGPT_Loading';
+        $translationKeys[] = 'ChatGPT_Submit';
+        $translationKeys[] = 'ChatGPT_You';
+        $translationKeys[] = 'ChatGPT_AI';
+        $translationKeys[] = 'ChatGPT_ErrorMessage';
+        $translationKeys[] = 'ChatGPT_MessagePlaceholder';
+        $translationKeys[] = 'ChatGPT_AskQuestion';
+        $translationKeys[] = 'ChatGPT_InvalidResponse';
+        $translationKeys[] = 'ChatGPT_AnErrorOccurred';
+        $translationKeys[] = 'ChatGPT_NoResponseBody';
+        $translationKeys[] = 'ChatGPT_WaitingForResponse';
     }
 
     public function getJavaScriptFiles(&$files)

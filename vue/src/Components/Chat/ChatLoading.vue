@@ -1,12 +1,13 @@
 <template>
   <div class="ai-chat-loader">
     <span class="ai-chat-spinner"></span>
-    Waiting for response...
+    {{ waitingText }}
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { translate } from 'CoreHome';
 
 export default defineComponent({
   props: {
@@ -17,6 +18,11 @@ export default defineComponent({
     aiColor: {
       type: String,
       default: '#3450a3',
+    },
+  },
+  computed: {
+    waitingText(): string {
+      return translate('ChatGPT_WaitingForResponse');
     },
   },
 });

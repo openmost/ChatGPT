@@ -2,11 +2,11 @@
 
 ### 5.4.0
 
-update: trigger icon
-Auto update model listing
-fix: Evolution graph errors
-fix:IL  Custom reports error
-fix: Custom dimensions errors
+Here is the huge update you requested!
+Now support every reports type (custom dim, custom reports, series lines etc...)
+Handle streaming
+Better error handling
+Speed improvements
 
 ### 5.3.0
 
