@@ -177,6 +177,16 @@ class API extends \Piwik\Plugin\API
      */
     private function buildRequestParams(array $widgetParams, int $idSite, string $date, string $period): array
     {
+        // Check if this is an evolution graph that needs multiple data points
+        $action = isset($widgetParams['action']) ? $widgetParams['action'] : '';
+        $isEvolutionGraph = in_array($action, ['getEvolutionGraph', 'getEvolutionOverview', 'getRowEvolution'], true);
+
+        // For evolution graphs, use day period with last90 to get multiple data points
+        if ($isEvolutionGraph) {
+            $period = 'day';
+            $date = 'last90';
+        }
+
         $requestParams = [
             'idSite' => $idSite,
             'date' => $this->sanitizeDate($date),
@@ -186,16 +196,29 @@ class API extends \Piwik\Plugin\API
 
         // Sanitize module and action (alphanumeric only)
         $module = isset($widgetParams['module']) ? preg_replace('/[^a-zA-Z0-9]/', '', $widgetParams['module']) : '';
-        $action = isset($widgetParams['action']) ? preg_replace('/[^a-zA-Z0-9]/', '', $widgetParams['action']) : '';
+        $action = preg_replace('/[^a-zA-Z0-9]/', '', $action);
         $requestParams['_apiMethod'] = $module . '.' . $action;
 
         // Define supported parameters with their validation rules
         $supportedParams = [
-            'idDimension' => 'int',
-            'idCustomReport' => 'int',
-            'idGoal' => 'int',
-            'segment' => 'segment',
+            // Standard Matomo API parameters
             'idSubtable' => 'int',
+            'idAlert' => 'int',
+            'idGoal' => 'int',
+            'idDimension' => 'int',
+            'idNote' => 'int',
+            'idExperiment' => 'int',
+            'idCustomReport' => 'int',
+            'idExport' => 'int',
+            'idLogCrash' => 'int',
+            'idFailure' => 'int',
+            // Premium plugin parameters
+            'idForm' => 'int',
+            'idFunnel' => 'int',
+            'idHeatmap' => 'int',
+            'idSessionRecording' => 'int',
+            // Common parameters
+            'segment' => 'segment',
             'flat' => 'bool',
             'expanded' => 'bool',
             'filter_limit' => 'int',
@@ -271,6 +294,13 @@ class API extends \Piwik\Plugin\API
             if (!empty($widgetParams['method'])) {
                 return $widgetParams['method'];
             }
+
+            // Special handling for CustomReports evolution graphs
+            // CustomReports doesn't have a 'get' method, always use getCustomReport
+            if ($module === 'CustomReports') {
+                return 'CustomReports.getCustomReport';
+            }
+
             return $module . '.get';
         }
 

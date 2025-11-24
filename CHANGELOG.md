@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.4.1
+
+update: Support premium plugins
+
 ### 5.4.0
 
 Here is the huge update you requested!
