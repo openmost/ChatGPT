@@ -23,7 +23,7 @@ class Controller extends \Piwik\Plugin\Controller
 
         $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
         $apiKey = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
-        $isCustomHost = $host !== SystemSettings::DEFAULT_HOST;
+        $isCustomHost = $host !== Config::DEFAULT_HOST;
 
         // Plugin is configured if: custom host (API key optional) OR default host with API key
         $isConfigured = !empty($host) && ($isCustomHost || !empty($apiKey));

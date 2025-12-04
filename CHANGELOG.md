@@ -1,6 +1,6 @@
 ## Changelog
 
-### 5.5.3
+### 5.5.4
 
 - fix: constant declaration issue cause issue on updating
 

@@ -10,7 +10,6 @@ namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\Piwik;
 use Piwik\Settings\FieldConfig;
-use Piwik\Plugins\ChatGPT\ChatGPT;
 
 /**
  * Shared settings configuration for ChatGPT plugin.
@@ -47,8 +46,8 @@ trait SettingsBase
         $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
         $field->description = Piwik::translate($isMeasurable ? 'ChatGPT_ModelPresetDescriptionMeasurable' : 'ChatGPT_ModelPresetDescription');
         $field->availableValues = $isMeasurable
-            ? ['' => Piwik::translate('ChatGPT_UseSystemDefault')] + ChatGPT::getAvailableModels()
-            : ChatGPT::getAvailableModels();
+            ? ['' => Piwik::translate('ChatGPT_UseSystemDefault')] + Config::getAvailableModels()
+            : Config::getAvailableModels();
     }
 
     /**
