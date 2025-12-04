@@ -1,8 +1,8 @@
 <template>
-  <div class="ai-chat-loader">
+  <li class="ai-chat-loader">
     <span class="ai-chat-spinner"></span>
     {{ waitingText }}
-  </div>
+  </li>
 </template>
 
 <script lang="ts">
@@ -30,6 +30,7 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .ai-chat-loader {
+  list-style-type: none;
   color: #2e2e2e;
   display: flex;
   align-content: center;

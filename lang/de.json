@@ -12,14 +12,16 @@
         "InvalidResponse": "Ungültige Antwort vom Server",
         "AnErrorOccurred": "Ein Fehler ist aufgetreten",
         "NoResponseBody": "Kein Antwortinhalt",
-        "EnableStreaming": "Streaming aktivieren",
-        "EnableStreamingDescription": "Echtzeit-Streaming-Antworten aktivieren. Erfordert Server-Unterstützung (keine Ausgabepufferung). Deaktiviert lassen, wenn Antworten auf einmal erscheinen.",
         "Host": "Host",
         "HostDescription": "Ändern Sie den Host, um Ihre eigene GPT-Instanz zu verbinden",
         "ApiKey": "API-Schlüssel",
         "ApiKeyDescription": "Fügen Sie hier Ihren ChatGPT API-Schlüssel hinzu",
-        "Model": "Modell",
-        "ModelDescription": "Wählen Sie das Modell aus, das Sie verwenden möchten. Modelle werden dynamisch von der API abgerufen, wenn Host und API-Schlüssel konfiguriert sind.",
+        "ModelPreset": "Modell (Voreinstellung)",
+        "ModelPresetDescription": "Wählen Sie das Modell aus der Voreinstellungsliste aus.",
+        "ModelCustom": "Modell (Benutzerdefiniert)",
+        "ModelCustomDescription": "Geben Sie einen benutzerdefinierten Modellnamen ein, um die Voreinstellung zu überschreiben. Leer lassen, um das voreingestellte Modell zu verwenden.",
+        "ModelPresetDescriptionMeasurable": "Wählen Sie das Modell aus, das Sie verwenden möchten. Leer lassen, um den Systemstandard zu verwenden.",
+        "ModelCustomDescriptionMeasurable": "Geben Sie einen benutzerdefinierten Modellnamen ein, um die Voreinstellung zu überschreiben. Leer lassen, um die Voreinstellung oder den Systemstandard zu verwenden.",
         "ChatBasePrompt": "Chat-Basis-Prompt",
         "ChatBasePromptDescription": "Passen Sie den Prompt an, um präzisere Antworten in der Chat-Funktion zu erhalten",
         "ChatBasePromptDefault": "Sie sind ein Matomo-Experte und wissen alles über digitale Analytik. Ihre Antwort sollte vollständig und präzise sein.",
@@ -33,7 +35,8 @@
         "InvalidApiUrl": "Ungültige API-Host-URL - HTTPS erforderlich",
         "InvalidApiMethod": "Ungültiges API-Methodenformat",
         "UseSystemDefault": "(Systemstandard verwenden)",
-        "ModelDescriptionMeasurable": "Wählen Sie das Modell aus, das Sie verwenden möchten. Leer lassen, um den Systemstandard zu verwenden. Modelle werden dynamisch von der API abgerufen.",
-        "WaitingForResponse": "Warte auf Antwort..."
+        "WaitingForResponse": "Warte auf Antwort...",
+        "PluginNotConfigured": "Plugin nicht konfiguriert!",
+        "PluginNotConfiguredDescription": "Bitte konfigurieren Sie das ChatGPT-Plugin in den allgemeinen Einstellungen. Für OpenAI ist ein API-Schlüssel erforderlich. Für benutzerdefinierte Hosts wird nur die Host-URL benötigt."
     }
 }

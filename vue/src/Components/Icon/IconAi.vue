@@ -3,8 +3,8 @@
   <svg
     v-if="aiName === 'chat-gpt'"
     xmlns="http://www.w3.org/2000/svg"
-    width="47"
-    height="47"
+    width="18"
+    height="18"
     viewBox="0 0 47 47"
     fill="none"
   >

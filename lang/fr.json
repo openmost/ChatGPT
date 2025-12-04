@@ -12,14 +12,16 @@
         "InvalidResponse": "Réponse invalide du serveur",
         "AnErrorOccurred": "Une erreur s'est produite",
         "NoResponseBody": "Pas de corps de réponse",
-        "EnableStreaming": "Activer le streaming",
-        "EnableStreamingDescription": "Activer les réponses en temps réel. Nécessite un support serveur (pas de mise en tampon). Laissez désactivé si les réponses apparaissent d'un seul coup.",
         "Host": "Hôte",
         "HostDescription": "Modifier l'hôte pour connecter votre propre instance GPT",
         "ApiKey": "Clé API",
         "ApiKeyDescription": "Ajoutez votre clé API ChatGPT ici",
-        "Model": "Modèle",
-        "ModelDescription": "Sélectionnez le modèle que vous souhaitez utiliser. Les modèles sont récupérés dynamiquement depuis l'API lorsque l'hôte et la clé API sont configurés.",
+        "ModelPreset": "Modèle (Présélection)",
+        "ModelPresetDescription": "Sélectionnez le modèle que vous souhaitez utiliser dans la liste présélectionnée.",
+        "ModelCustom": "Modèle (Personnalisé)",
+        "ModelCustomDescription": "Spécifiez un nom de modèle personnalisé pour remplacer la présélection. Laissez vide pour utiliser le modèle présélectionné.",
+        "ModelPresetDescriptionMeasurable": "Sélectionnez le modèle que vous souhaitez utiliser. Laissez vide pour utiliser la valeur système.",
+        "ModelCustomDescriptionMeasurable": "Spécifiez un nom de modèle personnalisé pour remplacer la présélection. Laissez vide pour utiliser la présélection ou la valeur système.",
         "ChatBasePrompt": "Prompt de base du chat",
         "ChatBasePromptDescription": "Adaptez le prompt pour obtenir des réponses plus précises dans la fonctionnalité de chat",
         "ChatBasePromptDefault": "Vous êtes un expert Matomo et connaissez tout sur l'analyse digitale. Votre réponse doit être complète et précise.",
@@ -33,7 +35,8 @@
         "InvalidApiUrl": "URL de l'API invalide - HTTPS requis",
         "InvalidApiMethod": "Format de méthode API invalide",
         "UseSystemDefault": "(Utiliser la valeur système)",
-        "ModelDescriptionMeasurable": "Sélectionnez le modèle que vous souhaitez utiliser. Laissez vide pour utiliser la valeur système. Les modèles sont récupérés dynamiquement depuis l'API.",
-        "WaitingForResponse": "En attente de la réponse..."
+        "WaitingForResponse": "En attente de la réponse...",
+        "PluginNotConfigured": "Plugin non configuré !",
+        "PluginNotConfiguredDescription": "Veuillez configurer le plugin ChatGPT dans les paramètres généraux. Pour OpenAI, une clé API est requise. Pour les hôtes personnalisés, seule l'URL de l'hôte est nécessaire."
     }
 }

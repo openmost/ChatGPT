@@ -2,7 +2,7 @@
 
 {% block content %}
 
-    {% if(api_key) %}
+    {% if is_configured %}
 
         <div vue-entry="ChatGPT.ChatIndexPage"
              ai-name="chat-gpt"
@@ -14,7 +14,8 @@
     {% else %}
 
         <div class="alert alert-info">
-            <strong>API Key is missing!</strong> You need to set your API Key in the general settings as a superuser.
+            <strong>{{ 'ChatGPT_PluginNotConfigured'|translate }}</strong>
+            {{ 'ChatGPT_PluginNotConfiguredDescription'|translate }}
         </div>
 
     {% endif %}

@@ -12,14 +12,16 @@
         "InvalidResponse": "Ogiltigt svar från servern",
         "AnErrorOccurred": "Ett fel uppstod",
         "NoResponseBody": "Inget svarsinnehåll",
-        "EnableStreaming": "Aktivera streaming",
-        "EnableStreamingDescription": "Aktivera realtids-streamingsvar. Kräver serverstöd (ingen utdatabuffring). Lämna inaktiverat om svar visas på en gång.",
         "Host": "Värd",
         "HostDescription": "Ändra värden för att ansluta din egen GPT-instans",
         "ApiKey": "API-nyckel",
         "ApiKeyDescription": "Lägg till din ChatGPT API-nyckel här",
-        "Model": "Modell",
-        "ModelDescription": "Välj den modell du vill använda. Modeller hämtas dynamiskt från API:et när värd och API-nyckel är konfigurerade.",
+        "ModelPreset": "Modell (Förinställning)",
+        "ModelPresetDescription": "Välj den modell du vill använda från förinställningslistan.",
+        "ModelCustom": "Modell (Anpassad)",
+        "ModelCustomDescription": "Ange ett anpassat modellnamn för att åsidosätta förinställningen. Lämna tomt för att använda den förinställda modellen.",
+        "ModelPresetDescriptionMeasurable": "Välj den modell du vill använda. Lämna tomt för att använda systemstandard.",
+        "ModelCustomDescriptionMeasurable": "Ange ett anpassat modellnamn för att åsidosätta förinställningen. Lämna tomt för att använda förinställningen eller systemstandard.",
         "ChatBasePrompt": "Chattens basprompt",
         "ChatBasePromptDescription": "Anpassa prompten för att få mer precisa svar i chattfunktionen",
         "ChatBasePromptDefault": "Du är en Matomo-expert och vet allt om digital analys. Ditt svar ska vara fullständigt och precist.",
@@ -33,7 +35,8 @@
         "InvalidApiUrl": "Ogiltig API-värd-URL - HTTPS krävs",
         "InvalidApiMethod": "Ogiltigt API-metodformat",
         "UseSystemDefault": "(Använd systemstandard)",
-        "ModelDescriptionMeasurable": "Välj den modell du vill använda. Lämna tomt för att använda systemstandard. Modeller hämtas dynamiskt från API:et.",
-        "WaitingForResponse": "Väntar på svar..."
+        "WaitingForResponse": "Väntar på svar...",
+        "PluginNotConfigured": "Plugin inte konfigurerad!",
+        "PluginNotConfiguredDescription": "Konfigurera ChatGPT-pluginet i de allmänna inställningarna. För OpenAI krävs en API-nyckel. För anpassade värdar behövs endast värd-URL:en."
     }
 }

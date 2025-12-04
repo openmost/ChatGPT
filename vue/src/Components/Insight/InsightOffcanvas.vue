@@ -1,15 +1,13 @@
 <template>
-  <div :class="offcanvasClass">
+  <div :class="['ai-chat-insight-offcanvas', { active: displayOffcanvas }]">
     <div class="ai-chat-insight-offcanvas-header">
       <div class="title-wrapper">
-        <IconMagic/>
+        <IconAi :ai-name="aiName"/>
         <h3>{{ insightsTitle }}</h3>
       </div>
-      <div class="actions-wrapper">
-        <button class="close-button" @click="onClose">
-          <IconClose/>
-        </button>
-      </div>
+      <button class="close-button" @click="onClose">
+        <IconClose/>
+      </button>
     </div>
     <div class="ai-chat-insight-offcanvas-body">
       <Chat
@@ -19,7 +17,6 @@
         :ai-color="aiColor"
         :api-method="apiMethod"
         :widget-params="widgetParams"
-        :use-streaming="useStreaming"
       />
     </div>
   </div>
@@ -28,65 +25,47 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { translate } from 'CoreHome';
-import IconMagic from '../Icon/IconMagic.vue';
+import IconAi from '../Icon/IconAi.vue';
 import IconClose from '../Icon/IconClose.vue';
 import Chat from '../Chat/Chat.vue';
 
 export default defineComponent({
   components: {
+    IconAi,
     Chat,
-    IconMagic,
     IconClose,
   },
   props: {
-    displayOffcanvas: {
-      type: Boolean,
-      default: false,
-    },
-    widgetParams: {
-      type: Object,
-      required: true,
-    },
-    aiName: {
-      type: String,
-      required: true,
-    },
-    aiLabel: {
-      type: String,
-      required: true,
-    },
-    aiColor: {
-      type: String,
-      default: '#3450a3',
-    },
-    apiMethod: {
-      type: String,
-      required: true,
-    },
-    useStreaming: {
-      type: Boolean,
-      default: false, // Insights don't support streaming by default (needs different API)
-    },
-  },
-  data() {
-    return {
-      loading: true,
-      errored: false,
-      messages: [],
-    };
+    displayOffcanvas: { type: Boolean, default: false },
+    widgetParams: { type: Object, required: true },
+    aiName: { type: String, required: true },
+    aiLabel: { type: String, required: true },
+    aiColor: { type: String, default: '#3450a3' },
+    apiMethod: { type: String, required: true },
   },
   computed: {
-    offcanvasClass(): Array<string> {
-      return [
-        'ai-chat-insight-offcanvas',
-        this.displayOffcanvas ? 'active' : '',
-      ];
-    },
     insightsTitle(): string {
       return translate('ChatGPT_Insights');
     },
   },
+  watch: {
+    displayOffcanvas(newVal: boolean) {
+      if (newVal) {
+        document.addEventListener('keydown', this.handleKeydown);
+      } else {
+        document.removeEventListener('keydown', this.handleKeydown);
+      }
+    },
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.handleKeydown);
+  },
   methods: {
+    handleKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        this.onClose();
+      }
+    },
     onClose() {
       this.$emit('close');
     },
@@ -108,69 +87,64 @@ export default defineComponent({
   top: 0;
   right: -450px;
   bottom: 0;
-  transition: .2s ease all;
+  display: flex;
+  flex-direction: column;
+  transition: .2s ease right;
 
   &.active {
     right: 0;
   }
 
   .ai-chat-insight-offcanvas-header {
-    padding: 20px 1.5rem;
+    flex-shrink: 0;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #dcdcdc;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 64px;
 
     .title-wrapper {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       align-items: center;
 
       svg {
+        display: block;
         width: 1.125rem;
         height: auto;
       }
 
       h3 {
         margin: 0;
-        color: inherit;
         font-weight: 700;
       }
     }
 
-    .actions-wrapper {
+    .close-button {
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      padding: 0.25rem;
+      display: flex;
+      opacity: 0.7;
+      transition: opacity 0.2s;
 
-      .close-button {
-        cursor: pointer;
-        background-color: transparent;
-        border: none;
-        width: 1.5rem;
-        height: 1.5rem;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      &:hover {
         opacity: 1;
-        transition: .2s ease opacity;
-
-        &:focus,
-        &:hover {
-          background-color: transparent;
-          opacity: .75;
-        }
       }
     }
   }
 
   .ai-chat-insight-offcanvas-body {
-    padding: 0 1rem 1rem 1rem;
-    height: calc(100vh - 65px);
+    flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 
-    * {
-      font-size: 1rem;
-      line-height: normal;
+    :deep(.ai-chat-messages) {
+      padding: 1rem !important;
     }
   }
 }

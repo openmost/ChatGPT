@@ -1,7 +1,6 @@
 <template>
-  <div class="ai-chat-interface-wrapper">
+  <div class="ai-chat-interface">
     <ChatMessagesList
-      ref="messagesList"
       :loading="loading"
       :errored="errored"
       :error-message="errorMessage"
@@ -20,27 +19,19 @@ import { AjaxHelper, MatomoUrl } from 'CoreHome';
 import ChatForm from './ChatForm.vue';
 import ChatMessagesList from './ChatMessagesList.vue';
 
-interface MessageState {
+interface Message {
   role: string;
   content: string;
 }
 
 interface StreamChoice {
-  delta?: {
-    role?: string;
-    content?: string;
-  };
-  message?: {
-    role?: string;
-    content?: string;
-  };
+  delta?: { role?: string; content?: string };
+  message?: { role?: string; content?: string };
 }
 
-interface StreamResponse {
+interface ApiResponse {
   choices?: StreamChoice[];
-  error?: {
-    message: string;
-  };
+  error?: { message: string };
 }
 
 export default defineComponent({
@@ -49,37 +40,12 @@ export default defineComponent({
     ChatForm,
   },
   props: {
-    aiName: {
-      type: String,
-      required: true,
-    },
-    aiLabel: {
-      type: String,
-      required: true,
-    },
-    aiColor: {
-      type: String,
-      default: '#3450a3',
-    },
-    apiMethod: {
-      type: String,
-      required: true,
-    },
-    streamingApiMethod: {
-      type: String,
-      default: 'ChatGPT.getStreamingResponse',
-    },
-    widgetParams: {
-      type: Object,
-      default: () => ({}),
-    },
-    useStreaming: {
-      type: Boolean,
-      default: true, // Controlled by system settings (ChatGPT.enableStreaming)
-    },
-  },
-  mounted() {
-    this.fetchSettings();
+    aiName: { type: String, required: true },
+    aiLabel: { type: String, required: true },
+    aiColor: { type: String, default: '#3450a3' },
+    apiMethod: { type: String, required: true },
+    streamingApiMethod: { type: String, default: 'ChatGPT.getStreamingResponse' },
+    widgetParams: { type: Object, default: () => ({}) },
   },
   data() {
     return {
@@ -87,68 +53,46 @@ export default defineComponent({
       streaming: false,
       errored: false,
       errorMessage: '',
-      messages: [] as MessageState[],
+      messages: [] as Message[],
       streamingContent: '',
       abortController: null as AbortController | null,
-      streamingEnabled: false, // Will be set from settings
+      streamingSupported: true,
     };
   },
   computed: {
-    shouldUseStreaming(): boolean {
-      return this.useStreaming && this.streamingEnabled;
-    },
-    displayMessages(): MessageState[] {
+    displayMessages(): Message[] {
       if (this.streaming && this.streamingContent) {
-        return [
-          ...this.messages,
-          { role: 'assistant', content: this.streamingContent },
-        ];
+        return [...this.messages, { role: 'assistant', content: this.streamingContent }];
       }
       return this.messages;
     },
   },
   methods: {
-    onSubmit(userPrompt?: MessageState) {
+    onSubmit(userPrompt?: Message) {
       if (userPrompt) {
         this.messages.push(userPrompt);
       }
-
       this.loading = true;
       this.errored = false;
       this.errorMessage = '';
-      this.scrollDown();
 
-      if (this.shouldUseStreaming) {
+      if (this.streamingSupported) {
         this.fetchStreaming();
       } else {
         this.fetchNonStreaming();
       }
     },
 
-    fetchSettings() {
-      AjaxHelper.fetch({ method: 'ChatGPT.getSettings' })
-        .then((response: { enableStreaming?: boolean }) => {
-          if (response && typeof response.enableStreaming === 'boolean') {
-            this.streamingEnabled = response.enableStreaming;
-          }
-        })
-        .catch(() => {
-          // Silently fail - streaming will remain disabled
-        });
-    },
-
     async fetchStreaming() {
-      this.streaming = false; // Will be set to true when first byte arrives
+      this.streaming = false;
       this.streamingContent = '';
 
-      // Cancel any previous request
       if (this.abortController) {
         this.abortController.abort();
       }
       this.abortController = new AbortController();
 
       try {
-        // Build URL params - force_api_session enables session-based auth
         const params = new URLSearchParams({
           module: 'API',
           method: this.streamingApiMethod,
@@ -159,29 +103,25 @@ export default defineComponent({
           date: String(MatomoUrl.parsed.value.date || 'today'),
         });
 
-        // Try to get token_auth from various sources for non-session auth
-        type MatomoWindow = Window & {
-          piwik?: { token_auth?: string };
-          broadcast?: { getValueFromUrl: (k: string) => string };
-        };
-        const win = window as MatomoWindow;
-        const tokenAuth = win.piwik?.token_auth
-          || win.broadcast?.getValueFromUrl('token_auth')
-          || MatomoUrl.parsed.value.token_auth
-          || '';
-
+        const tokenAuth = this.getTokenAuth();
         if (tokenAuth) {
-          params.append('token_auth', String(tokenAuth));
+          params.append('token_auth', tokenAuth);
         }
+
+        const postBody = new URLSearchParams({
+          messages: JSON.stringify(this.messages),
+          widgetParams: JSON.stringify(this.widgetParams),
+        });
+
+        // Debug: log what we're sending
+        console.log('ChatGPT - Sending messages:', this.messages);
+        console.log('ChatGPT - POST body:', postBody.toString());
 
         const response = await fetch(`index.php?${params.toString()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            messages: JSON.stringify(this.messages),
-            widgetParams: JSON.stringify(this.widgetParams),
-          }),
-          credentials: 'include', // Always send cookies for session auth
+          body: postBody,
+          credentials: 'include',
           signal: this.abortController.signal,
         });
 
@@ -196,26 +136,36 @@ export default defineComponent({
 
         await this.processStream(reader);
 
-        // Finalize the message
         if (this.streamingContent) {
-          this.messages.push({
-            role: 'assistant',
-            content: this.streamingContent,
-          });
+          this.messages.push({ role: 'assistant', content: this.streamingContent });
         }
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if ((error as Error).name === 'AbortError') return;
+
+        if (!this.streamingContent && this.streamingSupported) {
+          this.streamingSupported = false;
+          this.streaming = false;
+          this.fetchNonStreaming();
           return;
         }
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        this.handleError(errorMsg);
+        this.handleError(error instanceof Error ? error.message : String(error));
       } finally {
         this.loading = false;
         this.streaming = false;
         this.streamingContent = '';
         this.abortController = null;
-        this.scrollDown();
       }
+    },
+
+    getTokenAuth(): string {
+      type MatomoWindow = Window & {
+        piwik?: { token_auth?: string };
+        broadcast?: { getValueFromUrl: (k: string) => string };
+      };
+      const win = window as MatomoWindow;
+      return win.piwik?.token_auth
+        || win.broadcast?.getValueFromUrl('token_auth')
+        || String(MatomoUrl.parsed.value.token_auth || '');
     },
 
     async processStream(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<void> {
@@ -247,19 +197,18 @@ export default defineComponent({
 
     parseStreamData(data: string): void {
       try {
-        const parsed: StreamResponse = JSON.parse(data);
+        const parsed: ApiResponse = JSON.parse(data);
         if (parsed.error) {
           this.handleError(parsed.error.message);
           return;
         }
-        if (parsed.choices?.[0]?.delta?.content) {
-          // First byte received - switch from loading to streaming mode
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) {
           if (!this.streaming) {
             this.streaming = true;
             this.loading = false;
           }
-          this.streamingContent += parsed.choices[0].delta.content;
-          this.scrollDown();
+          this.streamingContent += content;
         }
       } catch {
         // Skip non-JSON lines
@@ -268,68 +217,35 @@ export default defineComponent({
 
     fetchNonStreaming() {
       AjaxHelper
-        .fetch({
-          method: this.apiMethod,
-        }, {
+        .fetch({ method: this.apiMethod }, {
           postParams: {
             messages: this.messages,
             widgetParams: this.widgetParams,
           },
         })
-        .then((response: StreamResponse) => {
+        .then((response: ApiResponse) => {
           if (!response || typeof response !== 'object') {
             this.handleError('Invalid response from server');
             return;
           }
-
           if (response.error) {
-            const errorMsg = response.error.message || 'An error occurred';
-            this.handleError(errorMsg);
+            this.handleError(response.error.message || 'An error occurred');
             return;
           }
-
-          if (this.isValidResponse(response)) {
-            const { message } = (response.choices as StreamChoice[])[0];
-            if (message) {
-              this.messages.push({
-                role: String(message.role || 'assistant'),
-                content: String(message.content || ''),
-              });
-            }
+          const message = response.choices?.[0]?.message;
+          if (message) {
+            this.messages.push({
+              role: String(message.role || 'assistant'),
+              content: String(message.content || ''),
+            });
           }
         })
         .catch((error: Error) => {
-          const errorMsg = error instanceof Error ? error.message : String(error);
-          this.handleError(errorMsg);
+          this.handleError(error instanceof Error ? error.message : String(error));
         })
         .finally(() => {
           this.loading = false;
-          this.scrollDown();
         });
-    },
-
-    isValidResponse(response: unknown): boolean {
-      if (!response || typeof response !== 'object') {
-        return false;
-      }
-      const r = response as Record<string, unknown>;
-      if (!Array.isArray(r.choices) || r.choices.length === 0) {
-        return false;
-      }
-      const choice = r.choices[0] as Record<string, unknown>;
-      if (!choice.message || typeof choice.message !== 'object') {
-        return false;
-      }
-      return true;
-    },
-
-    scrollDown() {
-      this.$nextTick(() => {
-        const list = this.$refs.messagesList as { scrollDown?: () => void } | undefined;
-        if (list && list.scrollDown) {
-          list.scrollDown();
-        }
-      });
     },
 
     handleError(error: string) {
@@ -355,13 +271,10 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-.ai-chat-interface-wrapper {
-  position: relative;
-  flex-grow: 1;
+.ai-chat-interface {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 1.5rem;
-  max-height: 100%;
+  height: 100%;
+  min-height: 0;
 }
 </style>

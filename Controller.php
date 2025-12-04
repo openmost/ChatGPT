@@ -8,32 +8,29 @@
 
 namespace Piwik\Plugins\ChatGPT;
 
-
 use Piwik\Common;
 use Piwik\Piwik;
 
-/**
- * A controller lets you for example create a page that can be added to a menu. For more information read our guide
- * http://developer.piwik.org/guides/mvc-in-piwik or have a look at the our API references for controller and view:
- * http://developer.piwik.org/api-reference/Piwik/Plugin/Controller and
- * http://developer.piwik.org/api-reference/Piwik/View
- */
 class Controller extends \Piwik\Plugin\Controller
 {
-    /**
-     * @throws \Exception
-     */
     public function index()
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = Common::getRequestVar('idSite');
-        $systemSettings = new \Piwik\Plugins\ChatGPT\SystemSettings();
-        $measurableSettings = new \Piwik\Plugins\ChatGPT\MeasurableSettings($idSite);
-        $api_key = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
+        $systemSettings = new SystemSettings();
+        $measurableSettings = new MeasurableSettings($idSite);
 
-        return $this->renderTemplate('index', array(
-            'api_key' => $api_key
-        ));
+        $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
+        $apiKey = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
+        $isCustomHost = $host !== ChatGPT::DEFAULT_HOST;
+
+        // Plugin is configured if: custom host (API key optional) OR default host with API key
+        $isConfigured = !empty($host) && ($isCustomHost || !empty($apiKey));
+
+        return $this->renderTemplate('index', [
+            'is_configured' => $isConfigured,
+            'is_custom_host' => $isCustomHost,
+        ]);
     }
 }

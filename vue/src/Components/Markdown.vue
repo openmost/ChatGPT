@@ -125,7 +125,9 @@ export default defineComponent({
 
 <style lang="less">
 .markdown-wrapper {
-  font-size: 1rem;
+  font-size: .875rem !important;
+  line-height: normal !important;
+  max-width: 100%;
 
   & > :first-child {
     margin-top: 0 !important;
@@ -140,35 +142,34 @@ export default defineComponent({
     margin-bottom: 1rem;
     padding: 0;
     color: inherit;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   h1 {
-    font-size: calc(1.375rem + 1.5vw);
+    font-size: 1.875rem !important;
   }
 
   h2 {
-    font-size: calc(1.325rem + .9vw);
+    font-size: 1.625rem !important;
   }
 
   h3 {
-    font-size: calc(1.3rem + .6vw);
+    font-size: 1.5rem !important;
   }
 
   h4 {
-    font-size: calc(1.275rem + .3vw);
+    font-size: 1.375rem !important;
   }
 
   h5 {
-    font-size: 1.25rem;
+    font-size: 1.25rem !important;
   }
 
   h6 {
-    font-size: 1.125rem;
+    font-size: 1.125rem !important;
   }
 
   p {
-    font-size: 1rem !important;
     margin-top: 0 !important;
     margin-bottom: 1rem !important;
     padding-bottom: 0 !important;
@@ -185,7 +186,7 @@ export default defineComponent({
     font-family: monospace;
     color: #e261a1;
     padding: 0;
-    font-size: .875em;
+    font-size: .875em !important;
     background-color: unset;
     border-radius: unset;
   }
@@ -194,21 +195,26 @@ export default defineComponent({
     overflow: auto;
     margin-top: 0;
     margin-bottom: 1rem;
+    max-width: 100%;
+    width: 100%;
 
     code {
       color: #fff !important;
+      max-width: 100%;
+      width: 100%;
     }
   }
 
   ul, ol {
     margin-top: 0;
     margin-bottom: 1rem;
+    list-style-position: inside !important;
 
     li {
-      list-style-type: unset;
+      list-style-type: unset !important;
 
-      &:not(:last-child) {
-        margin-bottom: .5rem;
+      & > p:first-child {
+        display: inline;
       }
     }
   }
@@ -219,6 +225,23 @@ export default defineComponent({
 
   ol {
     list-style: number;
+  }
+
+  table {
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+
+    tr {
+
+      td, th {
+        padding: 4px;
+        border: 1px solid #dee2e6;
+      }
+
+      th {
+        font-weight: 700;
+      }
+    }
   }
 }
 </style>

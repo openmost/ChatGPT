@@ -46,12 +46,15 @@ class API extends \Piwik\Plugin\API
         $this->logger = $logger;
     }
 
-    public function getResponse(int $idSite, string $period, string $date, array $messages = []): array
+    public function getResponse(int $idSite, string $period, string $date, $messages = []): array
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
+
+        // Get messages from request if not passed or if passed as JSON string
+        $messages = $this->parseMessagesParam($messages);
 
         // Check rate limit
         $this->checkRateLimit($idSite);
@@ -71,12 +74,16 @@ class API extends \Piwik\Plugin\API
         return $this->fetchModelAi(array_merge($conversationBase, $messages), $idSite);
     }
 
-    public function getInsights(int $idSite, string $period, string $date, array $messages = [], array $widgetParams = []): array
+    public function getInsights(int $idSite, string $period, string $date, $messages = [], $widgetParams = []): array
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
+
+        // Parse messages and widgetParams from POST
+        $messages = $this->parseMessagesParam($messages);
+        $widgetParams = $this->parseWidgetParams($widgetParams);
 
         // Check rate limit
         $this->checkRateLimit($idSite);
@@ -112,12 +119,15 @@ class API extends \Piwik\Plugin\API
      * Streams a response from the AI model using Server-Sent Events
      * Call this endpoint directly for streaming support
      */
-    public function getStreamingResponse(int $idSite, string $period, string $date, array $messages = []): void
+    public function getStreamingResponse(int $idSite, string $period, string $date, $messages = []): void
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
+
+        // Parse messages from POST
+        $messages = $this->parseMessagesParam($messages);
 
         $this->checkRateLimit($idSite);
 
@@ -613,6 +623,72 @@ class API extends \Piwik\Plugin\API
             'apiKey' => $apiKey,
             'model' => is_array($model) ? $model[0] : $model,
         ];
+    }
+
+    /**
+     * Parses the messages parameter from POST request
+     * Handles both array and JSON string formats
+     */
+    private function parseMessagesParam($messages): array
+    {
+        // Try to get messages from POST if not already an array
+        if (empty($messages) || !is_array($messages)) {
+            $postMessages = Common::getRequestVar('messages', '', 'string', $_POST);
+            if (!empty($postMessages)) {
+                if (is_string($postMessages)) {
+                    $decoded = json_decode($postMessages, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        return $decoded;
+                    }
+                } elseif (is_array($postMessages)) {
+                    return $postMessages;
+                }
+            }
+        }
+
+        // If messages is a JSON string, decode it
+        if (is_string($messages)) {
+            $decoded = json_decode($messages, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+            return [];
+        }
+
+        return is_array($messages) ? $messages : [];
+    }
+
+    /**
+     * Parses the widgetParams parameter from POST request
+     * Handles both array and JSON string formats
+     */
+    private function parseWidgetParams($widgetParams): array
+    {
+        // Try to get widgetParams from POST if not already an array
+        if (empty($widgetParams) || !is_array($widgetParams)) {
+            $postParams = Common::getRequestVar('widgetParams', '', 'string', $_POST);
+            if (!empty($postParams)) {
+                if (is_string($postParams)) {
+                    $decoded = json_decode($postParams, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        return $decoded;
+                    }
+                } elseif (is_array($postParams)) {
+                    return $postParams;
+                }
+            }
+        }
+
+        // If widgetParams is a JSON string, decode it
+        if (is_string($widgetParams)) {
+            $decoded = json_decode($widgetParams, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+            return [];
+        }
+
+        return is_array($widgetParams) ? $widgetParams : [];
     }
 
     /**

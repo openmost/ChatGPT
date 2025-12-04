@@ -1,23 +1,21 @@
 <template>
   <div class="ai-chat-form-wrapper">
     <form class="ai-chat-form" @submit.prevent="onSubmit">
-
-      <div class="ai-chat-form-group">
-        <input v-model="prompt"
-               type="text"
-               name="ai-chat-prompt"
-               id="ai-chat-prompt"
-               :placeholder="placeholderText"
-               :aria-label="placeholderText"
-               minlength="1"
-               required
-               autofocus
-        >
-        <button type="submit" class="btn" id="ai-chat-submit-button" :disabled="loading">
-          {{ submitText }}
-        </button>
+      <div class="input-field ai-chat-input-wrapper">
+        <input
+          v-model="prompt"
+          type="text"
+          name="chat-prompt"
+          :placeholder="placeholderText"
+          class="ai-chat-input"
+        />
       </div>
-
+      <input
+        type="submit"
+        class="btn"
+        :value="submitText"
+        :disabled="loading || !prompt.trim()"
+      />
     </form>
   </div>
 </template>
@@ -26,42 +24,28 @@
 import { defineComponent } from 'vue';
 import { translate } from 'CoreHome';
 
-interface DataState {
-  prompt: string;
-}
-
 export default defineComponent({
   props: {
-    aiLabel: {
-      type: String,
-      required: true,
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
+    aiLabel: { type: String, required: true },
+    loading: { type: Boolean, default: false },
+  },
+  data() {
+    return {
+      prompt: '',
+    };
   },
   computed: {
     submitText(): string {
-      return this.loading
-        ? translate('ChatGPT_Loading')
-        : translate('ChatGPT_Submit');
+      return translate('ChatGPT_Submit');
     },
     placeholderText(): string {
       return translate('ChatGPT_MessagePlaceholder', this.aiLabel);
     },
   },
-  data(): DataState {
-    return {
-      prompt: '',
-    };
-  },
   methods: {
     onSubmit() {
-      this.$emit('prompt', {
-        role: 'user',
-        content: this.prompt,
-      });
+      if (!this.prompt.trim()) return;
+      this.$emit('prompt', { role: 'user', content: this.prompt });
       this.prompt = '';
     },
   },
@@ -70,25 +54,27 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .ai-chat-form-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
+  flex-shrink: 0;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
 
   .ai-chat-form {
-    background-color: #eff0f1;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 800px;
-    padding: 1rem;
-    border: 1px solid #9e9e9e;
-    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 730px;
+    margin: 0 auto;
 
-    .ai-chat-form-group {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
+    .ai-chat-input-wrapper {
+      flex: 1;
+      margin: 0;
+
+      .ai-chat-input {
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+      }
     }
   }
 }

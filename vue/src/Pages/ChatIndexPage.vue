@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-chat-page-wrapper">
+  <div class="ai-chat-page">
     <Chat
       :ai-name="aiName"
       :ai-label="aiLabel"
@@ -18,41 +18,43 @@ export default defineComponent({
     Chat,
   },
   props: {
-    aiName: {
-      type: String,
-      required: true,
-    },
-    aiLabel: {
-      type: String,
-      required: true,
-    },
-    aiColor: {
-      type: String,
-      default: '#3450a3',
-    },
-    apiMethod: {
-      type: String,
-      required: true,
-    },
+    aiName: { type: String, required: true },
+    aiLabel: { type: String, required: true },
+    aiColor: { type: String, default: '#3450a3' },
+    apiMethod: { type: String, required: true },
   },
 });
 </script>
 
 <style lang="less">
-.ai-chat-page-wrapper {
-  height: calc(100vh - 200px);
+#root {
+  margin-bottom: 0 !important;
+  min-height: 100vh !important;
+}
+
+#pageFooter {
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.ai-chat-page {
+  height: calc(100vh - 180px);
+  margin-left: -18px;
+  margin-right: -18px;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
 
-  .ai-chat-conversation-wrapper {
-    //max-height: none;
+  .ai-chat-interface {
+    height: calc(100% - 34px);
   }
 
   .ai-chat-form-wrapper {
-    position: fixed;
-    bottom: 20px;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
   }
 }
 </style>

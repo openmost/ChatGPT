@@ -1,5 +1,32 @@
 ## Changelog
 
+### 5.5.0
+
+**Major Update: Settings Refactoring & Custom Host Support**
+
+#### New Features
+- **Custom Model Support**: Added ability to specify custom model names to override presets
+- **Optional API Key**: API key is now optional when using custom hosts (self-hosted LLMs)
+- **Automatic Streaming Detection**: Streaming now auto-detects and falls back to non-streaming if unsupported
+
+#### Improvements
+- Refactored model selection: split into "Model (Preset)" dropdown and "Model (Custom)" text field
+- Centralized model definitions in main plugin file for consistency
+- Improved settings architecture with shared trait for system and measurable settings
+- Better chat UI layout with proper flexbox sizing
+- Updated default model to GPT-4o
+- Added translations for all new settings in 7 languages (EN, DE, ES, FR, IT, NL, SV)
+
+#### Bug Fixes
+- Fixed chat messages list height not filling container
+- Fixed streaming fallback behavior
+- Removed unused code and API methods
+
+#### Breaking Changes
+- Removed `model` setting, replaced with `modelPreset` and `modelCustom`
+- Removed `enableStreaming` setting (now automatic)
+- Removed `getRateLimitStatus` and `getSettings` API methods
+
 ### 5.4.1
 
 update: Support premium plugins

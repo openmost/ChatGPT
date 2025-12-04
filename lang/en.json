@@ -12,14 +12,16 @@
         "InvalidResponse": "Invalid response from server",
         "AnErrorOccurred": "An error occurred",
         "NoResponseBody": "No response body",
-        "EnableStreaming": "Enable Streaming",
-        "EnableStreamingDescription": "Enable real-time streaming responses. Requires server support (no output buffering). Leave disabled if responses appear all at once.",
         "Host": "Host",
         "HostDescription": "Change the host to connect your own GPT instance",
         "ApiKey": "API Key",
         "ApiKeyDescription": "Add your ChatGPT API Key here",
-        "Model": "Model",
-        "ModelDescription": "Select the model you want to use. Models are fetched dynamically from the API when Host and API Key are configured.",
+        "ModelPreset": "Model (Preset)",
+        "ModelPresetDescription": "Select the model you want to use from the preset list.",
+        "ModelCustom": "Model (Custom)",
+        "ModelCustomDescription": "Specify a custom model name to override the preset selection. Leave empty to use the preset model.",
+        "ModelPresetDescriptionMeasurable": "Select the model you want to use. Leave empty to use system default.",
+        "ModelCustomDescriptionMeasurable": "Specify a custom model name to override the preset selection. Leave empty to use the preset or system default.",
         "ChatBasePrompt": "Chat base prompt",
         "ChatBasePromptDescription": "Adapt the prompt to get more precise answers in the chat feature",
         "ChatBasePromptDefault": "You are a Matomo expert and know everything about digital analytics. Your answer should be complete and precise.",
@@ -33,7 +35,8 @@
         "InvalidApiUrl": "Invalid API host URL - HTTPS required",
         "InvalidApiMethod": "Invalid API method format",
         "UseSystemDefault": "(Use system default)",
-        "ModelDescriptionMeasurable": "Select the model you want to use. Leave empty to use system default. Models are fetched dynamically from the API.",
-        "WaitingForResponse": "Waiting for response..."
+        "WaitingForResponse": "Waiting for response...",
+        "PluginNotConfigured": "Plugin not configured!",
+        "PluginNotConfiguredDescription": "Please configure the ChatGPT plugin in the general settings. For OpenAI, an API key is required. For custom hosts, only the host URL is needed."
     }
 }
