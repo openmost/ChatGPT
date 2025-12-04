@@ -87,20 +87,29 @@ class ChatGPT extends \Piwik\Plugin
 
     private function pluginIsConfigured(): bool
     {
-        $settings = new SystemSettings();
-        $host = $settings->host->getValue();
-        $apiKey = $settings->apiKey->getValue();
+        try {
+            $settings = new SystemSettings();
 
-        if (empty($host)) {
+            if (!$settings->host || !$settings->apiKey) {
+                return false;
+            }
+
+            $host = $settings->host->getValue();
+            $apiKey = $settings->apiKey->getValue();
+
+            if (empty($host)) {
+                return false;
+            }
+
+            // Custom host doesn't require API key
+            $isCustomHost = $host !== SystemSettings::DEFAULT_HOST;
+            if (!$isCustomHost && empty($apiKey)) {
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
             return false;
         }
-
-        // Custom host doesn't require API key
-        $isCustomHost = $host !== SystemSettings::DEFAULT_HOST;
-        if (!$isCustomHost && empty($apiKey)) {
-            return false;
-        }
-
-        return true;
     }
 }
