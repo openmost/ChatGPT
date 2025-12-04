@@ -10,7 +10,6 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\API\Request;
-use Piwik\Cache;
 use Piwik\Common;
 use Piwik\Option;
 use Piwik\Piwik;
@@ -29,11 +28,6 @@ class API extends \Piwik\Plugin\API
      * Request timeout in seconds
      */
     private const REQUEST_TIMEOUT = 60;
-
-    /**
-     * Cache TTL for models list (1 hour)
-     */
-    private const MODELS_CACHE_TTL = 3600;
 
     /**
      * Rate limit settings
@@ -117,31 +111,62 @@ class API extends \Piwik\Plugin\API
 
     /**
      * Streams a response from the AI model using Server-Sent Events
-     * Call this endpoint directly for streaming support
+     * If widgetParams are present, fetches report data first (insight mode)
      */
-    public function getStreamingResponse(int $idSite, string $period, string $date, $messages = []): void
+    public function getStreamingResponse(int $idSite, string $period, string $date, $messages = [], $widgetParams = []): void
     {
         Piwik::checkUserHasSomeViewAccess();
 
         $idSite = (int) Common::getRequestVar('idSite');
         Piwik::checkUserHasViewAccess($idSite);
 
-        // Parse messages from POST
+        // Parse messages and widgetParams from POST
         $messages = $this->parseMessagesParam($messages);
+        $widgetParams = $this->parseWidgetParams($widgetParams);
 
         $this->checkRateLimit($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
-        $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
 
-        $conversationBase = [
-            [
-                "role" => "system",
-                "name" => "AI",
-                "content" => $chatBasePrompt,
-            ]
-        ];
+        // Check if this is an insight request (has widgetParams with module/action)
+        $isInsight = !empty($widgetParams) && (isset($widgetParams['module']) || isset($widgetParams['action']));
+
+        if ($isInsight) {
+            // Insight mode: fetch report data and use insight prompt
+            $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
+
+            $requestParams = $this->buildRequestParams($widgetParams, $idSite, $date, $period);
+            $apiMethod = $this->resolveReportMethod($requestParams['_apiMethod'], $widgetParams);
+            unset($requestParams['_apiMethod']);
+
+            // Validate API method format (Module.action)
+            if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $apiMethod)) {
+                throw new Exception('Invalid API method format');
+            }
+
+            // Fetch report data
+            $data = Request::processRequest($apiMethod, $requestParams);
+
+            $conversationBase = [
+                [
+                    "role" => "system",
+                    "name" => "AI",
+                    "content" => "$insightBasePrompt $data",
+                ]
+            ];
+        } else {
+            // Regular chat mode
+            $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
+
+            $conversationBase = [
+                [
+                    "role" => "system",
+                    "name" => "AI",
+                    "content" => $chatBasePrompt,
+                ]
+            ];
+        }
 
         $this->streamModelAi(array_merge($conversationBase, $messages), $idSite);
     }
@@ -318,126 +343,6 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Retrieves the list of available models from the OpenAI API
-     * Results are cached for performance
-     *
-     * @param string|null $host API base URL (optional)
-     * @param string|null $apiKey API Key (optional)
-     * @param bool $forceRefresh Force cache refresh
-     * @return array List of available models
-     */
-    public function getAvailableModels(?string $host = null, ?string $apiKey = null, bool $forceRefresh = false): array
-    {
-        Piwik::checkUserHasSomeViewAccess();
-
-        $systemSettings = new SystemSettings();
-
-        $configuredHost = $host ?: $systemSettings->host->getValue();
-        $configuredApiKey = $apiKey ?: $systemSettings->apiKey->getValue();
-
-        if (!$configuredHost || !$configuredApiKey) {
-            return ['error' => 'Host and API Key must be configured first', 'models' => []];
-        }
-
-        if (!$this->isValidApiUrl($configuredHost)) {
-            return ['error' => 'Invalid API host URL', 'models' => []];
-        }
-
-        // Check cache first (unless force refresh)
-        $cacheKey = 'ChatGPT_models_' . md5($configuredHost);
-        $cache = Cache::getLazyCache();
-
-        if (!$forceRefresh) {
-            $cachedModels = $cache->fetch($cacheKey);
-            if ($cachedModels !== false) {
-                return ['models' => $cachedModels, 'error' => null, 'cached' => true];
-            }
-        }
-
-        // Fetch from API
-        $baseUrl = preg_replace('#/v1/.*$#', '/v1', $configuredHost);
-        $modelsUrl = $baseUrl . '/models';
-
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Authorization: Bearer ' . $configuredApiKey,
-        ];
-
-        $ch = curl_init($modelsUrl);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
-            $this->logger->warning('ChatGPT API error fetching models: ' . $curlError);
-            return ['error' => 'Connection error: ' . $curlError, 'models' => []];
-        }
-
-        if ($httpCode !== 200) {
-            return ['error' => 'Failed to fetch models (HTTP ' . $httpCode . ')', 'models' => []];
-        }
-
-        if (empty($response)) {
-            return ['error' => 'Empty response from API', 'models' => []];
-        }
-
-        $data = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['error' => 'Invalid JSON response from API', 'models' => []];
-        }
-
-        if (!isset($data['data']) || !is_array($data['data'])) {
-            return ['error' => 'Invalid response structure from API', 'models' => []];
-        }
-
-        $models = [];
-        foreach ($data['data'] as $model) {
-            if (!isset($model['id']) || !is_string($model['id'])) {
-                continue;
-            }
-            $modelId = $model['id'];
-            if (preg_match('/^(gpt|o1|o3|chatgpt|claude)/i', $modelId)) {
-                $models[$modelId] = $modelId;
-            }
-        }
-
-        ksort($models);
-
-        // Cache the results
-        $cache->save($cacheKey, $models, self::MODELS_CACHE_TTL);
-
-        return ['models' => $models, 'error' => null, 'cached' => false];
-    }
-
-    /**
-     * Clears the models cache
-     */
-    public function clearModelsCache(): array
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        $systemSettings = new SystemSettings();
-        $configuredHost = $systemSettings->host->getValue();
-
-        if ($configuredHost) {
-            $cacheKey = 'ChatGPT_models_' . md5($configuredHost);
-            $cache = Cache::getLazyCache();
-            $cache->delete($cacheKey);
-        }
-
-        return ['success' => true];
-    }
-
-    /**
      * Validates that the URL is a valid HTTPS API endpoint
      */
     private function isValidApiUrl(?string $url): bool
@@ -595,11 +500,20 @@ class API extends \Piwik\Plugin\API
 
         $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
         $apiKey = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
-        $model = $systemSettings->model->getValue();
 
-        $measurableModel = $measurableSettings->model->getValue();
-        if (is_array($measurableModel) && !empty($measurableModel[0])) {
-            $model = $measurableModel;
+        // Get model: prefer custom model if set, otherwise use preset
+        $model = $systemSettings->modelCustom->getValue();
+        if (empty($model)) {
+            $model = $systemSettings->modelPreset->getValue();
+        }
+
+        // Check measurable settings override
+        $measurableModelCustom = $measurableSettings->modelCustom->getValue();
+        $measurableModelPreset = $measurableSettings->modelPreset->getValue();
+        if (!empty($measurableModelCustom)) {
+            $model = $measurableModelCustom;
+        } elseif (!empty($measurableModelPreset)) {
+            $model = $measurableModelPreset;
         }
 
         if (empty($host)) {
@@ -631,7 +545,20 @@ class API extends \Piwik\Plugin\API
      */
     private function parseMessagesParam($messages): array
     {
-        // Try to get messages from POST if not already an array
+        // First check $_POST directly
+        if (isset($_POST['messages']) && !empty($_POST['messages'])) {
+            $postMessages = $_POST['messages'];
+            if (is_string($postMessages)) {
+                $decoded = json_decode($postMessages, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+            } elseif (is_array($postMessages)) {
+                return $postMessages;
+            }
+        }
+
+        // Fallback to Common::getRequestVar
         if (empty($messages) || !is_array($messages)) {
             $postMessages = Common::getRequestVar('messages', '', 'string', $_POST);
             if (!empty($postMessages)) {
@@ -664,7 +591,20 @@ class API extends \Piwik\Plugin\API
      */
     private function parseWidgetParams($widgetParams): array
     {
-        // Try to get widgetParams from POST if not already an array
+        // First check $_POST directly
+        if (isset($_POST['widgetParams']) && !empty($_POST['widgetParams'])) {
+            $postParams = $_POST['widgetParams'];
+            if (is_string($postParams)) {
+                $decoded = json_decode($postParams, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+            } elseif (is_array($postParams)) {
+                return $postParams;
+            }
+        }
+
+        // Fallback to Common::getRequestVar
         if (empty($widgetParams) || !is_array($widgetParams)) {
             $postParams = Common::getRequestVar('widgetParams', '', 'string', $_POST);
             if (!empty($postParams)) {
@@ -722,58 +662,5 @@ class API extends \Piwik\Plugin\API
         }
 
         return $sanitized;
-    }
-
-    /**
-     * Returns plugin settings for the frontend
-     */
-    public function getSettings(): array
-    {
-        Piwik::checkUserHasSomeViewAccess();
-
-        $systemSettings = new SystemSettings();
-
-        return [
-            'enableStreaming' => (bool) $systemSettings->enableStreaming->getValue(),
-        ];
-    }
-
-    /**
-     * Returns current rate limit status for the user
-     */
-    public function getRateLimitStatus(int $idSite): array
-    {
-        Piwik::checkUserHasSomeViewAccess();
-
-        $userLogin = Piwik::getCurrentUserLogin();
-        $rateLimitKey = 'ChatGPT_ratelimit_' . $idSite . '_' . $userLogin;
-
-        $rateData = Option::get($rateLimitKey);
-        $currentTime = time();
-
-        if ($rateData) {
-            $rateData = json_decode($rateData, true);
-            $windowStart = $rateData['window_start'] ?? 0;
-            $requestCount = $rateData['count'] ?? 0;
-
-            if ($currentTime - $windowStart > self::RATE_LIMIT_WINDOW) {
-                $requestCount = 0;
-                $windowStart = $currentTime;
-            }
-
-            return [
-                'requests_used' => $requestCount,
-                'requests_limit' => self::RATE_LIMIT_REQUESTS,
-                'requests_remaining' => max(0, self::RATE_LIMIT_REQUESTS - $requestCount),
-                'reset_in_seconds' => max(0, $windowStart + self::RATE_LIMIT_WINDOW - $currentTime),
-            ];
-        }
-
-        return [
-            'requests_used' => 0,
-            'requests_limit' => self::RATE_LIMIT_REQUESTS,
-            'requests_remaining' => self::RATE_LIMIT_REQUESTS,
-            'reset_in_seconds' => self::RATE_LIMIT_WINDOW,
-        ];
     }
 }

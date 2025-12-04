@@ -36,6 +36,7 @@ export default defineComponent({
   align-content: center;
   align-items: center;
   gap: .5rem;
+  font-size: .875rem !important;
 }
 
 .ai-chat-spinner {

@@ -14,7 +14,7 @@ window.addEventListener('widget:loaded', function (e) {
   insightTrigger.setAttribute('ai-name', 'chat-gpt');
   insightTrigger.setAttribute('ai-label', 'ChatGPT');
   insightTrigger.setAttribute('ai-color', '#00A67E');
-  insightTrigger.setAttribute('api-method', 'ChatGPT.getResponse');
+  insightTrigger.setAttribute('api-method', 'ChatGPT.getInsights');
   titleWrapper.append(insightTrigger);
 
   piwikHelper.compileVueEntryComponents(insightTrigger);

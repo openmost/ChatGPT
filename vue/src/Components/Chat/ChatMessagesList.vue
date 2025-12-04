@@ -1,10 +1,10 @@
 <template>
   <div class="ai-chat-messages">
-    <div class="ai-chat-messages-list" v-if="messages.length">
+    <div class="ai-chat-messages-list">
       <ChatMessage
         v-for="(message, index) in messages"
-        :message="message"
         :key="index"
+        :message="message"
         :ai-name="aiName"
         :ai-color="aiColor"
         :is-streaming="streaming && index === messages.length - 1 && message.role === 'assistant'"
@@ -59,6 +59,11 @@ export default defineComponent({
     max-width: 770px;
     margin: 0 auto;
     list-style-type: none;
+  }
+
+  .alert {
+    max-width: 770px;
+    margin: 1rem auto !important;
   }
 }
 </style>

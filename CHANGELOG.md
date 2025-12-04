@@ -2,30 +2,40 @@
 
 ### 5.5.0
 
-**Major Update: Settings Refactoring & Custom Host Support**
+**Major Update: Settings Refactoring, Streaming & UI Improvements**
 
 #### New Features
 - **Custom Model Support**: Added ability to specify custom model names to override presets
 - **Optional API Key**: API key is now optional when using custom hosts (self-hosted LLMs)
-- **Automatic Streaming Detection**: Streaming now auto-detects and falls back to non-streaming if unsupported
+- **Unified Streaming**: Both Chat and Insights now use the same streaming endpoint with automatic mode detection
+- **Automatic Streaming Fallback**: Streaming auto-detects and falls back to non-streaming if unsupported
+- **Escape Key Support**: Close Insights offcanvas panel by pressing Escape
 
 #### Improvements
 - Refactored model selection: split into "Model (Preset)" dropdown and "Model (Custom)" text field
 - Centralized model definitions in main plugin file for consistency
-- Improved settings architecture with shared trait for system and measurable settings
+- Improved settings architecture with shared `SettingsBase` trait for system and measurable settings
 - Better chat UI layout with proper flexbox sizing
 - Updated default model to GPT-4o
 - Added translations for all new settings in 7 languages (EN, DE, ES, FR, IT, NL, SV)
+- Improved POST parameter parsing for messages and widgetParams
+- Unified `getStreamingResponse` API handles both chat and insight modes based on widgetParams
+- Cleaner API with removed unused methods
 
 #### Bug Fixes
+- Fixed user messages not being sent to AI in streaming mode
+- Fixed Insights not using correct prompt and report data
 - Fixed chat messages list height not filling container
 - Fixed streaming fallback behavior
-- Removed unused code and API methods
+- Fixed TypeScript errors in Vue components
 
 #### Breaking Changes
 - Removed `model` setting, replaced with `modelPreset` and `modelCustom`
-- Removed `enableStreaming` setting (now automatic)
-- Removed `getRateLimitStatus` and `getSettings` API methods
+- Removed `enableStreaming` setting (streaming is now automatic)
+- Removed `getAvailableModels` API method (now using static model list)
+- Removed `clearModelsCache` API method
+- Removed `getRateLimitStatus` API method
+- Removed `getSettings` API method
 
 ### 5.4.1
 

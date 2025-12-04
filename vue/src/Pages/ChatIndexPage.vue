@@ -38,7 +38,7 @@ export default defineComponent({
 }
 
 .ai-chat-page {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 214px);
   margin-left: -18px;
   margin-right: -18px;
   min-height: 400px;
@@ -46,7 +46,11 @@ export default defineComponent({
   flex-direction: column;
 
   .ai-chat-interface {
-    height: calc(100% - 34px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
   }
 
   .ai-chat-form-wrapper {

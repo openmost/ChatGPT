@@ -46,6 +46,7 @@ export default defineComponent({
     apiMethod: { type: String, required: true },
     streamingApiMethod: { type: String, default: 'ChatGPT.getStreamingResponse' },
     widgetParams: { type: Object, default: () => ({}) },
+    useStreaming: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -76,7 +77,7 @@ export default defineComponent({
       this.errored = false;
       this.errorMessage = '';
 
-      if (this.streamingSupported) {
+      if (this.useStreaming && this.streamingSupported) {
         this.fetchStreaming();
       } else {
         this.fetchNonStreaming();
@@ -112,10 +113,6 @@ export default defineComponent({
           messages: JSON.stringify(this.messages),
           widgetParams: JSON.stringify(this.widgetParams),
         });
-
-        // Debug: log what we're sending
-        console.log('ChatGPT - Sending messages:', this.messages);
-        console.log('ChatGPT - POST body:', postBody.toString());
 
         const response = await fetch(`index.php?${params.toString()}`, {
           method: 'POST',
