@@ -2,7 +2,7 @@
 
 Integrate AI-powered analytics insights and chat functionality into your Matomo instance using ChatGPT or any OpenAI-compatible API.
 
-## Features
+## Description
 
 ### AI-Powered Report Insights
 Get instant AI-generated insights for any Matomo report. The plugin adds an "Insights" button to all report widgets that analyzes your data and provides actionable recommendations.
