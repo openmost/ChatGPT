@@ -12,7 +12,6 @@ use Piwik\Piwik;
 use Piwik\Settings\Setting;
 use Piwik\Settings\FieldConfig;
 use Piwik\Validators\NotEmpty;
-use Piwik\Plugins\ChatGPT\ChatGPT;
 
 /**
  * System-wide settings for ChatGPT plugin.
@@ -20,6 +19,9 @@ use Piwik\Plugins\ChatGPT\ChatGPT;
 class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 {
     use SettingsBase;
+
+    public const DEFAULT_HOST = 'https://api.openai.com/v1/chat/completions';
+    public const DEFAULT_MODEL = 'gpt-4o';
 
     /** @var Setting */
     public $host;
@@ -31,7 +33,7 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 
     protected function init()
     {
-        $this->host = $this->makeSetting('host', ChatGPT::DEFAULT_HOST, FieldConfig::TYPE_STRING, function (FieldConfig $field) {
+        $this->host = $this->makeSetting('host', self::DEFAULT_HOST, FieldConfig::TYPE_STRING, function (FieldConfig $field) {
             $this->configureHostField($field);
             $field->validators[] = new NotEmpty();
         });
@@ -40,7 +42,7 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
             $this->configureApiKeyField($field);
         });
 
-        $this->modelPreset = $this->makeSetting('modelPreset', ChatGPT::DEFAULT_MODEL, FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
+        $this->modelPreset = $this->makeSetting('modelPreset', self::DEFAULT_MODEL, FieldConfig::TYPE_ARRAY, function (FieldConfig $field) {
             $this->configureModelPresetField($field, false);
             $field->validators[] = new NotEmpty();
         });

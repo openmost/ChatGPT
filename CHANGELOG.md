@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.5.2
+
+- fix: constant declaration issue cause issue on updating
+
 ### 5.5.0
 
 **Major Update: Settings Refactoring, Streaming & UI Improvements**

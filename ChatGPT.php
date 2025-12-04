@@ -11,16 +11,6 @@ namespace Piwik\Plugins\ChatGPT;
 class ChatGPT extends \Piwik\Plugin
 {
     /**
-     * Default API host
-     */
-    public const DEFAULT_HOST = 'https://api.openai.com/v1/chat/completions';
-
-    /**
-     * Default model to use
-     */
-    public const DEFAULT_MODEL = 'gpt-4o';
-
-    /**
      * Returns the list of available preset models
      */
     public static function getAvailableModels(): array
@@ -106,7 +96,7 @@ class ChatGPT extends \Piwik\Plugin
         }
 
         // Custom host doesn't require API key
-        $isCustomHost = $host !== self::DEFAULT_HOST;
+        $isCustomHost = $host !== SystemSettings::DEFAULT_HOST;
         if (!$isCustomHost && empty($apiKey)) {
             return false;
         }
