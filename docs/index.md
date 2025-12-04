@@ -1,43 +1,149 @@
 ## Documentation
 
-### 1- Install the plugin from the marketplace or via GitHub
+Integrate AI-powered analytics insights and chat functionality into your Matomo instance using ChatGPT or any OpenAI-compatible API.
 
-Install this plugin from the Marketplace as super user or download the plugin and install it on your server from FTP in
-the `/plugins` folder.
+## Features
 
-### 2- Adjust your settings
+### AI-Powered Report Insights
 
-To activate ChatGPT, you have to set your API Key to the System Settings as a superuser.
-Once you set your API Key, a chatbox will appear on the dedicated page.
+Get instant AI-generated insights for any Matomo report. The plugin adds an "Insights" button to all report widgets that analyzes your data and provides actionable recommendations.
 
-You can also choose between many models:
+- Works with all report types (visitors, actions, referrers, goals, custom dimensions, custom reports, etc.)
+- Supports data tables, evolution graphs, and series visualizations
+- Conversation mode: ask follow-up questions about your report data
 
-- o1 mini `o1-mini` 
-- GPT 4o `gpt-4o` 
-- GPT 4o mini `gpt-4o-mini` 
-- GPT 4 `gpt-4` 
-- GPT 4 Turbo `gpt-4-turbo` 
-- GPT 3.5 turbo `gpt-3.5-turbo` 
+### Dedicated AI Chat
 
-And adjust the base prompt for the chat and the insight. You are free to make your own prompt to enhance the answer of
-AI.
+A full-featured chat interface for asking questions about your analytics data.
 
-### 3 - Enjoy reports insights
+- Accessible from the main menu under "ChatGPT"
+- Real-time streaming responses (with automatic fallback for unsupported servers)
 
-Click on the button located at the right of every datatable reports in the Matomo UI. It'll trigger an overlay with
-generated insights for this report.
+### Flexible Model Configuration
 
-### 4 - Share with others
+Choose from preset models or specify custom model names:
 
-Now you tried and love this plugin, don't hesitate to share the good news !
+**Preset Models:**
+- GPT-5.1 / GPT-5
+- GPT-4.1 / GPT-4.1 Mini / GPT-4.1 Nano
+- GPT-4o / GPT-4o Mini
+- GPT-4 Turbo
+- o3 / o3 Mini
+- o1 / o1 Mini / o1 Pro
 
+**Custom Models:**
+Specify any model name to use models not in the preset list, perfect for new OpenAI models, self-hosted LLMs, or other providers.
 
-## API Support
+### Custom Host Support
 
-You can use this plugin via API with two endpoints :
+Connect to any OpenAI-compatible API endpoint:
+- OpenAI (default)
+- Azure OpenAI
+- Self-hosted solutions (Ollama, LocalAI, vLLM, etc.)
+- Other providers (Anthropic via proxy, Mistral, etc.)
 
-`ChatGPT.getResponse` with parameters `$idSite`, `$period`, `$date`, `$messages`
+## Installation
 
-`ChatGPT.getInsights` with parameters `$idSite`, `$period`, `$date`, `$reportId`, `$messages`
+### From Marketplace
 
-Where `$messages` is in the ChatGPT conversation format.
+1. Go to the Administration panel as a super user
+2. Navigate to the Marketplace section and select "Plugins"
+3. Search for "**ChatGPT**"
+4. Install and activate the plugin
+
+### Manual Installation
+
+1. Download the plugin from [GitHub](https://github.com/openmost/ChatGPT)
+2. Extract to your `/plugins` folder
+3. Activate the plugin in Matomo's Plugin settings
+
+## Configuration
+
+### System Settings (Global)
+
+Navigate to **Administration > General Settings > ChatGPT** to configure:
+
+| Setting | Description |
+|---------|-------------|
+| **Host** | API endpoint URL. Default: `https://api.openai.com/v1/chat/completions` |
+| **API Key** | Your OpenAI API key (required for OpenAI, optional for custom hosts) |
+| **Model (Preset)** | Select from available model presets |
+| **Model (Custom)** | Override preset with a custom model name |
+| **Chat Base Prompt** | System prompt for chat conversations |
+| **Insight Base Prompt** | System prompt for report insights |
+
+### Measurable Settings (Per-Site)
+
+All system settings can be overridden per website in the site's Measurable Settings. Leave fields empty to use system defaults.
+
+This is useful for:
+- Using different models for different sites
+- Customizing prompts for specific website contexts
+- Using separate API keys per site
+
+## Usage
+
+### Getting Report Insights
+
+1. Navigate to any report in Matomo
+2. Click the "Insights" button (sparkle icon) in the report header
+3. View AI-generated insights in the side panel
+4. Ask follow-up questions to dive deeper into the data
+
+### Using the Chat
+
+1. Go to **ChatGPT** in the main menu
+2. Type your question about analytics
+3. Receive AI-powered responses with streaming support
+4. Continue the conversation with follow-up questions
+
+## API Reference
+
+The plugin provides the following API methods:
+
+| Method | Description |
+|--------|-------------|
+| `ChatGPT.getResponse` | Get AI response for messages (non-streaming) |
+| `ChatGPT.getStreamingResponse` | Get AI response with SSE streaming |
+| `ChatGPT.getInsight` | Get AI insights for report data |
+| `ChatGPT.getModels` | Get list of available preset models |
+
+### Parameters
+
+**ChatGPT.getResponse**
+- `idSite` - Site ID
+- `period` - Period (day, week, month, year)
+- `date` - Date string
+- `messages` - Conversation messages in ChatGPT format
+
+**ChatGPT.getInsight**
+- `idSite` - Site ID
+- `period` - Period
+- `date` - Date string
+- `reportId` - Report identifier
+- `messages` - Conversation messages
+
+All API methods require appropriate view permissions for the requested site.
+
+## Multi-Language Support
+
+The plugin interface is available in:
+- English
+- German (Deutsch)
+- Spanish (Español)
+- French (Français)
+- Italian (Italiano)
+- Dutch (Nederlands)
+- Swedish (Svenska)
+
+## Requirements
+
+- Matomo 5.0.0 or higher
+- PHP 7.4 or higher
+- Valid API key (for OpenAI) or accessible custom host
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/openmost/ChatGPT/issues)
+- **Documentation**: [Plugin Homepage](https://openmost.io/products/chatgpt/)
+- **Email**: ronan@openmost.io

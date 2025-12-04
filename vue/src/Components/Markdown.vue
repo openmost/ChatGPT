@@ -125,9 +125,10 @@ export default defineComponent({
 
 <style lang="less">
 .markdown-wrapper {
-  font-size: .875rem !important;
+  font-size: 1rem !important;
   line-height: normal !important;
   max-width: 100%;
+  overflow-x: auto;
 
   & > :first-child {
     margin-top: 0 !important;
@@ -170,6 +171,7 @@ export default defineComponent({
   }
 
   p {
+    font-size: 1rem !important;
     margin-top: 0 !important;
     margin-bottom: 1rem !important;
     padding-bottom: 0 !important;
@@ -206,12 +208,16 @@ export default defineComponent({
   }
 
   ul, ol {
-    margin-top: 0;
+    margin-top: 0.5rem;
     margin-bottom: 1rem;
-    list-style-position: inside !important;
+    padding-left: 19px;
 
     li {
       list-style-type: unset !important;
+
+      &:not(:last-child){
+        margin-bottom: .5rem;
+      }
 
       & > p:first-child {
         display: inline;
