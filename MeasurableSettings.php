@@ -10,6 +10,7 @@ namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\Settings\Setting;
 use Piwik\Settings\FieldConfig;
+use Piwik\Plugins\ChatGPT\ChatGPT;
 
 /**
  * Site-specific settings for ChatGPT plugin.

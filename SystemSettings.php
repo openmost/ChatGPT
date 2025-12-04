@@ -12,6 +12,7 @@ use Piwik\Piwik;
 use Piwik\Settings\Setting;
 use Piwik\Settings\FieldConfig;
 use Piwik\Validators\NotEmpty;
+use Piwik\Plugins\ChatGPT\ChatGPT;
 
 /**
  * System-wide settings for ChatGPT plugin.
