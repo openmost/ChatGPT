@@ -54,7 +54,11 @@ class ChatGPT extends \Piwik\Plugin
         try {
             $settings = new SystemSettings();
 
-            if (!$settings->host || !$settings->apiKey) {
+            // Check if settings properties exist and are properly initialized
+            if (!isset($settings->host) || $settings->host === null) {
+                return false;
+            }
+            if (!isset($settings->apiKey) || $settings->apiKey === null) {
                 return false;
             }
 
@@ -72,7 +76,8 @@ class ChatGPT extends \Piwik\Plugin
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Catch any error during plugin installation/initialization
             return false;
         }
     }
