@@ -56,8 +56,8 @@ export default defineComponent({
 .ai-chat-form-wrapper {
   flex-shrink: 0;
   padding: 1rem;
-  background: var(--theme-color-background-highContrast);
-  border-top: 1px solid var(--theme-color-border);
+  background-color: var(--theme-color-background-tinyContrast, #f2f2f2);
+  border-top: 1px solid var(--theme-color-border, #cccccc);
 
   .ai-chat-form {
     display: flex;

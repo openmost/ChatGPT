@@ -241,7 +241,7 @@ export default defineComponent({
 
       td, th {
         padding: 4px;
-        border: 1px solid var(--theme-color-border);
+        border: 1px solid var(--theme-color-border, #cccccc);
       }
 
       th {

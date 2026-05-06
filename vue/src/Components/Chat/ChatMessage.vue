@@ -59,7 +59,7 @@ export default defineComponent({
     justify-content: flex-end;
 
     .ai-chat-response-content-wrapper {
-      background-color: var(--theme-color-background-contrast);
+      background-color: var(--theme-color-background-contrast, #fff);
       padding: 6px 16px;
       border-radius: 16px;
     }

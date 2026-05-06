@@ -1,5 +1,8 @@
 ## Changelog
 
+### 5.6.1
+
+Support fallback color value for Matomo < 5.10
 
 ### 5.6.0
 
