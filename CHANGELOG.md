@@ -1,6 +1,23 @@
 ## Changelog
 
 
+### 5.6.0
+
+**Refreshed model list and visible error reporting**
+
+#### New Features
+- **Refreshed preset model list**: Added the GPT 5.5, GPT 5.4, GPT 5.1 and GPT 5 conversational families. Default model is now GPT 5.5.
+- **Curated for chat**: The preset list now only contains models suited for back-and-forth discussion of report data. Reasoning models (o-series) and `*-pro` variants have been removed because they target one-shot deep analysis rather than conversation, which produced a poor chat experience.
+
+#### Improvements
+- **Visible error notices**: Errors returned by the upstream model API (invalid model, quota, auth, etc.) are now surfaced as a danger notice inside the chat instead of failing silently. This works for both streaming and non-streaming requests.
+- **HTTP status detection in streaming**: The streaming endpoint now inspects the upstream `Content-Type` and HTTP status, so non-SSE error responses are converted into a structured error event the client can render.
+- **Snappier error UI**: When an error event is received, the loading spinner is cleared immediately so the notice appears without delay.
+- **Dark theme support**: All chat and insight components use Matomo's native CSS theme variables (`--theme-color-background-contrast`, `--theme-color-border`, etc.), so the UI automatically follows Matomo's light/dark theme without any extra configuration.
+
+#### Notes for Custom Models
+The "Model (Custom)" field still accepts any model name, including custom or self-hosted ones. If you enter a model that the configured endpoint cannot serve (for example, a `*-pro` variant on `/v1/chat/completions`), the upstream error message will now be shown directly in the chat.
+
 ### 5.5.7
 
 - update: documentation

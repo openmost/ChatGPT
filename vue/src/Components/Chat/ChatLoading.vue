@@ -31,7 +31,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .ai-chat-loader {
   list-style-type: none;
-  color: #2e2e2e;
+  color: var(--ai-color);
   display: flex;
   align-content: center;
   align-items: center;

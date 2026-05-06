@@ -469,24 +469,76 @@ class API extends \Piwik\Plugin\API
         curl_setopt($ch, CURLOPT_TIMEOUT, 0); // No timeout for streaming
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
 
-        // Stream the response chunk by chunk
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $chunk) {
-            echo $chunk;
-            flush();
+        // Track whether the upstream is actually streaming SSE; if not (e.g. error
+        // responses are returned as plain JSON), buffer the body so we can surface
+        // the error to the client instead of letting it fall through silently.
+        $isStream = null;
+        $errorBuffer = '';
+
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($ch, $header) use (&$isStream) {
+            if ($isStream === null && stripos($header, 'Content-Type:') === 0) {
+                $isStream = stripos($header, 'text/event-stream') !== false;
+            }
+            return strlen($header);
+        });
+
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $chunk) use (&$isStream, &$errorBuffer) {
+            if ($isStream) {
+                echo $chunk;
+                flush();
+            } else {
+                // Non-SSE response (typically an error JSON). Buffer it so we can
+                // forward the message as a structured SSE error event below.
+                $errorBuffer .= $chunk;
+            }
             return strlen($chunk);
         });
 
         curl_exec($ch);
         $error = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($error) {
-            echo "data: " . json_encode(['error' => ['message' => $error]]) . "\n\n";
+            $this->logger->error('ChatGPT streaming curl error: ' . $error);
+            echo "data: " . json_encode(['error' => ['message' => 'Connection error: ' . $error]]) . "\n\n";
+            flush();
+        } elseif ($errorBuffer !== '' || ($httpCode !== 0 && $httpCode !== 200)) {
+            $message = $this->extractApiErrorMessage($errorBuffer, $httpCode, $config['model']);
+            $this->logger->warning('ChatGPT streaming API error (HTTP ' . $httpCode . '): ' . $message);
+            echo "data: " . json_encode(['error' => ['message' => $message]]) . "\n\n";
             flush();
         }
 
         echo "data: [DONE]\n\n";
         flush();
+    }
+
+    /**
+     * Extracts a human-readable error message from a non-SSE upstream response body
+     */
+    private function extractApiErrorMessage(string $body, int $httpCode, string $model): string
+    {
+        $body = trim($body);
+        if ($body !== '') {
+            $decoded = json_decode($body, true);
+            if (is_array($decoded) && isset($decoded['error'])) {
+                if (is_array($decoded['error']) && !empty($decoded['error']['message'])) {
+                    return (string) $decoded['error']['message'];
+                }
+                if (is_string($decoded['error']) && $decoded['error'] !== '') {
+                    return $decoded['error'];
+                }
+            }
+            // Non-JSON error body (e.g. HTML from a proxy) — return a truncated snippet
+            $snippet = preg_replace('/\s+/', ' ', $body);
+            if (mb_strlen($snippet) > 300) {
+                $snippet = mb_substr($snippet, 0, 300) . '...';
+            }
+            return 'API error (HTTP ' . $httpCode . ') for model "' . $model . '": ' . $snippet;
+        }
+
+        return 'API request failed (HTTP ' . $httpCode . ') for model "' . $model . '" with no response body';
     }
 
     /**

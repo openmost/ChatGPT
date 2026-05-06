@@ -28,16 +28,29 @@ Simply configure the custom host URL in the plugin settings.
 
 __Which models are supported?__
 
-The plugin includes presets for:
+The plugin includes presets for the following conversational chat-completion models:
 
-- GPT-5.1 / GPT-5
-- GPT-4.1 / GPT-4.1 Mini / GPT-4.1 Nano
-- GPT-4o / GPT-4o Mini
-- GPT-4 Turbo
-- o3 / o3 Mini
-- o1 / o1 Mini / o1 Pro
+- GPT 5.5 (default)
+- GPT 5.4 / GPT 5.4 Mini / GPT 5.4 Nano
+- GPT 5.1
+- GPT 5 Mini / GPT 5 Nano / GPT 5 (Latest)
+- GPT 4.1 / GPT 4.1 Mini / GPT 4.1 Nano
+- GPT 4o / GPT 4o Mini / GPT 4o (Latest)
+- GPT 4 / GPT 4 Turbo
 
 You can also specify any custom model name for models not in the preset list.
+
+__Why aren't reasoning models (o1, o3) or *-pro variants in the list?__
+
+Reasoning models and `*-pro` variants (`gpt-5-pro`, `gpt-5.5-pro`, `o1-pro`, `o3-pro`, etc.) are tuned for one-shot deep analysis with multi-second "thinking" latency, not for back-and-forth conversation. They were removed from the preset list because they produced a poor chat experience for discussing report data. They also use a different OpenAI endpoint (`/v1/responses`) that this plugin does not target. If you really want to try one, you can still type its name in the **Model (Custom)** field — any error returned by the API will be displayed directly in the chat.
+
+__What happens if my model name is wrong or the API returns an error?__
+
+The plugin now surfaces upstream API errors as a danger notice directly inside the chat (for both streaming and non-streaming requests). You'll see the actual error message returned by OpenAI (or your custom host) — for example, an invalid model name, quota issue, or authentication problem — instead of a silent failure.
+
+__Does the plugin support dark mode?__
+
+Yes. The chat and insight components are styled with Matomo's native CSS theme variables (`--theme-color-background-contrast`, `--theme-color-border`, etc.), so they automatically follow whichever Matomo theme is active — light or dark — with no extra configuration.
 
 __Is the plugin available to all users in my Matomo instance?__
 

@@ -18,21 +18,25 @@ A full-featured chat interface for asking questions about your analytics data.
 
 - Accessible from the main menu under "ChatGPT"
 - Real-time streaming responses (with automatic fallback for unsupported servers)
+- Errors returned by the model API are displayed as a notice directly in the chat, so misconfiguration is easy to spot
 
 ### Flexible Model Configuration
 
 Choose from preset models or specify custom model names:
 
 **Preset Models:**
-- GPT-5.1 / GPT-5
-- GPT-4.1 / GPT-4.1 Mini / GPT-4.1 Nano
-- GPT-4o / GPT-4o Mini
-- GPT-4 Turbo
-- o3 / o3 Mini
-- o1 / o1 Mini / o1 Pro
+- GPT 5.5 (default)
+- GPT 5.4 / GPT 5.4 Mini / GPT 5.4 Nano
+- GPT 5.1
+- GPT 5 Mini / GPT 5 Nano / GPT 5 (Latest)
+- GPT 4.1 / GPT 4.1 Mini / GPT 4.1 Nano
+- GPT 4o / GPT 4o Mini / GPT 4o (Latest)
+- GPT 4 / GPT 4 Turbo
+
+The preset list only includes conversational models suited for chatting about report data. Reasoning models (o-series) and `*-pro` variants are intentionally excluded — they are tuned for one-shot deep analysis rather than back-and-forth discussion and would produce a poor chat experience.
 
 **Custom Models:**
-Specify any model name to use models not in the preset list, perfect for new OpenAI models, self-hosted LLMs, or other providers.
+Specify any model name to use models not in the preset list, perfect for new OpenAI models, self-hosted LLMs, or other providers. If a custom model is rejected by the configured endpoint, the upstream error message will be shown in the chat.
 
 ### Custom Host Support
 
@@ -41,6 +45,10 @@ Connect to any OpenAI-compatible API endpoint:
 - Azure OpenAI
 - Self-hosted solutions (Ollama, LocalAI, vLLM, etc.)
 - Other providers (Anthropic via proxy, Mistral, etc.)
+
+### Dark Theme Support
+
+The chat and insight components use Matomo's native CSS theme variables, so the UI automatically follows your Matomo theme — both light and dark — without any additional configuration.
 
 ## Installation
 

@@ -248,6 +248,8 @@ export default defineComponent({
     handleError(error: string) {
       this.errored = true;
       this.errorMessage = error;
+      this.loading = false;
+      this.streaming = false;
     },
 
     cancelRequest() {

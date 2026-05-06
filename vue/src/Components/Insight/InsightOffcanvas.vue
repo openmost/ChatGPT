@@ -79,7 +79,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .ai-chat-insight-offcanvas {
   z-index: 50;
-  background-color: #fff;
+  background-color: var(--theme-color-background-contrast);
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, .2);
   width: 400px;
   height: 100vh;
@@ -98,7 +98,7 @@ export default defineComponent({
   .ai-chat-insight-offcanvas-header {
     flex-shrink: 0;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #dcdcdc;
+    border-bottom: 1px solid var(--theme-color-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
