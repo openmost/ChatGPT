@@ -1,0 +1,20 @@
+{
+  "name": "matomo-chatgpt",
+  "private": true,
+  "description": "Build dependencies of the ChatGPT Vue library (markdown rendering)",
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "dompurify": "^3.4.15",
+    "showdown": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/showdown": "^2.0.6"
+  }
+}

@@ -37,6 +37,16 @@
         "UseSystemDefault": "(Utiliser la valeur système)",
         "WaitingForResponse": "En attente de la réponse...",
         "PluginNotConfigured": "Plugin non configuré !",
-        "PluginNotConfiguredDescription": "Veuillez configurer le plugin ChatGPT dans les paramètres généraux. Pour OpenAI, une clé API est requise. Pour les hôtes personnalisés, seule l'URL de l'hôte est nécessaire."
+        "PluginNotConfiguredDescription": "Veuillez configurer le plugin ChatGPT dans les paramètres généraux. Pour OpenAI, une clé API est requise. Pour les hôtes personnalisés, seule l'URL de l'hôte est nécessaire.",
+        "AgentToolStep": "Utilise %s",
+        "AgentMaxIterations": "L'assistant s'est arrêté après trop d'étapes. Essayez de poser une question plus précise.",
+        "AgentMcpNotInstalled": "Installez le plugin McpServer depuis le Marketplace pour permettre à l'assistant d'interroger vos données et d'effectuer des actions dans Matomo.",
+        "AgentMcpNotActivated": "Activez le plugin McpServer pour permettre à l'assistant d'interroger vos données et d'effectuer des actions dans Matomo.",
+        "AgentMcpDisabled": "Activez MCP dans Administration > Système > Paramètres généraux > McpServer pour permettre à l'assistant d'interroger vos données et d'effectuer des actions dans Matomo.",
+        "AgentMcpUnavailable": "Les outils Matomo (plugin McpServer) sont indisponibles, l'assistant répond sans accès à vos données.",
+        "AgentAiNotConfigured": "Configurez un fournisseur d'IA dans Administration > Système > Fournisseurs d'IA pour permettre à l'assistant d'interroger vos données et d'effectuer des actions dans Matomo.",
+        "AgentAiUnsupported": "Le fournisseur d'IA sélectionné dans Administration > Système > Fournisseurs d'IA ne prend pas en charge les conversations avec outils.",
+        "AgentReadOnly": "L'assistant peut uniquement lire vos données. Pour lui permettre d'effectuer des actions dans Matomo, un super utilisateur doit régler « Raw API access » sur « Full API access » dans Administration > Système > Paramètres généraux > McpServer.",
+        "InsightAgentPrompt": "Analyse les données de ce rapport et donne-moi les principaux enseignements."
     }
 }

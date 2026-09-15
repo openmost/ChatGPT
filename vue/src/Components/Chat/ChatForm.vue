@@ -7,6 +7,7 @@
           type="text"
           name="chat-prompt"
           :placeholder="placeholderText"
+          :aria-label="placeholderText"
           class="ai-chat-input"
         />
       </div>

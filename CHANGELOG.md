@@ -1,5 +1,34 @@
 ## Changelog
 
+### 6.0.0
+
+**New: AI agent connected to Matomo tools (MCP)**
+
+- The chat and the Insights panel now work as an agent using the Matomo tools of the McpServer plugin: it looks up reports, websites, goals, dimensions and segments by itself and can perform actions allowed by the McpServer settings.
+- Tools are called inside Matomo with the permissions of the current user: no public URL or OAuth client required.
+- The agent uses the AI provider configured in Administration > System > AI Providers.
+- Each tool used by the agent is displayed in the conversation.
+- A notice explains how to enable the agent when the McpServer plugin or an AI provider is missing, the classic chat is used meanwhile.
+- Insights in agent mode: the analysis of the report is requested automatically and answered as readable Markdown.
+- Without McpServer or AI provider, the plugin works exactly as before with its own Host, API key and model settings.
+
+**Security**
+
+- AI answers are now sanitized with DOMPurify before being displayed, which fixes links that could run JavaScript when clicked (for example through data coming from report labels).
+
+**Chat improvements**
+
+- The conversation automatically scrolls to the latest message while the answer is written, unless you scroll up to read previous messages.
+- The last message is no longer hidden under the message input on the ChatGPT page.
+- The page no longer scrolls behind the open Insights panel, and message bubbles no longer have their own scrollbar.
+
+**Matomo 6 compatibility**
+
+- Compatibility with Matomo 6.x (`>=6.0.0-b1,<7.0.0-b1`), requires PHP 8.1+.
+- Vue components now built with the Matomo 6 Vite build. The markdown renderer is bundled with the plugin.
+- Accessibility improvements: labelled chat input, explicit button types.
+- Support email and plugin homepage moved to openmost.com.
+
 ### 5.6.1
 
 Support fallback color value for Matomo < 5.10

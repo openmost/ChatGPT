@@ -45,6 +45,11 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
 
+  // the form is positioned over the bottom of the page: keep the last message above it
+  .ai-chat-messages {
+    padding-bottom: 3rem;
+  }
+
   .ai-chat-interface {
     flex: 1;
     display: flex;

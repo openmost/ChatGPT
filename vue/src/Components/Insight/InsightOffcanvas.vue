@@ -2,11 +2,11 @@
   <div :class="['ai-chat-insight-offcanvas', { active: displayOffcanvas }]">
     <div class="ai-chat-insight-offcanvas-header">
       <div class="title-wrapper">
-        <IconAi :ai-name="aiName"/>
+        <IconAi :ai-name="aiName" />
         <h3>{{ insightsTitle }}</h3>
       </div>
-      <button class="close-button" @click="onClose">
-        <IconClose/>
+      <button type="button" class="close-button" @click="onClose">
+        <IconClose />
       </button>
     </div>
     <div class="ai-chat-insight-offcanvas-body">
@@ -50,6 +50,7 @@ export default defineComponent({
   },
   watch: {
     displayOffcanvas(newVal: boolean) {
+      this.setPageScrollLocked(newVal);
       if (newVal) {
         document.addEventListener('keydown', this.handleKeydown);
       } else {
@@ -59,8 +60,13 @@ export default defineComponent({
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleKeydown);
+    this.setPageScrollLocked(false);
   },
   methods: {
+    // the panel has its own scrollable conversation, avoid a second scrollbar on the page
+    setPageScrollLocked(locked: boolean) {
+      document.documentElement.classList.toggle('ai-chat-page-scroll-locked', locked);
+    },
     handleKeydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         this.onClose();

@@ -1,11 +1,11 @@
 <template>
-  <div class="markdown-wrapper" v-html="sanitizedHtml"></div>
+  <div class="markdown-wrapper" v-html="sanitizedHtml" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { Converter } = require('showdown');
+import { Converter } from 'showdown';
+import sanitizeHtml from './sanitizeHtml';
 
 const converter = new Converter({
   headerLevelStart: 3,
@@ -16,96 +16,6 @@ const converter = new Converter({
   tasklists: true,
   disableForced4SpacesIndentedSublists: true,
 });
-
-/**
- * Sanitizes HTML to prevent XSS attacks
- * Allows only safe HTML tags and attributes
- */
-function sanitizeHtml(html: string): string {
-  if (!html) {
-    return '';
-  }
-
-  const allowedTags = [
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'p', 'br', 'hr',
-    'ul', 'ol', 'li',
-    'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
-    'a', 'code', 'pre', 'blockquote',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
-    'input', // for tasklists
-  ];
-
-  const allowedAttributes: Record<string, string[]> = {
-    a: ['href', 'title', 'target', 'rel'],
-    input: ['type', 'checked', 'disabled'],
-    th: ['align'],
-    td: ['align'],
-  };
-
-  // Create a temporary div to parse HTML safely
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-
-  function sanitizeNode(node: Node): void {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as Element;
-      const tagName = element.tagName.toLowerCase();
-
-      if (!allowedTags.includes(tagName)) {
-        // Replace disallowed element with its text content
-        const text = document.createTextNode(element.textContent || '');
-        if (element.parentNode) {
-          element.parentNode.replaceChild(text, element);
-        }
-        return;
-      }
-
-      // Remove disallowed attributes
-      const attrs = Array.from(element.attributes);
-      attrs.forEach((attr) => {
-        const allowedAttrs = allowedAttributes[tagName] || [];
-        if (!allowedAttrs.includes(attr.name)) {
-          element.removeAttribute(attr.name);
-        }
-      });
-
-      // Sanitize href attributes to prevent unsafe URLs
-      if (tagName === 'a') {
-        const href = element.getAttribute('href');
-        const hrefLower = href?.toLowerCase() || '';
-        // eslint-disable-next-line no-script-url
-        const jsPrefix = 'javascript:';
-        const dataPrefix = 'data:';
-        const isUnsafe = hrefLower.startsWith(jsPrefix)
-          || hrefLower.startsWith(dataPrefix);
-        if (href && isUnsafe) {
-          element.setAttribute('href', '#');
-        }
-        // Add security attributes for external links
-        element.setAttribute('rel', 'noopener noreferrer');
-      }
-
-      // Only allow checkbox inputs for tasklists
-      if (tagName === 'input') {
-        const type = element.getAttribute('type');
-        if (type !== 'checkbox') {
-          if (element.parentNode) {
-            element.parentNode.removeChild(element);
-          }
-          return;
-        }
-        element.setAttribute('disabled', 'disabled');
-      }
-
-      // Recursively sanitize children
-      Array.from(element.childNodes).forEach(sanitizeNode);
-    }
-  }
-
-  Array.from(tempDiv.childNodes).forEach(sanitizeNode);
-  return tempDiv.innerHTML;
-}
 
 export default defineComponent({
   props: {
@@ -128,7 +38,9 @@ export default defineComponent({
   font-size: 1rem !important;
   line-height: normal !important;
   max-width: 100%;
-  overflow-x: auto;
+  // no overflow on the wrapper: overflow-x would force overflow-y to auto and make each
+  // message bubble scrollable, only wide content (tables, code blocks) scrolls horizontally
+  overflow-wrap: anywhere;
 
   & > :first-child {
     margin-top: 0 !important;
@@ -234,6 +146,9 @@ export default defineComponent({
   }
 
   table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
     margin-bottom: 1rem;
     border-collapse: collapse;
 

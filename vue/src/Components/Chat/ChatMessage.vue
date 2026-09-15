@@ -2,24 +2,37 @@
   <li :class="chatResponseClasses">
     <div class="ai-chat-response-content-wrapper">
       <div class="ai-chat-response-body">
-        <Markdown :markdown="message.content"/>
-        <span v-if="isStreaming" class="streaming-cursor">▊</span>
+        <ChatAgentSteps
+          v-if="message.steps && message.steps.length"
+          :steps="message.steps"
+        />
+        <Markdown
+          v-if="message.content"
+          :markdown="message.content"
+        />
+        <span
+          v-if="isStreaming"
+          class="streaming-cursor"
+        >▊</span>
       </div>
     </div>
   </li>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import Markdown from '../Markdown.vue';
+import ChatAgentSteps from './ChatAgentSteps.vue';
+import { Message } from '../../types';
 
 export default defineComponent({
   components: {
+    ChatAgentSteps,
     Markdown,
   },
   props: {
     message: {
-      type: Object,
+      type: Object as PropType<Message>,
       required: true,
     },
     aiName: {
@@ -63,10 +76,6 @@ export default defineComponent({
       padding: 6px 16px;
       border-radius: 16px;
     }
-  }
-
-  &.ai-chat-assistant-response {
-
   }
 
   .ai-chat-response-content-wrapper {

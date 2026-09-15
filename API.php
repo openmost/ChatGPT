@@ -9,10 +9,11 @@
 
 namespace Piwik\Plugins\ChatGPT;
 
-use Piwik\API\Request;
 use Piwik\Common;
-use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Services\ChatRequestParser;
+use Piwik\Plugins\ChatGPT\Services\InsightReport;
+use Piwik\Plugins\ChatGPT\Services\RateLimiter;
 use Exception;
 
 /**
@@ -29,14 +30,12 @@ class API extends \Piwik\Plugin\API
      */
     private const REQUEST_TIMEOUT = 60;
 
-    /**
-     * Rate limit settings
-     */
-    private const RATE_LIMIT_REQUESTS = 30;
-    private const RATE_LIMIT_WINDOW = 3600; // 1 hour
-
-    public function __construct(\Piwik\Log\LoggerInterface $logger)
-    {
+    public function __construct(
+        \Piwik\Log\LoggerInterface $logger,
+        private ChatRequestParser $requestParser,
+        private InsightReport $insightReport,
+        private RateLimiter $rateLimiter
+    ) {
         $this->logger = $logger;
     }
 
@@ -48,10 +47,9 @@ class API extends \Piwik\Plugin\API
         Piwik::checkUserHasViewAccess($idSite);
 
         // Get messages from request if not passed or if passed as JSON string
-        $messages = $this->parseMessagesParam($messages);
+        $messages = $this->requestParser->parseMessages($messages);
 
-        // Check rate limit
-        $this->checkRateLimit($idSite);
+        $this->rateLimiter->check($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
@@ -76,27 +74,16 @@ class API extends \Piwik\Plugin\API
         Piwik::checkUserHasViewAccess($idSite);
 
         // Parse messages and widgetParams from POST
-        $messages = $this->parseMessagesParam($messages);
-        $widgetParams = $this->parseWidgetParams($widgetParams);
+        $messages = $this->requestParser->parseMessages($messages);
+        $widgetParams = $this->requestParser->parseWidgetParams($widgetParams);
 
-        // Check rate limit
-        $this->checkRateLimit($idSite);
+        $this->rateLimiter->check($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
         $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
 
-        $requestParams = $this->buildRequestParams($widgetParams, $idSite, $date, $period);
-        $apiMethod = $this->resolveReportMethod($requestParams['_apiMethod'], $widgetParams);
-        unset($requestParams['_apiMethod']);
-
-        // Validate API method format (Module.action)
-        if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $apiMethod)) {
-            throw new Exception('Invalid API method format');
-        }
-
-        // Matomo's Request::processRequest handles permission checks internally
-        $data = Request::processRequest($apiMethod, $requestParams);
+        $data = $this->insightReport->fetch($widgetParams, $idSite, $date, $period);
 
         $conversationBase = [
             [
@@ -121,32 +108,18 @@ class API extends \Piwik\Plugin\API
         Piwik::checkUserHasViewAccess($idSite);
 
         // Parse messages and widgetParams from POST
-        $messages = $this->parseMessagesParam($messages);
-        $widgetParams = $this->parseWidgetParams($widgetParams);
+        $messages = $this->requestParser->parseMessages($messages);
+        $widgetParams = $this->requestParser->parseWidgetParams($widgetParams);
 
-        $this->checkRateLimit($idSite);
+        $this->rateLimiter->check($idSite);
 
         $systemSettings = new SystemSettings();
         $measurableSettings = new MeasurableSettings($idSite);
 
-        // Check if this is an insight request (has widgetParams with module/action)
-        $isInsight = !empty($widgetParams) && (isset($widgetParams['module']) || isset($widgetParams['action']));
-
-        if ($isInsight) {
+        if ($this->insightReport->isInsightRequest($widgetParams)) {
             // Insight mode: fetch report data and use insight prompt
             $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
-
-            $requestParams = $this->buildRequestParams($widgetParams, $idSite, $date, $period);
-            $apiMethod = $this->resolveReportMethod($requestParams['_apiMethod'], $widgetParams);
-            unset($requestParams['_apiMethod']);
-
-            // Validate API method format (Module.action)
-            if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $apiMethod)) {
-                throw new Exception('Invalid API method format');
-            }
-
-            // Fetch report data
-            $data = Request::processRequest($apiMethod, $requestParams);
+            $data = $this->insightReport->fetch($widgetParams, $idSite, $date, $period);
 
             $conversationBase = [
                 [
@@ -172,177 +145,6 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Check and enforce rate limits per site
-     * @throws Exception if rate limit exceeded
-     */
-    private function checkRateLimit(int $idSite): void
-    {
-        $userLogin = Piwik::getCurrentUserLogin();
-        $rateLimitKey = 'ChatGPT_ratelimit_' . $idSite . '_' . $userLogin;
-
-        $currentTime = time();
-        $rateData = Option::get($rateLimitKey);
-
-        if ($rateData) {
-            $rateData = json_decode($rateData, true);
-            $windowStart = $rateData['window_start'] ?? 0;
-            $requestCount = $rateData['count'] ?? 0;
-
-            // Reset window if expired
-            if ($currentTime - $windowStart > self::RATE_LIMIT_WINDOW) {
-                $rateData = ['window_start' => $currentTime, 'count' => 0];
-            }
-
-            // Check limit
-            if ($rateData['count'] >= self::RATE_LIMIT_REQUESTS) {
-                $resetTime = $windowStart + self::RATE_LIMIT_WINDOW - $currentTime;
-                throw new Exception("Rate limit exceeded. Please wait {$resetTime} seconds before making another request.");
-            }
-        } else {
-            $rateData = ['window_start' => $currentTime, 'count' => 0];
-        }
-
-        // Increment counter
-        $rateData['count']++;
-        Option::set($rateLimitKey, json_encode($rateData));
-    }
-
-    /**
-     * Builds request parameters from widget parameters with proper validation
-     */
-    private function buildRequestParams(array $widgetParams, int $idSite, string $date, string $period): array
-    {
-        // Check if this is an evolution graph that needs multiple data points
-        $action = isset($widgetParams['action']) ? $widgetParams['action'] : '';
-        $isEvolutionGraph = in_array($action, ['getEvolutionGraph', 'getEvolutionOverview', 'getRowEvolution'], true);
-
-        // For evolution graphs, use day period with last90 to get multiple data points
-        if ($isEvolutionGraph) {
-            $period = 'day';
-            $date = 'last90';
-        }
-
-        $requestParams = [
-            'idSite' => $idSite,
-            'date' => $this->sanitizeDate($date),
-            'period' => $this->sanitizePeriod($period),
-            'format' => 'json',
-        ];
-
-        // Sanitize module and action (alphanumeric only)
-        $module = isset($widgetParams['module']) ? preg_replace('/[^a-zA-Z0-9]/', '', $widgetParams['module']) : '';
-        $action = preg_replace('/[^a-zA-Z0-9]/', '', $action);
-        $requestParams['_apiMethod'] = $module . '.' . $action;
-
-        // Define supported parameters with their validation rules
-        $supportedParams = [
-            // Standard Matomo API parameters
-            'idSubtable' => 'int',
-            'idAlert' => 'int',
-            'idGoal' => 'int',
-            'idDimension' => 'int',
-            'idNote' => 'int',
-            'idExperiment' => 'int',
-            'idCustomReport' => 'int',
-            'idExport' => 'int',
-            'idLogCrash' => 'int',
-            'idFailure' => 'int',
-            // Premium plugin parameters
-            'idForm' => 'int',
-            'idFunnel' => 'int',
-            'idHeatmap' => 'int',
-            'idSessionRecording' => 'int',
-            // Common parameters
-            'segment' => 'segment',
-            'flat' => 'bool',
-            'expanded' => 'bool',
-            'filter_limit' => 'int',
-            'filter_offset' => 'int',
-        ];
-
-        foreach ($supportedParams as $param => $type) {
-            if (isset($widgetParams[$param]) && $widgetParams[$param] !== '') {
-                $requestParams[$param] = $this->sanitizeParam($widgetParams[$param], $type);
-            }
-        }
-
-        return $requestParams;
-    }
-
-    /**
-     * Sanitizes a parameter value based on its type
-     */
-    private function sanitizeParam($value, string $type)
-    {
-        switch ($type) {
-            case 'int':
-                return (int) $value;
-            case 'bool':
-                return $value ? 1 : 0;
-            case 'segment':
-                return Common::unsanitizeInputValue($value);
-            default:
-                return Common::sanitizeInputValue($value);
-        }
-    }
-
-    /**
-     * Validates and sanitizes date parameter
-     */
-    private function sanitizeDate(string $date): string
-    {
-        if (preg_match('/^(today|yesterday|last\d+|previous\d+|\d{4}-\d{2}-\d{2}(,\d{4}-\d{2}-\d{2})?)$/', $date)) {
-            return $date;
-        }
-        return 'today';
-    }
-
-    /**
-     * Validates and sanitizes period parameter
-     */
-    private function sanitizePeriod(string $period): string
-    {
-        $allowedPeriods = ['day', 'week', 'month', 'year', 'range'];
-        return in_array($period, $allowedPeriods, true) ? $period : 'day';
-    }
-
-    /**
-     * Resolves the API method from widget parameters
-     * Handles evolution graph controller actions by extracting the real API method
-     */
-    private function resolveReportMethod(string $reportId, array $widgetParams = []): string
-    {
-        $evolutionActions = ['getEvolutionGraph', 'getEvolutionOverview', 'getRowEvolution'];
-
-        $parts = explode('.', $reportId, 2);
-        if (count($parts) !== 2) {
-            return $reportId;
-        }
-
-        $module = $parts[0];
-        $action = $parts[1];
-
-        if (in_array($action, $evolutionActions, true)) {
-            if (!empty($widgetParams['apiMethod'])) {
-                return $widgetParams['apiMethod'];
-            }
-            if (!empty($widgetParams['method'])) {
-                return $widgetParams['method'];
-            }
-
-            // Special handling for CustomReports evolution graphs
-            // CustomReports doesn't have a 'get' method, always use getCustomReport
-            if ($module === 'CustomReports') {
-                return 'CustomReports.getCustomReport';
-            }
-
-            return $module . '.get';
-        }
-
-        return $reportId;
-    }
-
-    /**
      * Validates that the URL is a valid HTTPS API endpoint
      */
     private function isValidApiUrl(?string $url): bool
@@ -363,12 +165,9 @@ class API extends \Piwik\Plugin\API
     {
         $config = $this->getAiConfig($idSite);
 
-        // Sanitize conversation messages
-        $sanitizedConversation = $this->sanitizeConversation($conversation);
-
         $data = [
             "model" => $config['model'],
-            "messages" => $sanitizedConversation,
+            "messages" => $this->requestParser->sanitizeConversation($conversation),
         ];
 
         $headers = [
@@ -428,11 +227,10 @@ class API extends \Piwik\Plugin\API
     private function streamModelAi(array $conversation, int $idSite): void
     {
         $config = $this->getAiConfig($idSite);
-        $sanitizedConversation = $this->sanitizeConversation($conversation);
 
         $data = [
             "model" => $config['model'],
-            "messages" => $sanitizedConversation,
+            "messages" => $this->requestParser->sanitizeConversation($conversation),
             "stream" => true,
         ];
 
@@ -589,130 +387,5 @@ class API extends \Piwik\Plugin\API
             'apiKey' => $apiKey,
             'model' => is_array($model) ? $model[0] : $model,
         ];
-    }
-
-    /**
-     * Parses the messages parameter from POST request
-     * Handles both array and JSON string formats
-     */
-    private function parseMessagesParam($messages): array
-    {
-        // First check $_POST directly
-        if (isset($_POST['messages']) && !empty($_POST['messages'])) {
-            $postMessages = $_POST['messages'];
-            if (is_string($postMessages)) {
-                $decoded = json_decode($postMessages, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return $decoded;
-                }
-            } elseif (is_array($postMessages)) {
-                return $postMessages;
-            }
-        }
-
-        // Fallback to Common::getRequestVar
-        if (empty($messages) || !is_array($messages)) {
-            $postMessages = Common::getRequestVar('messages', '', 'string', $_POST);
-            if (!empty($postMessages)) {
-                if (is_string($postMessages)) {
-                    $decoded = json_decode($postMessages, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        return $decoded;
-                    }
-                } elseif (is_array($postMessages)) {
-                    return $postMessages;
-                }
-            }
-        }
-
-        // If messages is a JSON string, decode it
-        if (is_string($messages)) {
-            $decoded = json_decode($messages, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return $decoded;
-            }
-            return [];
-        }
-
-        return is_array($messages) ? $messages : [];
-    }
-
-    /**
-     * Parses the widgetParams parameter from POST request
-     * Handles both array and JSON string formats
-     */
-    private function parseWidgetParams($widgetParams): array
-    {
-        // First check $_POST directly
-        if (isset($_POST['widgetParams']) && !empty($_POST['widgetParams'])) {
-            $postParams = $_POST['widgetParams'];
-            if (is_string($postParams)) {
-                $decoded = json_decode($postParams, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return $decoded;
-                }
-            } elseif (is_array($postParams)) {
-                return $postParams;
-            }
-        }
-
-        // Fallback to Common::getRequestVar
-        if (empty($widgetParams) || !is_array($widgetParams)) {
-            $postParams = Common::getRequestVar('widgetParams', '', 'string', $_POST);
-            if (!empty($postParams)) {
-                if (is_string($postParams)) {
-                    $decoded = json_decode($postParams, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        return $decoded;
-                    }
-                } elseif (is_array($postParams)) {
-                    return $postParams;
-                }
-            }
-        }
-
-        // If widgetParams is a JSON string, decode it
-        if (is_string($widgetParams)) {
-            $decoded = json_decode($widgetParams, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return $decoded;
-            }
-            return [];
-        }
-
-        return is_array($widgetParams) ? $widgetParams : [];
-    }
-
-    /**
-     * Sanitizes conversation messages to prevent injection
-     */
-    private function sanitizeConversation(array $conversation): array
-    {
-        $sanitized = [];
-        $allowedRoles = ['system', 'user', 'assistant'];
-
-        foreach ($conversation as $message) {
-            if (!is_array($message)) {
-                continue;
-            }
-
-            $role = $message['role'] ?? '';
-            if (!in_array($role, $allowedRoles, true)) {
-                continue;
-            }
-
-            $sanitizedMessage = [
-                'role' => $role,
-                'content' => (string) ($message['content'] ?? ''),
-            ];
-
-            if (isset($message['name']) && preg_match('/^[a-zA-Z0-9_-]+$/', $message['name'])) {
-                $sanitizedMessage['name'] = $message['name'];
-            }
-
-            $sanitized[] = $sanitizedMessage;
-        }
-
-        return $sanitized;
     }
 }

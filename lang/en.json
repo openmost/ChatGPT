@@ -37,6 +37,16 @@
         "UseSystemDefault": "(Use system default)",
         "WaitingForResponse": "Waiting for response...",
         "PluginNotConfigured": "Plugin not configured!",
-        "PluginNotConfiguredDescription": "Please configure the ChatGPT plugin in the general settings. For OpenAI, an API key is required. For custom hosts, only the host URL is needed."
+        "PluginNotConfiguredDescription": "Please configure the ChatGPT plugin in the general settings. For OpenAI, an API key is required. For custom hosts, only the host URL is needed.",
+        "AgentToolStep": "Using %s",
+        "AgentMaxIterations": "The assistant stopped after too many steps. Try to ask a more precise question.",
+        "AgentMcpNotInstalled": "Install the McpServer plugin from the Marketplace to let the assistant query your data and perform actions in Matomo.",
+        "AgentMcpNotActivated": "Activate the McpServer plugin to let the assistant query your data and perform actions in Matomo.",
+        "AgentMcpDisabled": "Enable MCP in Administration > System > General settings > McpServer to let the assistant query your data and perform actions in Matomo.",
+        "AgentMcpUnavailable": "The Matomo tools (McpServer plugin) are currently unavailable, the assistant answers without access to your data.",
+        "AgentAiNotConfigured": "Configure an AI provider in Administration > System > AI Providers to let the assistant query your data and perform actions in Matomo.",
+        "AgentAiUnsupported": "The AI provider selected in Administration > System > AI Providers does not support conversations with tools.",
+        "AgentReadOnly": "The assistant can only read your data. To let it perform actions in Matomo, a super user must set \"Raw API access\" to \"Full API access\" in Administration > System > General settings > McpServer.",
+        "InsightAgentPrompt": "Analyze the data of this report and give me the key insights."
     }
 }

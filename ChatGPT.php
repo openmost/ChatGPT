@@ -8,6 +8,8 @@
 
 namespace Piwik\Plugins\ChatGPT;
 
+use Piwik\Plugins\ChatGPT\Agent\McpAgent;
+
 class ChatGPT extends \Piwik\Plugin
 {
     public function registerEvents()
@@ -33,6 +35,14 @@ class ChatGPT extends \Piwik\Plugin
         $translationKeys[] = 'ChatGPT_AnErrorOccurred';
         $translationKeys[] = 'ChatGPT_NoResponseBody';
         $translationKeys[] = 'ChatGPT_WaitingForResponse';
+        $translationKeys[] = 'ChatGPT_AgentToolStep';
+        $translationKeys[] = 'ChatGPT_AgentMcpNotInstalled';
+        $translationKeys[] = 'ChatGPT_AgentMcpNotActivated';
+        $translationKeys[] = 'ChatGPT_AgentMcpDisabled';
+        $translationKeys[] = 'ChatGPT_AgentMcpUnavailable';
+        $translationKeys[] = 'ChatGPT_AgentAiNotConfigured';
+        $translationKeys[] = 'ChatGPT_AgentAiUnsupported';
+        $translationKeys[] = 'ChatGPT_AgentReadOnly';
     }
 
     public function getJavaScriptFiles(&$files)
@@ -50,6 +60,11 @@ class ChatGPT extends \Piwik\Plugin
     }
 
     private function pluginIsConfigured(): bool
+    {
+        return $this->chatIsConfigured() || McpAgent::isAvailable();
+    }
+
+    private function chatIsConfigured(): bool
     {
         try {
             $settings = new SystemSettings();

@@ -1,5 +1,17 @@
 <template>
-  <div class="ai-chat-messages">
+  <div
+    ref="root"
+    class="ai-chat-messages"
+    @scroll="onScroll"
+  >
+    <Alert
+      v-if="notice"
+      severity="info"
+      class="ai-chat-notice"
+    >
+      {{ notice }}
+    </Alert>
+
     <div class="ai-chat-messages-list">
       <ChatMessage
         v-for="(message, index) in messages"
@@ -17,15 +29,24 @@
       />
     </div>
 
-    <Alert v-if="errored" severity="danger">{{ errorMessage }}</Alert>
+    <Alert
+      v-if="errored"
+      severity="danger"
+    >
+      {{ errorMessage }}
+    </Alert>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, nextTick, PropType } from 'vue';
 import { Alert } from 'CoreHome';
 import ChatMessage from './ChatMessage.vue';
 import ChatLoading from './ChatLoading.vue';
+import { Message } from '../../types';
+
+// distance from the bottom, in pixels, under which the conversation keeps following new content
+const STICK_TO_BOTTOM_THRESHOLD = 80;
 
 export default defineComponent({
   components: {
@@ -36,11 +57,63 @@ export default defineComponent({
   props: {
     errored: { type: Boolean, default: false },
     errorMessage: { type: String, default: '' },
+    // information displayed above the conversation, eg when the Matomo tools are unavailable
+    notice: { type: String, default: '' },
     loading: { type: Boolean, default: false },
     streaming: { type: Boolean, default: false },
-    messages: { type: Array, default: () => [] },
+    messages: { type: Array as PropType<Message[]>, default: () => [] },
     aiName: { type: String, required: true },
     aiColor: { type: String, default: '#3450a3' },
+  },
+  data() {
+    return {
+      stickToBottom: true,
+    };
+  },
+  computed: {
+    // changes whenever the conversation grows: message, streamed text, agent step, loader, error
+    scrollSignature(): string {
+      const lastMessage = this.messages[this.messages.length - 1];
+      return [
+        this.messages.length,
+        lastMessage?.content.length ?? 0,
+        lastMessage?.steps?.map((step) => step.status).join(',') ?? '',
+        this.loading,
+        this.errored,
+        this.notice,
+      ].join('|');
+    },
+  },
+  watch: {
+    scrollSignature() {
+      const lastMessage = this.messages[this.messages.length - 1];
+      // the user just sent a message: follow the answer again
+      if (lastMessage?.role === 'user') {
+        this.stickToBottom = true;
+      }
+
+      if (this.stickToBottom) {
+        this.scrollToBottom();
+      }
+    },
+  },
+  mounted() {
+    this.scrollToBottom();
+  },
+  methods: {
+    onScroll() {
+      const root = this.$refs.root as HTMLElement;
+      const distanceToBottom = root.scrollHeight - root.scrollTop - root.clientHeight;
+      this.stickToBottom = distanceToBottom < STICK_TO_BOTTOM_THRESHOLD;
+    },
+    scrollToBottom() {
+      nextTick(() => {
+        const root = this.$refs.root as HTMLElement | undefined;
+        if (root) {
+          root.scrollTop = root.scrollHeight;
+        }
+      });
+    },
   },
 });
 </script>
@@ -64,6 +137,10 @@ export default defineComponent({
   .alert {
     max-width: 770px;
     margin: 1rem auto !important;
+  }
+
+  .ai-chat-notice {
+    margin-top: 0 !important;
   }
 }
 </style>

@@ -1,11 +1,12 @@
 <template>
   <div>
     <button
+      type="button"
       class="ai-chat-insight-trigger-button"
       :title="buttonTitle"
       @click="onClick"
     >
-      <IconAi :ai-name="aiName"/>
+      <IconAi :ai-name="aiName" />
     </button>
 
     <InsightOffcanvas
@@ -16,7 +17,7 @@
       :ai-label="aiLabel"
       :ai-color="aiColor"
       :api-method="apiMethod"
-      @close="onClose"/>
+      @close="onClose" />
 
   </div>
 </template>

@@ -52,6 +52,22 @@ __Does the plugin support dark mode?__
 
 Yes. The chat and insight components are styled with Matomo's native CSS theme variables (`--theme-color-background-contrast`, `--theme-color-border`, etc.), so they automatically follow whichever Matomo theme is active — light or dark — with no extra configuration.
 
+__How do I let the assistant query my data and perform actions in Matomo?__
+
+Install and activate the **McpServer** plugin, enable MCP in **Administration > System > General Settings > McpServer**, and configure an AI provider in **Administration > System > AI Providers**. The chat then works as an agent: it uses the Matomo tools to look up reports, websites, goals, dimensions and segments, and can perform actions on your behalf. Until then, a notice is displayed in the chat.
+
+__Does the plugin still work without the agent mode?__
+
+Yes. When the McpServer plugin or an AI provider is not configured, the chat and the Insights panel work as before: they use the Host, API key and model configured in the ChatGPT plugin settings, and a notice explains how to enable the agent.
+
+__Do I need to expose my Matomo instance or configure OAuth for the agent?__
+
+No. The agent calls the Matomo tools directly inside your Matomo instance, with the permissions of the logged in user. No public URL, OAuth client or additional token is required, it also works on private and intranet instances.
+
+__Which actions can the agent perform?__
+
+The agent has the same access as the current user and is limited by the McpServer settings. By default it can only read your analytics data, and a notice is displayed in the chat. To let it perform actions (for example creating or updating segments, or calling write API methods), a super user must set **Raw API access** to **Full API access** in **Administration > System > General Settings > McpServer**. Actions are performed directly, without confirmation, so review this setting before enabling it.
+
 __Is the plugin available to all users in my Matomo instance?__
 
 Yes, once activated, all users with view permissions can access the AI features for their permitted sites.
@@ -94,8 +110,8 @@ The plugin interface is translated into:
 
 __What are the requirements?__
 
-- Matomo 5.0.0 or higher
-- PHP 7.4 or higher
+- Matomo 6.0.0 or higher
+- PHP 8.1 or higher
 - Valid API key (for OpenAI) or accessible custom host
 
 __Is my data sent to OpenAI?__
@@ -108,7 +124,7 @@ You can contribute by:
 
 - Reporting issues on [GitHub](https://github.com/openmost/ChatGPT/issues)
 - Forking the project and submitting pull requests
-- Contacting the developer at ronan@openmost.io
+- Contacting the developer at ronan@openmost.com
 
 __How long will this plugin be maintained?__
 

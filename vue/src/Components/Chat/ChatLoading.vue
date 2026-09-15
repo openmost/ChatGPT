@@ -1,6 +1,6 @@
 <template>
   <li class="ai-chat-loader">
-    <span class="ai-chat-spinner"></span>
+    <span class="ai-chat-spinner" />
     {{ waitingText }}
   </li>
 </template>

@@ -4,6 +4,19 @@ Integrate AI-powered analytics insights and chat functionality into your Matomo 
 
 ## Description
 
+### 🤖 NEW — An AI agent connected to your Matomo
+
+The chat is now an **agent** that works with your real Matomo data through the Matomo tools of the official **McpServer** plugin:
+
+- **Looks up the data by itself**: reports, websites, goals, custom dimensions and segments, for any period
+- **Performs actions** for you, such as creating or updating segments, once a super user sets **Raw API access** to **Full API access** in the McpServer settings (read-only otherwise)
+- Available on the **ChatGPT page** and in the **Insights panel** of every report, which can now fetch additional data to answer your follow-up questions
+- Shows each tool used while answering, so you know where the answer comes from
+- Runs **inside Matomo** with the permissions of the current user: no public URL, no OAuth client and no extra token to configure
+- Uses the AI provider configured in **Administration > System > AI Providers** (OpenAI, Anthropic, Google, AWS Bedrock or any OpenAI-compatible endpoint)
+
+The agent is optional: when the McpServer plugin or an AI provider is not configured, a notice explains what to do and the chat keeps working as before with the plugin settings (Host, API key and model).
+
 ### AI-Powered Report Insights
 Get instant AI-generated insights for any Matomo report. The plugin adds an "Insights" button to all report widgets that analyzes your data and provides actionable recommendations.
 
@@ -21,12 +34,13 @@ A full-featured chat interface for asking questions about your analytics data.
 Choose from preset models or specify custom model names.
 
 **Preset Models:**
-- GPT-5.1 / GPT-5
-- GPT-4.1 / GPT-4.1 Mini / GPT-4.1 Nano
-- GPT-4o / GPT-4o Mini
-- GPT-4 Turbo
-- o3 / o3 Mini
-- o1 / o1 Mini / o1 Pro
+- GPT 5.5 (default)
+- GPT 5.4 / GPT 5.4 Mini / GPT 5.4 Nano
+- GPT 5.1
+- GPT 5 Mini / GPT 5 Nano / GPT 5 (Latest)
+- GPT 4.1 / GPT 4.1 Mini / GPT 4.1 Nano
+- GPT 4o / GPT 4o Mini / GPT 4o (Latest)
+- GPT 4 / GPT 4 Turbo
 
 **Custom Models:**
 Specify any model name to use models not in the preset list, perfect for:
@@ -58,8 +72,8 @@ Tailor the AI's behavior with custom prompts:
 Full translations available in:
 - English
 - German (Deutsch)
-- Spanish (Espaol)
-- French (Franais)
+- Spanish (Español)
+- French (Français)
 - Italian (Italiano)
 - Dutch (Nederlands)
 - Swedish (Svenska)
@@ -106,8 +120,8 @@ All system settings can be overridden per website. Leave fields empty to use sys
 
 ## Requirements
 
-- Matomo 5.0.0 or higher
-- PHP 7.4 or higher
+- Matomo 6.0.0 or higher
+- PHP 8.1 or higher
 - Valid API key (for OpenAI) or accessible custom host
 
 ## API Methods
@@ -118,16 +132,15 @@ The plugin provides the following API methods:
 |--------|-------------|
 | `ChatGPT.getResponse` | Get AI response for messages (non-streaming) |
 | `ChatGPT.getStreamingResponse` | Get AI response with SSE streaming |
-| `ChatGPT.getInsight` | Get AI insights for report data |
-| `ChatGPT.getModels` | Get list of available preset models |
+| `ChatGPT.getInsights` | Get AI insights for report data |
 
 All API methods require appropriate view permissions for the requested site.
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/openmost/ChatGPT/issues)
-- **Documentation**: [Plugin Homepage](https://openmost.io/products/chatgpt/)
-- **Email**: ronan@openmost.io
+- **Documentation**: [Plugin Homepage](https://openmost.com/matomo/extensions/chatgpt)
+- **Email**: ronan@openmost.com
 
 ## License
 
@@ -135,4 +148,4 @@ GPL v3+
 
 ## Credits
 
-Developed by [Openmost](https://openmost.io)
+Developed by [Openmost](https://openmost.com)

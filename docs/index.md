@@ -4,6 +4,19 @@ Integrate AI-powered analytics insights and chat functionality into your Matomo 
 
 ## Features
 
+### 🤖 NEW — An AI agent connected to your Matomo
+
+The chat is now an **agent** that works with your real Matomo data through the Matomo tools of the official **McpServer** plugin:
+
+- **Looks up the data by itself**: reports, websites, goals, custom dimensions and segments, for any period
+- **Performs actions** for you, such as creating or updating segments, within the limits set by your administrator in the McpServer settings
+- Available on the **ChatGPT page** and in the **Insights panel** of every report, which can now fetch additional data to answer your follow-up questions
+- Shows each tool used while answering, so you know where the answer comes from
+- Runs **inside Matomo** with the permissions of the current user: no public URL, no OAuth client and no extra token to configure
+- Uses the AI provider configured in **Administration > System > AI Providers** (OpenAI, Anthropic, Google, AWS Bedrock or any OpenAI-compatible endpoint)
+
+When the McpServer plugin is not installed, activated or enabled, a notice explains what to do and the chat keeps working without access to your data.
+
 ### AI-Powered Report Insights
 
 Get instant AI-generated insights for any Matomo report. The plugin adds an "Insights" button to all report widgets that analyzes your data and provides actionable recommendations.
@@ -89,6 +102,18 @@ This is useful for:
 - Customizing prompts for specific website contexts
 - Using separate API keys per site
 
+### AI agent (Matomo tools)
+
+The agent is optional: without it, the chat and the Insights panel use the Host, API key and model of the settings above, as before.
+
+To let the assistant query your data and perform actions in Matomo:
+
+1. Install and activate the **McpServer** plugin from the Marketplace
+2. Enable MCP in **Administration > System > General Settings > McpServer**
+3. Configure an AI provider in **Administration > System > AI Providers**
+
+The agent only accesses the websites and reports the current user can access. By default it can only read your data: to let it perform actions (for example create or update segments), a super user must set **Raw API access** to **Full API access** in **Administration > System > General Settings > McpServer**. A notice is displayed in the chat while the agent is read-only.
+
 ## Usage
 
 ### Getting Report Insights
@@ -113,8 +138,7 @@ The plugin provides the following API methods:
 |--------|-------------|
 | `ChatGPT.getResponse` | Get AI response for messages (non-streaming) |
 | `ChatGPT.getStreamingResponse` | Get AI response with SSE streaming |
-| `ChatGPT.getInsight` | Get AI insights for report data |
-| `ChatGPT.getModels` | Get list of available preset models |
+| `ChatGPT.getInsights` | Get AI insights for report data |
 
 ### Parameters
 
@@ -124,11 +148,11 @@ The plugin provides the following API methods:
 - `date` - Date string
 - `messages` - Conversation messages in ChatGPT format
 
-**ChatGPT.getInsight**
+**ChatGPT.getInsights**
 - `idSite` - Site ID
 - `period` - Period
 - `date` - Date string
-- `reportId` - Report identifier
+- `widgetParams` - Parameters of the report widget (module, action, idGoal, segment...)
 - `messages` - Conversation messages
 
 All API methods require appropriate view permissions for the requested site.
@@ -146,12 +170,12 @@ The plugin interface is available in:
 
 ## Requirements
 
-- Matomo 5.0.0 or higher
-- PHP 7.4 or higher
+- Matomo 6.0.0 or higher
+- PHP 8.1 or higher
 - Valid API key (for OpenAI) or accessible custom host
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/openmost/ChatGPT/issues)
-- **Documentation**: [Plugin Homepage](https://openmost.io/products/chatgpt/)
-- **Email**: ronan@openmost.io
+- **Documentation**: [Plugin Homepage](https://openmost.com/matomo/extensions/chatgpt)
+- **Email**: ronan@openmost.com
