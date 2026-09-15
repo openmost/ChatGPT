@@ -12,6 +12,21 @@ import {
 import Chat from './Chat.vue';
 import { AgentStatus } from '../../types';
 
+// the markdown renderer dependencies (showdown) are installed in the plugin, they are not available
+// to the Matomo client test runner: render the raw markdown instead
+vi.mock('../Markdown.vue', async () => {
+  const { defineComponent, h } = await import('vue');
+
+  return {
+    default: defineComponent({
+      props: { markdown: { type: String, default: '' } },
+      setup(props) {
+        return () => h('div', { class: 'markdown-wrapper' }, props.markdown);
+      },
+    }),
+  };
+});
+
 vi.mock('CoreHome', async () => {
   const { defineComponent, h } = await import('vue');
 
