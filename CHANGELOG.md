@@ -1,5 +1,11 @@
 ## Changelog
 
+### 6.0.1
+
+- Insights no longer send an API error (for example a missing access to the website) to the AI model as if it was the report data: the error is displayed in the chat.
+- Declare the PHP 8.1 minimum requirement.
+- Add unit, integration and Vue tests, run on GitHub Actions.
+
 ### 6.0.0
 
 **New: AI agent connected to Matomo tools (MCP)**

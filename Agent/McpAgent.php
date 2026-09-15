@@ -44,10 +44,10 @@ class McpAgent
     public const STATUS_UNSUPPORTED = 'unsupported';
     public const STATUS_UNAVAILABLE = 'unavailable';
 
-    private const CALLER_PLUGIN = 'ChatGPT';
-    private const MAX_ITERATIONS = 10;
-    private const MAX_TOKENS = 4096;
-    private const TIMEOUT_SECONDS = 120;
+    public const CALLER_PLUGIN = 'ChatGPT';
+    public const MAX_ITERATIONS = 10;
+    public const MAX_TOKENS = 4096;
+    public const TIMEOUT_SECONDS = 120;
 
     // referenced by name: McpServer is an optional Marketplace plugin
     private const MCP_UNAVAILABLE_EXCEPTION = 'Piwik\Plugins\McpServer\Support\Access\McpUnavailableException';
@@ -77,6 +77,23 @@ class McpAgent
     }
 
     /**
+     * Whether a tool can change Matomo. Only read-only tools are exposed until a super user allows
+     * the raw API access (create, update, delete methods) in the McpServer settings.
+     *
+     * @param list<array<string, mixed>> $tools
+     */
+    public static function hasActionTools(array $tools): bool
+    {
+        foreach ($tools as $tool) {
+            if (($tool['readOnly'] ?? null) !== true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array{mode: string, mcp: string, ai: string, providerName: string|null, toolCount: int, canPerformActions: bool}
      */
     public function getStatus(): array
@@ -92,25 +109,8 @@ class McpAgent
             'ai' => $aiStatus['status'],
             'providerName' => $aiStatus['providerName'],
             'toolCount' => count($tools),
-            'canPerformActions' => $this->hasActionTools($tools),
+            'canPerformActions' => self::hasActionTools($tools),
         ];
-    }
-
-    /**
-     * Whether a tool can change Matomo. Only read-only tools are exposed until a super user allows
-     * the raw API access (create, update, delete methods) in the McpServer settings.
-     *
-     * @param list<array<string, mixed>> $tools
-     */
-    private function hasActionTools(array $tools): bool
-    {
-        foreach ($tools as $tool) {
-            if (($tool['readOnly'] ?? null) !== true) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public function buildSystemPrompt(string $basePrompt, int $idSite, string $period, string $date, ?string $reportData = null): string
@@ -153,10 +153,9 @@ class McpAgent
         }
 
         $conversation = $this->toCanonicalMessages($messages);
-        $service = StaticContainer::get(AIProviderService::class);
 
         for ($iteration = 0; $iteration < self::MAX_ITERATIONS; $iteration++) {
-            $response = $service->converse(
+            $response = $this->converse(
                 (new AIConversationRequest($conversation, self::CALLER_PLUGIN))
                     ->withSystemPrompt($systemPrompt)
                     ->withTools($tools)
@@ -203,7 +202,45 @@ class McpAgent
             $conversation[] = ['role' => 'tool', 'content' => $results];
         }
 
-        $emit('error', ['message' => Piwik::translate('ChatGPT_AgentMaxIterations')]);
+        $emit('error', ['message' => $this->translate('ChatGPT_AgentMaxIterations')]);
+    }
+
+    /**
+     * One round-trip with the AI provider configured in Matomo
+     */
+    protected function converse(AIConversationRequest $request): AIConversationResponse
+    {
+        return StaticContainer::get(AIProviderService::class)->converse($request);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    protected function fetchToolCatalog(): array
+    {
+        $catalog = Request::processRequest('McpServer.getInternalToolCatalog', [], []);
+
+        return is_array($catalog) ? array_values($catalog) : [];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
+    protected function callInternalTool(string $name, array $arguments, string $sessionKey): array
+    {
+        $result = Request::processRequest('McpServer.callInternalTool', [
+            'name' => $name,
+            'arguments' => $arguments,
+            'sessionKey' => $sessionKey,
+        ], []);
+
+        return is_array($result) ? $result : [];
+    }
+
+    protected function translate(string $translationKey): string
+    {
+        return Piwik::translate($translationKey);
     }
 
     private function getMcpStatus(): string
@@ -266,8 +303,7 @@ class McpAgent
     private function getToolCatalog(): array
     {
         if ($this->toolCatalog === null) {
-            $catalog = Request::processRequest('McpServer.getInternalToolCatalog', [], []);
-            $this->toolCatalog = is_array($catalog) ? array_values($catalog) : [];
+            $this->toolCatalog = $this->fetchToolCatalog();
         }
 
         return $this->toolCatalog;
@@ -280,11 +316,7 @@ class McpAgent
     private function callTool(string $name, array $arguments, string $sessionKey): array
     {
         try {
-            $result = Request::processRequest('McpServer.callInternalTool', [
-                'name' => $name,
-                'arguments' => $arguments,
-                'sessionKey' => $sessionKey,
-            ], []);
+            $result = $this->callInternalTool($name, $arguments, $sessionKey);
 
             return [
                 'content' => is_array($result['content'] ?? null) ? $result['content'] : [],
@@ -309,12 +341,12 @@ class McpAgent
     {
         $canonical = [];
         foreach ($messages as $message) {
-            if (!in_array($message['role'], ['user', 'assistant'], true) || trim($message['content']) === '') {
+            if (!in_array($message['role'] ?? '', ['user', 'assistant'], true) || trim((string) ($message['content'] ?? '')) === '') {
                 continue;
             }
             $canonical[] = [
                 'role' => $message['role'],
-                'content' => [['type' => 'text', 'text' => $message['content']]],
+                'content' => [['type' => 'text', 'text' => (string) $message['content']]],
             ];
         }
 

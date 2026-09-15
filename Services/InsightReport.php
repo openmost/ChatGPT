@@ -59,22 +59,29 @@ class InsightReport
      */
     public function fetch(array $widgetParams, int $idSite, string $date, string $period): string
     {
-        $requestParams = $this->buildRequestParams($widgetParams, $idSite, $date, $period);
-        $apiMethod = $this->resolveReportMethod($requestParams['_apiMethod'], $widgetParams);
-        unset($requestParams['_apiMethod']);
-
-        // Validate API method format (Module.action)
-        if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $apiMethod)) {
-            throw new Exception('Invalid API method format');
-        }
+        $reportRequest = $this->buildReportRequest($widgetParams, $idSite, $date, $period);
 
         // Matomo's Request::processRequest handles permission checks internally
-        $data = Request::processRequest($apiMethod, $requestParams);
+        $data = Request::processRequest($reportRequest['method'], $reportRequest['parameters']);
+        $data = is_string($data) ? $data : (string) json_encode($data);
 
-        return is_string($data) ? $data : (string) json_encode($data);
+        // with format=json, API errors (eg no access) are rendered instead of thrown: do not send
+        // them to the model as if they were the report data
+        $decoded = json_decode($data, true);
+        if (is_array($decoded) && ($decoded['result'] ?? null) === 'error') {
+            throw new Exception((string) ($decoded['message'] ?? 'The report data could not be fetched'));
+        }
+
+        return $data;
     }
 
-    private function buildRequestParams(array $widgetParams, int $idSite, string $date, string $period): array
+    /**
+     * Maps the widget parameters to the report API method and its validated parameters
+     *
+     * @return array{method: string, parameters: array<string, mixed>}
+     * @throws Exception if the widget does not map to a valid report API method
+     */
+    public function buildReportRequest(array $widgetParams, int $idSite, string $date, string $period): array
     {
         $action = isset($widgetParams['action']) ? (string) $widgetParams['action'] : '';
 
@@ -84,7 +91,7 @@ class InsightReport
             $date = 'last90';
         }
 
-        $requestParams = [
+        $parameters = [
             'idSite' => $idSite,
             'date' => $this->sanitizeDate($date),
             'period' => $this->sanitizePeriod($period),
@@ -94,15 +101,21 @@ class InsightReport
         // Sanitize module and action (alphanumeric only)
         $module = isset($widgetParams['module']) ? preg_replace('/[^a-zA-Z0-9]/', '', (string) $widgetParams['module']) : '';
         $action = preg_replace('/[^a-zA-Z0-9]/', '', $action);
-        $requestParams['_apiMethod'] = $module . '.' . $action;
 
         foreach (self::SUPPORTED_PARAMS as $param => $type) {
             if (isset($widgetParams[$param]) && $widgetParams[$param] !== '') {
-                $requestParams[$param] = $this->sanitizeParam($widgetParams[$param], $type);
+                $parameters[$param] = $this->sanitizeParam($widgetParams[$param], $type);
             }
         }
 
-        return $requestParams;
+        $method = $this->resolveReportMethod($module . '.' . $action, $widgetParams);
+
+        // Validate API method format (Module.action)
+        if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $method)) {
+            throw new Exception('Invalid API method format');
+        }
+
+        return ['method' => $method, 'parameters' => $parameters];
     }
 
     private function sanitizeParam($value, string $type)

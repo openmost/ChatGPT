@@ -1,0 +1,78 @@
+# Action for running tests
+# This file has been automatically created.
+# To recreate it you can run this command
+# ./console generate:test-action --plugin="ChatGPT" --php-versions="8.1,8.5"
+
+name: Plugin ChatGPT Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - '**.x-dev'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  checks: none
+  contents: read
+  deployments: none
+  issues: read
+  packages: none
+  pull-requests: read
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+concurrency:
+  group: php-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  PluginTests:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.1', '8.5' ]
+        target: ['minimum_required_matomo', 'maximum_supported_matomo']
+        database:
+          - { engine: 'Mysql', version: '8.0' }
+          - { engine: 'Mariadb', version: '10.6' }
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Run tests
+        uses: matomo-org/github-action-tests@main
+        with:
+          plugin-name: 'ChatGPT'
+          php-version: ${{ matrix.php }}
+          test-type: 'PluginTests'
+          mysql-engine: ${{ matrix.database.engine }}
+          mysql-version: ${{ matrix.database.version }}
+          matomo-test-branch: ${{ matrix.target }}
+          artifacts-pass: ${{ secrets.ARTIFACTS_PASS }}
+          upload-artifacts: ${{ matrix.php == '8.1' && matrix.target == 'maximum_supported_matomo' && matrix.database.engine == 'Mysql' }}
+  Client:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ['minimum_required_matomo', 'maximum_supported_matomo']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: false
+          persist-credentials: false
+      - name: running tests
+        uses: matomo-org/github-action-tests@main
+        with:
+          plugin-name: 'ChatGPT'
+          matomo-test-branch: ${{ matrix.target }}
+          test-type: 'Client'
+          node-version: '24'
+          mysql-service: false
