@@ -1,0 +1,12 @@
+{% extends 'admin.twig' %}
+
+{% set title %}{{ 'ChatGPT_SystemSettingsMenu'|translate }}{% endset %}
+
+{% block content %}
+    <div vue-entry="ChatGPT.ManageSystemSettings"
+         fields="{{ fields|json_encode|e('html_attr') }}"
+         settings="{{ values|json_encode|e('html_attr') }}"
+         ai-providers-notice="{{ aiProvidersNotice|json_encode|e('html_attr') }}"
+         default-prompts="{{ defaultPrompts|json_encode|e('html_attr') }}"
+    ></div>
+{% endblock %}

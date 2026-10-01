@@ -1,5 +1,36 @@
 ## Changelog
 
+### 6.1.0
+
+> **No action required.** Settings saved for your websites are kept, and custom prompts are not changed.
+
+**Agent mode and key cascade**
+
+- One key is enough, in this order: the API key of the website, then the provider connected in *Administration > System > AI Providers*, then the general API key. When AI Providers is connected, it takes over the chat, the insights and the agent, and the general connection fields become read-only. A website key still overrides AI Providers for that website.
+- The chat recommends, one step at a time, how to unlock the agent mode: activate AI Providers, connect a provider, install, activate or enable MCP Server, allow its write methods. Super users get a direct link for each step.
+- In agent mode, write actions are only performed after the agent has described the change and the user has confirmed it explicitly, whatever the base prompt says.
+- A missing, deactivated or failing AI Providers or McpServer plugin never breaks the plugin, which keeps working with its own settings.
+
+**Settings**
+
+- New *Administration > System > ChatGPT* page for the general settings, with a *Connection* card and a *Prompts* card saved separately, and a *Delete key* button. The settings are no longer listed in *Administration > General settings*.
+- Website settings moved from the website edit form to a dedicated *Administration > Websites > ChatGPT* page. New API methods `ChatGPT.getSiteSettings`, `ChatGPT.setSiteSettings` and `ChatGPT.setSystemSettings`. Saved API keys are never sent back to the browser.
+- New default chat and insight prompts, written for analytics. Default prompts of previous versions are upgraded automatically in the language of each user, custom prompts are kept, and a *Reset to default* button restores the defaults.
+- New "Latest recommended" model, the default for new installs (currently GPT 6 Astra), and an updated model list without the models deprecated by OpenAI. A deprecated or unavailable model is explained in the chat with a link to the settings. The model saved by previous versions is kept.
+
+**Chat and insights**
+
+- Redesigned chat: accessible, keyboard friendly insight panel, copy buttons, scrollable tables and code blocks, a timeline of the tools used by the agent, ChatGPT-like auto-scroll, and suggested questions on the ChatGPT page.
+- Insights analyse the full report as a compact payload with its totals, follow the active segment, period and comparisons, and also work on evolution graphs, goals, custom reports and more. Errors are displayed as clean messages, without technical details.
+- Interface translated into 13 languages, including the rate limit message. The help texts point to *Administration > System > AI Providers*.
+- Openmost messages can appear in Matomo, for example on the Events page, once whatever the number of Openmost plugins activated. Banners can be dismissed and link to the Openmost website in the language of the user.
+
+**Security**
+
+- Insight requests are restricted to the report and data methods of the widgets declared by Matomo.
+- The general API key is only sent to the general host, a website using its own host never receives it.
+- The general host must be an HTTPS URL: an `http://` host, which made every request fail, is now refused on save with a clear error.
+
 ### 6.0.2
 
 - Security: restrict insight requests to Matomo reports.

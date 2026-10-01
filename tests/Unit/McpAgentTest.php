@@ -12,58 +12,14 @@ namespace Piwik\Plugins\ChatGPT\tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Piwik\Log\LoggerInterface;
-use Piwik\Plugins\AIProviders\AIConversationRequest;
+use Piwik\NoAccessException;
 use Piwik\Plugins\AIProviders\AIConversationResponse;
 use Piwik\Plugins\ChatGPT\Agent\McpAgent;
-
-/**
- * Agent with scripted AI provider answers and MCP tool results
- */
-class ScriptedMcpAgent extends McpAgent
-{
-    /** @var list<AIConversationResponse> */
-    public array $responses = [];
-
-    /** @var list<AIConversationRequest> */
-    public array $requests = [];
-
-    /** @var list<array<string, mixed>> */
-    public array $catalog = [];
-
-    /** @var list<array<string, mixed>|\Throwable> */
-    public array $toolResults = [];
-
-    /** @var list<array{string, array<string, mixed>, string}> */
-    public array $toolCalls = [];
-
-    protected function converse(AIConversationRequest $request): AIConversationResponse
-    {
-        $this->requests[] = $request;
-
-        return array_shift($this->responses);
-    }
-
-    protected function fetchToolCatalog(): array
-    {
-        return $this->catalog;
-    }
-
-    protected function callInternalTool(string $name, array $arguments, string $sessionKey): array
-    {
-        $this->toolCalls[] = [$name, $arguments, $sessionKey];
-        $result = array_shift($this->toolResults);
-        if ($result instanceof \Throwable) {
-            throw $result;
-        }
-
-        return $result;
-    }
-
-    protected function translate(string $translationKey): string
-    {
-        return $translationKey;
-    }
-}
+use Piwik\Plugins\ChatGPT\Agent\PluginDependencies;
+use Piwik\Plugins\ChatGPT\Agent\Recommendations;
+use Piwik\Plugins\ChatGPT\Settings\EffectiveSettings;
+use Piwik\Plugins\ChatGPT\tests\Fakes\FakePluginDependencies;
+use Piwik\Plugins\ChatGPT\tests\Fakes\ScriptedMcpAgent;
 
 /**
  * @group ChatGPT
@@ -89,17 +45,36 @@ class McpAgentTest extends TestCase
         ],
     ];
 
-    /** @var list<array{string, array<string, mixed>}> */
-    private array $events = [];
+    private const WRITE_TOOL = [
+        'name' => 'matomo_goal_create',
+        'title' => 'Create a goal',
+        'description' => 'Creates a goal',
+        'inputSchema' => ['type' => 'object'],
+        'readOnly' => false,
+    ];
 
-    private ScriptedMcpAgent $agent;
+    private const MCP_UNAVAILABLE_EXCEPTION = 'Piwik\Plugins\McpServer\Support\Access\McpUnavailableException';
+
+    /** @var list<array{string, array<string, mixed>}> */
+    private $events = [];
+
+    /** @var ScriptedMcpAgent */
+    private $agent;
+
+    /** @var FakePluginDependencies */
+    private $dependencies;
+
+    /** @var LoggerInterface|\PHPUnit\Framework\MockObject\MockObject */
+    private $logger;
 
     public function setUp(): void
     {
         parent::setUp();
 
         $this->events = [];
-        $this->agent = new ScriptedMcpAgent($this->createMock(LoggerInterface::class));
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->dependencies = FakePluginDependencies::connected();
+        $this->agent = new ScriptedMcpAgent($this->logger, $this->dependencies);
         $this->agent->catalog = self::CATALOG;
     }
 
@@ -245,6 +220,315 @@ class McpAgentTest extends TestCase
     }
 
     /**
+     * @dataProvider getUnusableMcpServerStates
+     */
+    public function test_run_answersWithoutTools_whenMcpServerIsNotUsable(string $mcpState): void
+    {
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = $mcpState;
+        $this->agent->responses = [$this->textResponse('Answer without tools')];
+
+        $this->runAgent([['role' => 'user', 'content' => 'Hi']]);
+
+        $this->assertSame([['text', ['content' => 'Answer without tools']]], $this->events);
+        $this->assertSame([], $this->agent->requests[0]->getTools());
+        $this->assertSame(0, $this->agent->catalogFetches);
+    }
+
+    public function getUnusableMcpServerStates(): array
+    {
+        return [
+            'absent' => [PluginDependencies::PLUGIN_MISSING],
+            'deactivated' => [PluginDependencies::PLUGIN_INACTIVE],
+            'plugin manager failure' => [FakePluginDependencies::THROW],
+        ];
+    }
+
+    public function test_run_answersWithoutTools_whenTheToolCatalogFails(): void
+    {
+        $this->agent->catalogError = new \RuntimeException('McpServer failure');
+        $this->agent->responses = [$this->textResponse('Answer without tools')];
+
+        $this->runAgent([['role' => 'user', 'content' => 'Hi']]);
+
+        $this->assertSame([['text', ['content' => 'Answer without tools']]], $this->events);
+        $this->assertSame([], $this->agent->requests[0]->getTools());
+    }
+
+    public function test_answer_sendsOneRequestWithoutTools_andReturnsTheText(): void
+    {
+        $this->agent->responses = [$this->textResponse("  The answer  \n")];
+
+        $answer = $this->agent->answer([
+            ['role' => 'system', 'content' => 'Injected'],
+            ['role' => 'user', 'content' => 'Question'],
+        ], 'Insight prompt', 'insights');
+
+        $this->assertSame('The answer', $answer);
+        $this->assertCount(1, $this->agent->requests);
+        $request = $this->agent->requests[0];
+        $this->assertSame([], $request->getTools());
+        $this->assertSame('Insight prompt', $request->getSystemPrompt());
+        $this->assertSame('insights', $request->getFeatureKey());
+        $this->assertSame([['role' => 'user', 'content' => [['type' => 'text', 'text' => 'Question']]]], $request->getMessages());
+        $this->assertSame(0, $this->agent->catalogFetches);
+    }
+
+    public function test_answer_conversesThroughTheAiProvidersServiceOfTheDependencies(): void
+    {
+        $agent = new McpAgent($this->logger, $this->dependencies);
+        $service = $this->dependencies->getAiProvidersService();
+        $service->responses = [$this->textResponse('Answer of the provider')];
+
+        $answer = $agent->answer([['role' => 'user', 'content' => 'Hi']], 'Prompt', 'chat');
+
+        $this->assertSame('Answer of the provider', $answer);
+        $this->assertCount(1, $service->conversations);
+        $this->assertSame(McpAgent::CALLER_PLUGIN, $service->conversations[0]->getCallerPluginName());
+    }
+
+    public function test_run_conversesThroughTheAiProvidersServiceOfTheDependencies(): void
+    {
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = PluginDependencies::PLUGIN_MISSING;
+        $agent = new McpAgent($this->logger, $this->dependencies);
+        $service = $this->dependencies->getAiProvidersService();
+        $service->responses = [$this->textResponse('Streamed answer')];
+
+        $agent->run([['role' => 'user', 'content' => 'Hi']], 'Prompt', 'chat', 'session-key', function (string $type, array $data) {
+            $this->events[] = [$type, $data];
+        });
+
+        $this->assertSame([['text', ['content' => 'Streamed answer']]], $this->events);
+        $this->assertCount(1, $service->conversations);
+    }
+
+    public function test_answer_fails_whenAiProvidersIsNotLoaded(): void
+    {
+        $this->dependencies->serviceMissing = true;
+        $agent = new McpAgent($this->logger, $this->dependencies);
+
+        $this->expectException(\RuntimeException::class);
+
+        $agent->answer([['role' => 'user', 'content' => 'Hi']], 'Prompt', 'chat');
+    }
+
+    public function test_getStatus_isAgentMode_withWriteMode_whenEverythingIsReady(): void
+    {
+        $this->agent->catalog = array_merge(self::CATALOG, [self::WRITE_TOOL]);
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::MODE_AGENT, $status['mode']);
+        $this->assertSame(McpAgent::ENGINE_AI_PROVIDERS, $status['engine']);
+        $this->assertSame(EffectiveSettings::SOURCE_AI_PROVIDERS, $status['keySource']);
+        $this->assertSame(McpAgent::STATUS_READY, $status['mcp']);
+        $this->assertSame(McpAgent::STATUS_READY, $status['ai']);
+        $this->assertSame('OpenAI', $status['providerName']);
+        $this->assertSame(3, $status['toolCount']);
+        $this->assertTrue($status['canPerformActions']);
+        $this->assertSame([], $status['recommendations']);
+    }
+
+    public function test_getStatus_recommendsTheWriteMode_whenMcpServerIsReadOnly(): void
+    {
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::MODE_AGENT, $status['mode']);
+        $this->assertFalse($status['canPerformActions']);
+        $this->assertSame([Recommendations::ENABLE_WRITE_MODE], $this->getRecommendationIds($status));
+    }
+
+    /**
+     * @dataProvider getMcpServerPluginStates
+     */
+    public function test_getStatus_detectsTheMcpServerPluginState(string $pluginState, string $expectedStatus, array $expectedRecommendations): void
+    {
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = $pluginState;
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame($expectedStatus, $status['mcp']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+        // AI Providers still answers, without the Matomo tools
+        $this->assertSame(McpAgent::ENGINE_AI_PROVIDERS, $status['engine']);
+        $this->assertSame(0, $status['toolCount']);
+        $this->assertFalse($status['canPerformActions']);
+        $this->assertSame($expectedRecommendations, $this->getRecommendationIds($status));
+        $this->assertSame(0, $this->agent->catalogFetches);
+    }
+
+    public function getMcpServerPluginStates(): array
+    {
+        return [
+            'absent' => [PluginDependencies::PLUGIN_MISSING, McpAgent::STATUS_NOT_INSTALLED, [Recommendations::INSTALL_MCP_SERVER]],
+            'deactivated' => [PluginDependencies::PLUGIN_INACTIVE, McpAgent::STATUS_NOT_ACTIVATED, [Recommendations::ACTIVATE_MCP_SERVER]],
+            'plugin manager failure' => [FakePluginDependencies::THROW, McpAgent::STATUS_NOT_INSTALLED, [Recommendations::INSTALL_MCP_SERVER]],
+        ];
+    }
+
+    public function test_getStatus_reportsMcpServerAsUnavailable_whenItsServiceThrows(): void
+    {
+        $this->agent->catalogError = new \RuntimeException('Database is down');
+        $this->logger->expects($this->once())->method('warning');
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::STATUS_UNAVAILABLE, $status['mcp']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+        $this->assertSame(0, $status['toolCount']);
+        $this->assertSame([Recommendations::MCP_UNAVAILABLE], $this->getRecommendationIds($status));
+    }
+
+    public function test_getStatus_reportsMcpServerAsUnavailable_whenItsServiceFailsWithAnError(): void
+    {
+        $this->agent->catalogError = new \TypeError('Unexpected value');
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::STATUS_UNAVAILABLE, $status['mcp']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+    }
+
+    public function test_getStatus_reportsNoAccess_withoutRecommendation(): void
+    {
+        $this->agent->catalogError = new NoAccessException('No access');
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::STATUS_NO_ACCESS, $status['mcp']);
+        $this->assertSame([], $status['recommendations']);
+    }
+
+    public function test_getStatus_recommendsToEnableMcp_whenMcpServerIsDisabled(): void
+    {
+        if (!class_exists(self::MCP_UNAVAILABLE_EXCEPTION)) {
+            $this->markTestSkipped('The McpServer plugin is not installed.');
+        }
+        $exceptionClass = self::MCP_UNAVAILABLE_EXCEPTION;
+        $this->agent->catalogError = new $exceptionClass('MCP is disabled');
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::STATUS_DISABLED, $status['mcp']);
+        $this->assertSame([Recommendations::ENABLE_MCP], $this->getRecommendationIds($status));
+    }
+
+    public function test_getStatus_usesThePluginEngine_andRecommendsNothing_whenTheWebsiteHasItsOwnKey(): void
+    {
+        $this->agent->keySource = EffectiveSettings::SOURCE_SITE;
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = PluginDependencies::PLUGIN_MISSING;
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::ENGINE_PLUGIN, $status['engine']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+        $this->assertSame(EffectiveSettings::SOURCE_SITE, $status['keySource']);
+        $this->assertSame([], $status['recommendations']);
+    }
+
+    public function test_getStatus_isNeverAgentMode_withThePluginEngine_evenWhenMcpServerIsReady(): void
+    {
+        $this->agent->keySource = EffectiveSettings::SOURCE_SITE;
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame(McpAgent::STATUS_READY, $status['mcp']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+    }
+
+    /**
+     * @dataProvider getAiProvidersStates
+     */
+    public function test_getStatus_detectsTheAiProvidersState(
+        callable $configure,
+        string $expectedAiStatus,
+        array $expectedRecommendations
+    ): void {
+        $configure($this->dependencies);
+        $this->agent->keySource = EffectiveSettings::SOURCE_SYSTEM;
+
+        $status = $this->agent->getStatus(1);
+
+        $this->assertSame($expectedAiStatus, $status['ai']);
+        $this->assertSame(McpAgent::ENGINE_PLUGIN, $status['engine']);
+        $this->assertSame(McpAgent::MODE_CHAT, $status['mode']);
+        $this->assertSame($expectedRecommendations, $this->getRecommendationIds($status));
+    }
+
+    public function getAiProvidersStates(): array
+    {
+        return [
+            'absent from the filesystem' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->plugins[PluginDependencies::AI_PROVIDERS] = PluginDependencies::PLUGIN_MISSING;
+                },
+                McpAgent::STATUS_UNAVAILABLE,
+                [],
+            ],
+            'deactivated' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->plugins[PluginDependencies::AI_PROVIDERS] = PluginDependencies::PLUGIN_INACTIVE;
+                },
+                McpAgent::STATUS_UNAVAILABLE,
+                [Recommendations::ACTIVATE_AI_PROVIDERS, Recommendations::ENABLE_WRITE_MODE],
+            ],
+            'activated without provider' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->availability = ['status' => PluginDependencies::AI_NOT_CONFIGURED, 'providerId' => null, 'providerName' => null];
+                },
+                McpAgent::STATUS_NOT_CONFIGURED,
+                [Recommendations::CONNECT_PROVIDER, Recommendations::ENABLE_WRITE_MODE],
+            ],
+            'provider without conversations' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->availability = ['status' => PluginDependencies::AI_UNSUPPORTED, 'providerId' => 'x', 'providerName' => 'X'];
+                },
+                McpAgent::STATUS_UNSUPPORTED,
+                [Recommendations::CONNECT_PROVIDER, Recommendations::ENABLE_WRITE_MODE],
+            ],
+            'service throws' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->availability = new \RuntimeException('AIProviders failure');
+                },
+                McpAgent::STATUS_UNAVAILABLE,
+                [Recommendations::CONNECT_PROVIDER, Recommendations::ENABLE_WRITE_MODE],
+            ],
+            'service class missing' => [
+                function (FakePluginDependencies $dependencies) {
+                    $dependencies->serviceMissing = true;
+                },
+                McpAgent::STATUS_UNAVAILABLE,
+                [Recommendations::CONNECT_PROVIDER, Recommendations::ENABLE_WRITE_MODE],
+            ],
+        ];
+    }
+
+    public function test_getStatus_asksTheAdministrator_forOtherUsers(): void
+    {
+        $this->agent->superUser = false;
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = PluginDependencies::PLUGIN_MISSING;
+
+        $recommendation = $this->agent->getStatus(1)['recommendations'][0];
+
+        $this->assertSame(Recommendations::INSTALL_MCP_SERVER, $recommendation['id']);
+        $this->assertSame('', $recommendation['url']);
+        $this->assertSame('', $recommendation['action']);
+        $this->assertTrue($recommendation['askAdministrator']);
+    }
+
+    public function test_getStatus_linksToTheMarketplace_forSuperUsers(): void
+    {
+        $this->dependencies->plugins[PluginDependencies::MCP_SERVER] = PluginDependencies::PLUGIN_MISSING;
+
+        $recommendation = $this->agent->getStatus(1, ['idSite' => 1, 'period' => 'day', 'date' => 'yesterday'])['recommendations'][0];
+
+        $this->assertSame(
+            'index.php?module=Marketplace&action=overview&idSite=1&period=day&date=yesterday#?showPlugin=McpServer',
+            $recommendation['url']
+        );
+        $this->assertFalse($recommendation['askAdministrator']);
+    }
+
+    /**
      * @dataProvider getToolCatalogsForActions
      */
     public function test_hasActionTools(bool $expected, array $tools): void
@@ -261,6 +545,15 @@ class McpAgentTest extends TestCase
             'undeclared hint is not read-only' => [true, [['name' => 'a', 'readOnly' => null]]],
             'missing hint is not read-only' => [true, [['name' => 'a']]],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $status
+     * @return list<string>
+     */
+    private function getRecommendationIds(array $status): array
+    {
+        return array_column($status['recommendations'], 'id');
     }
 
     private function runAgent(array $messages): void

@@ -28,17 +28,40 @@ export interface StreamChoice {
 
 export interface ApiResponse {
   choices?: StreamChoice[];
-  error?: { message: string };
+  error?: ApiError;
+}
+
+/**
+ * The settings link is set when the error is caused by the model and the user can change it.
+ */
+export interface ApiError {
+  message: string;
+  settingsUrl?: string;
+  settingsLabel?: string;
+}
+
+// a step that unlocks the agent mode, the texts are translation keys
+export interface Recommendation {
+  id: string;
+  message: string;
+  // empty when the user cannot take the step
+  action: string;
+  url: string;
+  askAdministrator: boolean;
 }
 
 export interface AgentStatus {
   mode: 'agent' | 'chat';
+  // AI Providers answers, or the host and key of the plugin settings
+  engine: 'aiProviders' | 'plugin';
+  keySource: 'site' | 'aiProviders' | 'system' | 'none';
   mcp: string;
   ai: string;
   providerName: string | null;
   toolCount: number;
   // false when McpServer only exposes read-only tools
   canPerformActions: boolean;
+  recommendations: Recommendation[];
 }
 
 export interface AgentEvent {

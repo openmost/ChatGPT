@@ -10,10 +10,19 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\Common;
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Agent\McpAgent;
 use Piwik\Plugins\ChatGPT\Services\ChatRequestParser;
+use Piwik\Plugins\ChatGPT\Services\InsightNotAvailableException;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\Services\RateLimiter;
+use Piwik\Plugins\ChatGPT\Services\SafeErrorMessage;
+use Piwik\Plugins\ChatGPT\Settings\DefaultPrompts;
+use Piwik\Plugins\ChatGPT\Settings\EffectiveSettings;
+use Piwik\Plugins\ChatGPT\Settings\ModelUpgradeNotice;
+use Piwik\Plugins\ChatGPT\Settings\SiteSettingsStorage;
+use Piwik\Plugins\ChatGPT\Settings\SystemSettingsForm;
 use Exception;
 
 /**
@@ -51,9 +60,12 @@ class API extends \Piwik\Plugin\API
 
         $this->rateLimiter->check($idSite);
 
-        $systemSettings = new SystemSettings();
-        $measurableSettings = new MeasurableSettings($idSite);
-        $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
+        $settings = EffectiveSettings::forSite($idSite);
+        $chatBasePrompt = $settings->getChatBasePrompt();
+
+        if ($settings->usesAiProviders()) {
+            return $this->answerWithAiProviders($messages, $chatBasePrompt, 'chat');
+        }
 
         $conversationBase = [
             [
@@ -63,7 +75,7 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchModelAi(array_merge($conversationBase, $messages), $idSite);
+        return $this->fetchModelAi(array_merge($conversationBase, $messages), $settings);
     }
 
     public function getInsights(int $idSite, string $period, string $date, $messages = [], $widgetParams = []): array
@@ -79,11 +91,18 @@ class API extends \Piwik\Plugin\API
 
         $this->rateLimiter->check($idSite);
 
-        $systemSettings = new SystemSettings();
-        $measurableSettings = new MeasurableSettings($idSite);
-        $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
+        $settings = EffectiveSettings::forSite($idSite);
+        $insightBasePrompt = $settings->getInsightBasePrompt();
 
-        $data = $this->insightReport->fetch($widgetParams, $idSite, $date, $period);
+        $insight = $this->fetchInsightData($widgetParams, $idSite, $date, $period);
+        if (isset($insight['error'])) {
+            return ['error' => $insight['error']];
+        }
+        $data = $insight['data'];
+
+        if ($settings->usesAiProviders()) {
+            return $this->answerWithAiProviders($messages, "$insightBasePrompt $data", 'insights', true);
+        }
 
         $conversationBase = [
             [
@@ -93,7 +112,7 @@ class API extends \Piwik\Plugin\API
             ]
         ];
 
-        return $this->fetchModelAi(array_merge($conversationBase, $messages), $idSite);
+        return $this->fetchModelAi(array_merge($conversationBase, $messages), $settings);
     }
 
     /**
@@ -113,13 +132,30 @@ class API extends \Piwik\Plugin\API
 
         $this->rateLimiter->check($idSite);
 
-        $systemSettings = new SystemSettings();
-        $measurableSettings = new MeasurableSettings($idSite);
+        $settings = EffectiveSettings::forSite($idSite);
+
+        if ($settings->usesAiProviders()) {
+            if ($this->insightReport->isInsightRequest($widgetParams)) {
+                $insight = $this->fetchInsightData($widgetParams, $idSite, $date, $period);
+                $answer = isset($insight['error'])
+                    ? ['error' => $insight['error']]
+                    : $this->answerWithAiProviders($messages, $settings->getInsightBasePrompt() . ' ' . $insight['data'], 'insights', true);
+            } else {
+                $answer = $this->answerWithAiProviders($messages, $settings->getChatBasePrompt(), 'chat');
+            }
+            $this->streamAnswer($answer);
+            return;
+        }
 
         if ($this->insightReport->isInsightRequest($widgetParams)) {
             // Insight mode: fetch report data and use insight prompt
-            $insightBasePrompt = $measurableSettings->insightBasePrompt->getValue() ?: $systemSettings->insightBasePrompt->getValue();
-            $data = $this->insightReport->fetch($widgetParams, $idSite, $date, $period);
+            $insightBasePrompt = $settings->getInsightBasePrompt();
+            $insight = $this->fetchInsightData($widgetParams, $idSite, $date, $period);
+            if (isset($insight['error'])) {
+                $this->streamAnswer(['error' => $insight['error']]);
+                return;
+            }
+            $data = $insight['data'];
 
             $conversationBase = [
                 [
@@ -130,7 +166,7 @@ class API extends \Piwik\Plugin\API
             ];
         } else {
             // Regular chat mode
-            $chatBasePrompt = $measurableSettings->chatBasePrompt->getValue() ?: $systemSettings->chatBasePrompt->getValue();
+            $chatBasePrompt = $settings->getChatBasePrompt();
 
             $conversationBase = [
                 [
@@ -141,7 +177,140 @@ class API extends \Piwik\Plugin\API
             ];
         }
 
-        $this->streamModelAi(array_merge($conversationBase, $messages), $idSite);
+        $this->streamModelAi(array_merge($conversationBase, $messages), $settings);
+    }
+
+    /**
+     * Settings of a website, empty values use the general settings. The API key is replaced by a placeholder.
+     *
+     * @return array<string, string>
+     */
+    public function getSiteSettings(int $idSite): array
+    {
+        Piwik::checkUserHasAdminAccess($idSite);
+
+        $values = SiteSettingsStorage::read($idSite);
+        if ($values['apiKey'] !== '') {
+            $values['apiKey'] = SiteSettingsStorage::API_KEY_PLACEHOLDER;
+        }
+
+        return $values;
+    }
+
+    /**
+     * Sets the settings of a website, empty values use the general settings. A parameter left out keeps its saved
+     * value, so each card of the settings page saves only its own fields.
+     *
+     * A prompt equal to the general prompt, or to a default while the general prompt is a default too, is saved empty:
+     * the website then follows the general prompt.
+     *
+     * @param string|null $apiKey the placeholder returned by getSiteSettings or an empty value keeps the saved key
+     * @param string|null $modelPreset empty, "latest-recommended" or a model of the preset list
+     * @param bool $deleteApiKey removes the API key of the website, the only way to remove it
+     */
+    public function setSiteSettings(
+        int $idSite,
+        ?string $host = null,
+        ?string $apiKey = null,
+        ?string $modelPreset = null,
+        ?string $modelCustom = null,
+        ?string $chatBasePrompt = null,
+        ?string $insightBasePrompt = null,
+        bool $deleteApiKey = false
+    ): bool {
+        Piwik::checkUserHasAdminAccess($idSite);
+
+        $values = [];
+        foreach ([
+            'host' => $host,
+            'apiKey' => $apiKey,
+            'modelPreset' => $modelPreset,
+            'modelCustom' => $modelCustom,
+            'chatBasePrompt' => $chatBasePrompt,
+            'insightBasePrompt' => $insightBasePrompt,
+        ] as $name => $value) {
+            if ($value !== null) {
+                $values[$name] = trim(Common::unsanitizeInputValue($value));
+            }
+        }
+
+        // only an explicit request deletes the key of the website, an empty value keeps it
+        if ($deleteApiKey) {
+            $values['apiKey'] = '';
+        } elseif (isset($values['apiKey']) && $values['apiKey'] === '') {
+            unset($values['apiKey']);
+        }
+
+        if (($values['host'] ?? '') !== '' && !$this->isValidApiUrl($values['host'])) {
+            throw new Exception(Piwik::translate('ChatGPT_InvalidApiUrl'));
+        }
+
+        // a saved model that is no longer listed can be kept, so the other settings can still be saved
+        $modelPresetValue = $values['modelPreset'] ?? '';
+        if ($modelPresetValue !== '' && $modelPresetValue !== SiteSettingsStorage::read($idSite)['modelPreset'] && !Config::isAvailableModel($modelPresetValue)) {
+            throw new Exception(Piwik::translate('ChatGPT_InvalidModel', [$modelPresetValue]));
+        }
+
+        if (isset($values['modelCustom']) && !preg_match('/^[A-Za-z0-9._:\/@-]{0,200}$/', $values['modelCustom'])) {
+            throw new Exception(Piwik::translate('ChatGPT_InvalidModel', [$values['modelCustom']]));
+        }
+
+        $generalPrompts = null;
+        foreach (DefaultPrompts::SETTING_NAMES as $name => $kind) {
+            if (!isset($values[$name]) || $values[$name] === '') {
+                continue;
+            }
+            if ($generalPrompts === null) {
+                $systemSettings = new SystemSettings();
+                $generalPrompts = [
+                    'chatBasePrompt' => $systemSettings->getChatBasePrompt(),
+                    'insightBasePrompt' => $systemSettings->getInsightBasePrompt(),
+                ];
+            }
+            $values[$name] = DefaultPrompts::toStoredSitePrompt($kind, $values[$name], $generalPrompts[$name]);
+        }
+
+        SiteSettingsStorage::save($idSite, $values);
+
+        return true;
+    }
+
+    /**
+     * Sets the general settings, edited on the ChatGPT page of the System administration. A parameter left out keeps
+     * its saved value.
+     *
+     * @param string|null $apiKey the placeholder of the settings page keeps the saved key, like an empty value
+     * @param bool $deleteApiKey removes the saved API key, the only way to remove it
+     */
+    public function setSystemSettings(
+        ?string $host = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+        ?string $modelPreset = null,
+        ?string $modelCustom = null,
+        ?string $chatBasePrompt = null,
+        ?string $insightBasePrompt = null,
+        bool $deleteApiKey = false
+    ): bool {
+        Piwik::checkUserHasSuperUserAccess();
+
+        $values = [
+            'host' => $host,
+            'apiKey' => $apiKey,
+            'modelPreset' => $modelPreset,
+            'modelCustom' => $modelCustom,
+            'chatBasePrompt' => $chatBasePrompt,
+            'insightBasePrompt' => $insightBasePrompt,
+        ];
+        foreach ($values as $name => $value) {
+            if ($value !== null) {
+                $values[$name] = Common::unsanitizeInputValue($value);
+            }
+        }
+
+        (new SystemSettingsForm())->save($values, $deleteApiKey);
+
+        return true;
     }
 
     /**
@@ -161,9 +330,9 @@ class API extends \Piwik\Plugin\API
      *
      * @throws Exception if configuration is missing or API call fails
      */
-    private function fetchModelAi(array $conversation, int $idSite): array
+    private function fetchModelAi(array $conversation, EffectiveSettings $settings): array
     {
-        $config = $this->getAiConfig($idSite);
+        $config = $this->getAiConfig($settings);
 
         $data = [
             "model" => $config['model'],
@@ -202,6 +371,14 @@ class API extends \Piwik\Plugin\API
             throw new Exception('Empty response from ChatGPT API');
         }
 
+        if ($httpCode !== 200) {
+            $reason = ModelUpgradeNotice::classifyApiError($httpCode, (string) $response);
+            if ($reason !== null) {
+                $this->logger->warning('ChatGPT API model error (HTTP ' . $httpCode . ') for model ' . $config['model'] . ': ' . substr($response, 0, 500));
+                return ['error' => ModelUpgradeNotice::build($reason, $settings)];
+            }
+        }
+
         $result = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception('Invalid JSON response from ChatGPT API');
@@ -224,9 +401,9 @@ class API extends \Piwik\Plugin\API
      * Streams a conversation response using Server-Sent Events
      * This method outputs directly to the response stream
      */
-    private function streamModelAi(array $conversation, int $idSite): void
+    private function streamModelAi(array $conversation, EffectiveSettings $settings): void
     {
-        $config = $this->getAiConfig($idSite);
+        $config = $this->getAiConfig($settings);
 
         $data = [
             "model" => $config['model'],
@@ -234,25 +411,7 @@ class API extends \Piwik\Plugin\API
             "stream" => true,
         ];
 
-        // Disable all output buffering for streaming
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-
-        // Disable PHP time limit for long streams
-        set_time_limit(0);
-
-        // Set SSE headers
-        header('Content-Type: text/event-stream');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-        header('Connection: keep-alive');
-        header('X-Accel-Buffering: no'); // Nginx
-        header('X-Content-Type-Options: nosniff');
-
-        // Immediately flush headers
-        flush();
+        $this->startEventStream();
 
         $ch = curl_init($config['host']);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -302,13 +461,100 @@ class API extends \Piwik\Plugin\API
             echo "data: " . json_encode(['error' => ['message' => 'Connection error: ' . $error]]) . "\n\n";
             flush();
         } elseif ($errorBuffer !== '' || ($httpCode !== 0 && $httpCode !== 200)) {
-            $message = $this->extractApiErrorMessage($errorBuffer, $httpCode, $config['model']);
-            $this->logger->warning('ChatGPT streaming API error (HTTP ' . $httpCode . '): ' . $message);
-            echo "data: " . json_encode(['error' => ['message' => $message]]) . "\n\n";
+            $reason = ModelUpgradeNotice::classifyApiError((int) $httpCode, $errorBuffer);
+            if ($reason !== null) {
+                $error = ModelUpgradeNotice::build($reason, $settings);
+            } else {
+                $error = ['message' => $this->extractApiErrorMessage($errorBuffer, $httpCode, $config['model'])];
+            }
+            $this->logger->warning('ChatGPT streaming API error (HTTP ' . $httpCode . '): ' . $error['message']);
+            echo "data: " . json_encode(['error' => $error]) . "\n\n";
             flush();
         }
 
         echo "data: [DONE]\n\n";
+        flush();
+    }
+
+    /**
+     * Answer of the AI provider configured in Matomo (AIProviders plugin), in the response format of the chat
+     * completions API so the clients handle both engines the same way
+     *
+     * @param bool $isInsight the insights panel starts the conversation without a message: ask for the analysis
+     * @return array{choices?: list<array<string, mixed>>, error?: array{message: string}}
+     */
+    private function answerWithAiProviders(array $messages, string $systemPrompt, string $featureKey, bool $isInsight = false): array
+    {
+        $messages = $this->requestParser->sanitizeConversation($messages, ['user', 'assistant']);
+        if ($isInsight && ($messages === [] || $messages[0]['role'] !== 'user')) {
+            array_unshift($messages, ['role' => 'user', 'content' => Piwik::translate('ChatGPT_InsightAgentPrompt')]);
+        }
+
+        try {
+            $content = StaticContainer::get(McpAgent::class)->answer($messages, $systemPrompt, $featureKey);
+        } catch (\Throwable $e) {
+            $this->logger->warning('ChatGPT AI Providers error: ' . $e->getMessage());
+            return ['error' => ['message' => $e->getMessage()]];
+        }
+
+        return ['choices' => [['message' => ['role' => 'assistant', 'content' => $content]]]];
+    }
+
+    /**
+     * The compact report payload of an insight, or the error to answer with instead: never a backtrace
+     *
+     * @return array{data?: string, error?: array{message: string}}
+     */
+    private function fetchInsightData(array $widgetParams, int $idSite, string $date, string $period): array
+    {
+        try {
+            return ['data' => $this->insightReport->fetch($widgetParams, $idSite, $date, $period)];
+        } catch (InsightNotAvailableException $e) {
+            return ['error' => ['message' => $e->getMessage()]];
+        } catch (\Throwable $e) {
+            $this->logger->error('ChatGPT insight error: {message}', ['message' => $e->getMessage(), 'exception' => $e]);
+            return ['error' => ['message' => SafeErrorMessage::fromThrowable($e)]];
+        }
+    }
+
+    /**
+     * Sends a complete answer as Server-Sent Events, in the chunk format of the streamed chat completions
+     *
+     * @param array{choices?: list<array<string, mixed>>, error?: array{message: string}} $answer
+     */
+    private function streamAnswer(array $answer): void
+    {
+        $this->startEventStream();
+
+        if (isset($answer['error'])) {
+            echo "data: " . json_encode(['error' => $answer['error']]) . "\n\n";
+        } else {
+            $content = (string) ($answer['choices'][0]['message']['content'] ?? '');
+            echo "data: " . json_encode(['choices' => [['delta' => ['role' => 'assistant', 'content' => $content]]]]) . "\n\n";
+        }
+        echo "data: [DONE]\n\n";
+        flush();
+    }
+
+    private function startEventStream(): void
+    {
+        // Disable all output buffering for streaming
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Disable PHP time limit for long streams
+        set_time_limit(0);
+
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no'); // Nginx
+        header('X-Content-Type-Options: nosniff');
+
+        // Immediately flush headers
         flush();
     }
 
@@ -343,28 +589,11 @@ class API extends \Piwik\Plugin\API
      * Gets AI configuration for a site
      * @throws Exception if configuration is invalid
      */
-    private function getAiConfig(int $idSite): array
+    private function getAiConfig(EffectiveSettings $settings): array
     {
-        $systemSettings = new SystemSettings();
-        $measurableSettings = new MeasurableSettings($idSite);
-
-        $host = $measurableSettings->host->getValue() ?: $systemSettings->host->getValue();
-        $apiKey = $measurableSettings->apiKey->getValue() ?: $systemSettings->apiKey->getValue();
-
-        // Get model: prefer custom model if set, otherwise use preset
-        $model = $systemSettings->modelCustom->getValue();
-        if (empty($model)) {
-            $model = $systemSettings->modelPreset->getValue();
-        }
-
-        // Check measurable settings override
-        $measurableModelCustom = $measurableSettings->modelCustom->getValue();
-        $measurableModelPreset = $measurableSettings->modelPreset->getValue();
-        if (!empty($measurableModelCustom)) {
-            $model = $measurableModelCustom;
-        } elseif (!empty($measurableModelPreset)) {
-            $model = $measurableModelPreset;
-        }
+        $host = $settings->getHost();
+        $apiKey = $settings->getApiKey();
+        $model = $settings->getModel();
 
         if (empty($host)) {
             throw new Exception('ChatGPT host is not configured');
@@ -374,7 +603,7 @@ class API extends \Piwik\Plugin\API
             throw new Exception('ChatGPT API key is not configured');
         }
 
-        if (empty($model) || (is_array($model) && empty($model[0]))) {
+        if ($model === '') {
             throw new Exception('ChatGPT model is not configured');
         }
 
@@ -385,7 +614,7 @@ class API extends \Piwik\Plugin\API
         return [
             'host' => $host,
             'apiKey' => $apiKey,
-            'model' => is_array($model) ? $model[0] : $model,
+            'model' => $model,
         ];
     }
 }

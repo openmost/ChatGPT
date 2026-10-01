@@ -44,7 +44,7 @@ class RateLimiter
 
             if (($rateData['count'] ?? 0) >= self::MAX_REQUESTS) {
                 $resetTime = $windowStart + self::WINDOW_SECONDS - $currentTime;
-                throw new Exception("Rate limit exceeded. Please wait {$resetTime} seconds before making another request.");
+                throw new Exception(Piwik::translate('ChatGPT_RateLimitExceeded', [$resetTime]));
             }
         } else {
             $rateData = ['window_start' => $currentTime, 'count' => 0];

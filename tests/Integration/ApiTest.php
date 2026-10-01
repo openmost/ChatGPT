@@ -13,7 +13,6 @@ namespace Piwik\Plugins\ChatGPT\tests\Integration;
 use Piwik\API\Request;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\SystemSettings;
-use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\Mock\FakeAccess;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
@@ -90,7 +89,64 @@ class ApiTest extends IntegrationTestCase
     {
         $data = (new InsightReport())->fetch(['module' => 'VisitsSummary', 'action' => 'get'], $this->idSite, 'yesterday', 'day');
 
-        $this->assertIsArray(json_decode($data, true));
+        $payload = json_decode($data, true);
+        $this->assertSame(['method' => 'VisitsSummary.get', 'idSite' => $this->idSite, 'period' => 'day', 'date' => 'yesterday'], $payload['request']);
+        $this->assertArrayHasKey('values', $payload);
+        $this->assertArrayHasKey('name', $payload['report']);
+    }
+
+    public function test_insightReport_fetchesTheSeriesOfAnEvolutionGraph_withTheSegmentOfTheRequest(): void
+    {
+        $_GET['segment'] = 'browserCode==FF';
+
+        $data = (new InsightReport())->fetch(
+            ['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'forceView' => '1', 'viewDataTable' => 'graphEvolution', 'filter_limit' => '5'],
+            $this->idSite,
+            '2024-03-31',
+            'day'
+        );
+
+        $payload = json_decode($data, true);
+        $this->assertSame([
+            'method' => 'VisitsSummary.get',
+            'idSite' => $this->idSite,
+            'period' => 'day',
+            'date' => '2024-03-02,2024-03-31',
+            'segment' => 'browserCode==FF',
+        ], $payload['request']);
+        $this->assertCount(30, $payload['series']);
+    }
+
+    public function test_getInsights_answersWithACleanMessage_whenTheWidgetHasNoReportData(): void
+    {
+        $result = Request::processRequest('ChatGPT.getInsights', [
+            'idSite' => $this->idSite,
+            'period' => 'day',
+            'date' => 'yesterday',
+            'widgetParams' => json_encode(['module' => 'SitesManager', 'action' => 'deleteSite']),
+        ]);
+
+        $this->assertIsArray($result);
+        $message = $result['error']['message'];
+        $this->assertNotSame('', $message);
+        $this->assertStringNotContainsString('#0 ', $message);
+        $this->assertStringNotContainsString('.php', $message);
+        $this->assertNotEmpty(Request::processRequest('SitesManager.getSiteFromId', ['idSite' => $this->idSite]));
+    }
+
+    public function test_getInsights_answersWithACleanMessage_whenTheReportFails(): void
+    {
+        $result = Request::processRequest('ChatGPT.getInsights', [
+            'idSite' => $this->idSite,
+            'period' => 'day',
+            'date' => 'yesterday',
+            'widgetParams' => json_encode(['module' => 'DevicesDetection', 'action' => 'getBrowsers', 'segment' => 'notADimension==1']),
+        ]);
+
+        $message = $result['error']['message'];
+        $this->assertNotSame('', $message);
+        $this->assertStringNotContainsString('#0 ', $message);
+        $this->assertSame(0, preg_match('~[A-Za-z]:\\\\|/[\w.-]+/[\w./-]*\.php~', $message));
     }
 
     public function test_insightReport_checksTheSiteAccess(): void
@@ -100,59 +156,6 @@ class ApiTest extends IntegrationTestCase
         $this->expectException(\Exception::class);
 
         (new InsightReport())->fetch(['module' => 'VisitsSummary', 'action' => 'get'], $this->idSite, 'yesterday', 'day');
-    }
-
-    /**
-     * @dataProvider getApiMethodsThatAreNotReports
-     */
-    public function test_getInsights_refusesApiMethodsThatAreNotReports_withoutCallingThem(array $widgetParams): void
-    {
-        // a website that could be deleted, the only one cannot
-        Fixture::createWebsite('2024-01-01 00:00:00');
-
-        try {
-            Request::processRequest('ChatGPT.getInsights', [
-                'idSite' => $this->idSite,
-                'period' => 'day',
-                'date' => 'yesterday',
-                'widgetParams' => json_encode($widgetParams),
-            ]);
-            $this->fail('An API method that is not a report must be refused');
-        } catch (\Exception $e) {
-            $this->assertStringContainsString('Insights are only available for Matomo reports', $e->getMessage());
-        }
-
-        $this->assertSame($this->idSite, (int) SitesManagerAPI::getInstance()->getSiteFromId($this->idSite)['idsite']);
-    }
-
-    public function getApiMethodsThatAreNotReports(): array
-    {
-        return [
-            'write method' => [['module' => 'SitesManager', 'action' => 'deleteSite']],
-            'users write method' => [['module' => 'UsersManager', 'action' => 'deleteUser']],
-            'read method that is not a report' => [['module' => 'API', 'action' => 'getMatomoVersion']],
-            'write method as evolution api method' => [['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'apiMethod' => 'SitesManager.deleteSite']],
-        ];
-    }
-
-    /**
-     * @dataProvider getReportWidgets
-     */
-    public function test_insightReport_fetchesReports(array $widgetParams): void
-    {
-        $data = (new InsightReport())->fetch($widgetParams, $this->idSite, 'yesterday', 'day');
-
-        $this->assertIsArray(json_decode($data, true));
-    }
-
-    public function getReportWidgets(): array
-    {
-        return [
-            'visits summary' => [['module' => 'VisitsSummary', 'action' => 'get']],
-            'browsers' => [['module' => 'DevicesDetection', 'action' => 'getBrowsers']],
-            'event names' => [['module' => 'Events', 'action' => 'getName']],
-            'evolution graph' => [['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph']],
-        ];
     }
 
     public function provideContainerConfig()

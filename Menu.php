@@ -10,6 +10,10 @@ namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\Menu\MenuAdmin;
 use Piwik\Menu\MenuTop;
+use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Settings\SystemSettingsForm;
+use Piwik\Plugins\UsersManager\UserPreferences;
+use Piwik\Request;
 
 /**
  * This class allows you to add, remove or rename menu items.
@@ -26,11 +30,16 @@ class Menu extends \Piwik\Plugin\Menu
 
     public function configureAdminMenu(MenuAdmin $menu)
     {
-        // reuse an existing category. Execute the showList() method within the controller when menu item was clicked
-        // $menu->addManageItem('ChatGPT_MyUserItem', $this->urlForAction('showList'), $orderId = 30);
-        // $menu->addPlatformItem('ChatGPT_MyUserItem', $this->urlForDefaultAction(), $orderId = 30);
+        if (Piwik::hasUserSuperUserAccess()) {
+            // next to AI Providers
+            $menu->addSystemItem('ChatGPT_SystemSettingsMenu', $this->urlForAction(SystemSettingsForm::ACTION), 37);
+        }
 
-        // or create a custom category
-        // $menu->addItem('CoreAdminHome_MenuManage', 'ChatGPT_MyUserItem', $this->urlForDefaultAction(), $orderId = 30);
+        $defaultIdSite = (int) (new UserPreferences())->getDefaultWebsiteId();
+        $idSite = Request::fromRequest()->getIntegerParameter('idSite', $defaultIdSite);
+
+        if ($idSite > 0 && Piwik::isUserHasAdminAccess($idSite)) {
+            $menu->addMeasurableItem('ChatGPT_SiteSettingsMenu', $this->urlForAction('manage', ['idSite' => $idSite]), 45);
+        }
     }
 }

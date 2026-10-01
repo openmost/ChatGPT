@@ -1,131 +1,90 @@
 ## FAQ
 
-__How do I install this plugin?__
+__How do I install and configure this plugin?__
 
-This plugin is available in the official Matomo Marketplace:
+1. Install and activate **ChatGPT** from **Administration > Platform > Marketplace**.
+2. As a super user, open **Administration > System > ChatGPT** and set the host, API key and model in the **Connection** card, or connect a provider in **Administration > System > AI Providers**.
+3. Optionally, override the settings for a website in **Administration > Websites > ChatGPT**.
 
-1. Go to the Administration panel
-2. Navigate to the Marketplace section and select "Plugins"
-3. Search for "**ChatGPT**"
-4. Install and activate the plugin
-5. Configure your API settings in **Administration > General Settings > ChatGPT**
-
-Alternatively, download the plugin from GitHub and extract it to your `/plugins` folder.
+You can also download the plugin from [GitHub](https://github.com/openmost/ChatGPT), extract it to your `plugins/` folder and activate it.
 
 __What do I need to make it work?__
 
-You need an OpenAI API key, which you can obtain at https://platform.openai.com/. If you're using a custom host (like a self-hosted LLM), an API key may be optional.
+One of: an OpenAI API key (https://platform.openai.com/), an OpenAI-compatible endpoint served over HTTPS, or a provider connected in AI Providers. On a custom host, the API key is optional.
+
+__Which API key is used?__
+
+One key is enough. The plugin uses, in this order: the API key set for the website in **Administration > Websites > ChatGPT**, then the provider connected in **Administration > System > AI Providers**, then the API key of the general settings. Keys are never copied from one place to another.
+
+When AI Providers is connected, it takes over: the host, API key and model of the general settings are displayed read-only, and are used again if AI Providers is deactivated. A key set for a website still overrides AI Providers for that website.
+
+__How do I remove a saved API key?__
+
+Use the **Delete key** button of the **Connection** card, on the general settings page or on the settings page of the website. Leaving the field empty keeps the saved key.
 
 __Can I use models other than OpenAI's?__
 
-Yes! The plugin supports any OpenAI-compatible API endpoint. You can connect to:
+Yes. Any OpenAI-compatible chat completions endpoint served over HTTPS works, such as Azure OpenAI or a self-hosted server. You can also connect any provider supported by AI Providers. Type the model name in the **Model (Custom)** field when it is not in the preset list.
 
-- Azure OpenAI
-- Self-hosted solutions (Ollama, LocalAI, vLLM)
-- Other providers (Mistral, Anthropic via proxy, etc.)
+__Which models are in the preset list?__
 
-Simply configure the custom host URL in the plugin settings.
+- Latest recommended (default): follows the model recommended by each plugin release, currently GPT 6 Astra
+- GPT 6 Astra, GPT 6.1 Sol, GPT 6 Sol, GPT 6 Luna
+- GPT 5.6 Sol, GPT 5.6 Terra, GPT 5.6 Luna
+- GPT 5.5, GPT 5.4, GPT 5.4 mini, GPT 5.4 nano
+- GPT 5.2, GPT 5.1, GPT 5, GPT 5 mini, GPT 5 nano
+- GPT 4.1, GPT 4.1 mini, GPT 4o, GPT 4o mini
 
-__Which models are supported?__
+Reasoning models (o-series), `*-pro` and `*-codex` variants are not listed: they are tuned for one-shot analysis or code, not for a conversation about report data.
 
-The plugin includes presets for the following conversational chat-completion models:
+__The chat says my model is not available__
 
-- GPT 5.5 (default)
-- GPT 5.4 / GPT 5.4 Mini / GPT 5.4 Nano
-- GPT 5.1
-- GPT 5 Mini / GPT 5 Nano / GPT 5 (Latest)
-- GPT 4.1 / GPT 4.1 Mini / GPT 4.1 Nano
-- GPT 4o / GPT 4o Mini / GPT 4o (Latest)
-- GPT 4 / GPT 4 Turbo
+OpenAI retires old models, and some models are not available to every account. Choose another model in the settings, for example "Latest recommended". The chat links to the settings page you can change.
 
-You can also specify any custom model name for models not in the preset list.
+__What is the agent mode?__
 
-__Why aren't reasoning models (o1, o3) or *-pro variants in the list?__
+When a provider is connected in AI Providers and the **McpServer** plugin is enabled, the chat and the insight panel work as an agent: they query your live reports, websites, goals, dimensions and segments through the Matomo tools to answer with real figures. A timeline shows each tool used.
 
-Reasoning models and `*-pro` variants (`gpt-5-pro`, `gpt-5.5-pro`, `o1-pro`, `o3-pro`, etc.) are tuned for one-shot deep analysis with multi-second "thinking" latency, not for back-and-forth conversation. They were removed from the preset list because they produced a poor chat experience for discussing report data. They also use a different OpenAI endpoint (`/v1/responses`) that this plugin does not target. If you really want to try one, you can still type its name in the **Model (Custom)** field — any error returned by the API will be displayed directly in the chat.
+To enable it, connect a provider in AI Providers, then install, activate and enable McpServer in **Administration > System > General settings > McpServer**. The chat recommends each missing step, with a direct link for super users.
 
-__What happens if my model name is wrong or the API returns an error?__
+__Can the agent change things in Matomo?__
 
-The plugin now surfaces upstream API errors as a danger notice directly inside the chat (for both streaming and non-streaming requests). You'll see the actual error message returned by OpenAI (or your custom host) — for example, an invalid model name, quota issue, or authentication problem — instead of a silent failure.
-
-__Does the plugin support dark mode?__
-
-Yes. The chat and insight components are styled with Matomo's native CSS theme variables (`--theme-color-background-contrast`, `--theme-color-border`, etc.), so they automatically follow whichever Matomo theme is active — light or dark — with no extra configuration.
-
-__How do I let the assistant query my data and perform actions in Matomo?__
-
-Install and activate the **McpServer** plugin, enable MCP in **Administration > System > General Settings > McpServer**, and configure an AI provider in **Administration > System > AI Providers**. The chat then works as an agent: it uses the Matomo tools to look up reports, websites, goals, dimensions and segments, and can perform actions on your behalf. Until then, a notice is displayed in the chat.
-
-__Does the plugin still work without the agent mode?__
-
-Yes. When the McpServer plugin or an AI provider is not configured, the chat and the Insights panel work as before: they use the Host, API key and model configured in the ChatGPT plugin settings, and a notice explains how to enable the agent.
+Only if McpServer allows write methods (Raw Matomo API tool access), and only with your confirmation: before any create, update or delete, the agent describes the exact change and waits for your explicit confirmation in the conversation. This rule cannot be removed by a custom prompt. The agent never has more access than the current user.
 
 __Do I need to expose my Matomo instance or configure OAuth for the agent?__
 
-No. The agent calls the Matomo tools directly inside your Matomo instance, with the permissions of the logged in user. No public URL, OAuth client or additional token is required, it also works on private and intranet instances.
+No. The agent calls the Matomo tools inside your Matomo, with the permissions of the logged in user. It also works on private and intranet instances.
 
-__Which actions can the agent perform?__
+__Does the plugin work without the agent mode?__
 
-The agent has the same access as the current user and is limited by the McpServer settings. By default it can only read your analytics data, and a notice is displayed in the chat. To let it perform actions (for example creating or updating segments, or calling write API methods), a super user must set **Raw API access** to **Full API access** in **Administration > System > General Settings > McpServer**. Actions are performed directly, without confirmation, so review this setting before enabling it.
+Yes. Without AI Providers or McpServer, the chat and the insights use the host, API key and model of the plugin settings. With AI Providers but without McpServer, the connected provider answers without tools.
 
-__Is the plugin available to all users in my Matomo instance?__
+__What do insights analyse?__
 
-Yes, once activated, all users with view permissions can access the AI features for their permitted sites.
+The whole report you are looking at, not only the visible rows: its rows, totals and metrics, with the active segment, period and comparisons. Insights work on data tables, evolution graphs, goals, custom reports and the other reports Matomo declares as widgets.
 
-__Can I configure different settings per website?__
+__Can I customise the prompts?__
 
-Yes! Use Measurable Settings to override the system-wide host, API key, model, and prompts for specific websites. Leave fields empty to use system defaults.
-
-__How do I get insights for a report?__
-
-1. Navigate to any report in Matomo
-2. Click the "Insights" button (AI icon) in the report header
-3. View AI-generated insights in the side panel
-4. Ask follow-up questions to dive deeper into the data
-
-__Does the plugin support streaming responses?__
-
-Yes, real-time streaming responses are supported. The plugin automatically falls back to non-streaming mode if your server doesn't support Server-Sent Events (SSE).
-
-__Can I customize the AI's behavior?__
-
-Yes, you can customize:
-
-- **Chat Base Prompt**: Controls how the AI responds in chat conversations
-- **Insight Base Prompt**: Controls how the AI analyzes report data
-
-These can be set globally or per website.
-
-__What languages are supported?__
-
-The plugin interface is translated into:
-
-- English
-- German (Deutsch)
-- Spanish (Español)
-- French (Français)
-- Italian (Italiano)
-- Dutch (Nederlands)
-- Swedish (Svenska)
-
-__What are the requirements?__
-
-- Matomo 6.0.0 or higher
-- PHP 8.1 or higher
-- Valid API key (for OpenAI) or accessible custom host
+Yes, in the **Prompts** card of the general settings or of a website. The **Reset to default** button restores the default prompts, and on a website, **Use the general prompts** makes it follow the general prompts again. Default prompts of previous versions are upgraded automatically, custom prompts are kept.
 
 __Is my data sent to OpenAI?__
 
-When you use the Insights feature or Chat, the relevant report data and your messages are sent to the configured API endpoint (OpenAI by default). If you have data privacy concerns, consider using a self-hosted LLM solution.
+Insights send the data of the report you are looking at (labels, metrics, totals, period, segment and comparisons) and the conversation to the configured endpoint: OpenAI by default, your custom host, or the provider connected in AI Providers. In agent mode, the results of the tools the agent calls are sent too. Raw visitor data is never sent, unless the report itself contains it, such as the Visits Log. Conversations are not stored by the plugin.
 
-__How can I contribute to this plugin?__
+__Is there a usage limit?__
 
-You can contribute by:
+Yes, 30 AI requests per hour, per user and per website, to protect your API budget.
 
-- Reporting issues on [GitHub](https://github.com/openmost/ChatGPT/issues)
-- Forking the project and submitting pull requests
-- Contacting the developer at ronan@openmost.com
+__Which languages are supported?__
 
-__How long will this plugin be maintained?__
+English, Arabic, Chinese (Simplified and Traditional), Dutch, French, German, Italian, Japanese, Polish, Portuguese, Spanish and Swedish.
 
-The plugin is actively maintained. The developer uses Matomo on many projects and will continue to patch and improve the plugin.
+__What are the requirements?__
+
+- Matomo 6.x
+- PHP 8.1 or higher
+- For the agent mode: a provider connected in AI Providers (bundled with Matomo) and the McpServer plugin
+
+__How do I get support?__
+
+Email ronan@openmost.com, or open an issue on [GitHub](https://github.com/openmost/ChatGPT/issues). More on https://openmost.com/matomo/extensions/chatgpt.

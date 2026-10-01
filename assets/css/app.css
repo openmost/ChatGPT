@@ -1,7 +1,7 @@
-.ai-chat-insight-trigger-vue-wrapper {
+/* the trigger sits in the report header controls row, it only floats in the fallback spot inside the title */
+.enrichedHeadline .ai-chat-insight-trigger-vue-wrapper {
     float: right;
     margin-left: 5px;
-    margin-top: 5px;
 }
 
 /* the insights panel scrolls on its own, lock the page scroll while it is open */

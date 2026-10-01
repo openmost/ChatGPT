@@ -1,37 +1,40 @@
 <template>
-  <div>
-    <button
-      type="button"
-      class="ai-chat-insight-trigger-button"
-      :title="buttonTitle"
-      @click="onClick"
-    >
-      <IconAi :ai-name="aiName" />
-    </button>
-
-    <InsightOffcanvas
-      ref="offCanvas"
-      :display-offcanvas="displayOffcanvas"
-      :widget-params="widgetParams"
-      :ai-name="aiName"
-      :ai-label="aiLabel"
-      :ai-color="aiColor"
-      :api-method="apiMethod"
-      @close="onClose" />
-
+  <div class="ai-chat-insight-trigger">
+    <!-- Markup of the Matomo report header buttons, the logo keeps its colours -->
+    <div class="mtm-selector mtm-selector--iconOnly">
+      <button
+        ref="button"
+        type="button"
+        class="mtm-selector__trigger ai-chat-insight-trigger-button"
+        :title="buttonTitle"
+        :aria-label="buttonTitle"
+        aria-haspopup="dialog"
+        :aria-expanded="isActive ? 'true' : 'false'"
+        :aria-controls="isActive ? overlayId : undefined"
+        @click="onClick"
+      >
+        <span class="mtm-selector__icon" aria-hidden="true">
+          <IconAi :ai-name="aiName" />
+        </span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { translate } from 'CoreHome';
-import InsightOffcanvas from './InsightOffcanvas.vue';
 import IconAi from '../Icon/IconAi.vue';
+import {
+  isTriggerActive,
+  nextTriggerId,
+  OVERLAY_ID,
+  toggleInsight,
+} from './insightStore';
 
 export default defineComponent({
   components: {
     IconAi,
-    InsightOffcanvas,
   },
   props: {
     widgetParams: {
@@ -50,58 +53,52 @@ export default defineComponent({
       type: String,
       default: '#3450a3',
     },
-    apiMethod: {
-      type: String,
-      required: true,
+    // vue-entry parses attributes as JSON, a numeric title arrives as a number
+    reportTitle: {
+      type: [String, Number],
+      default: '',
     },
   },
   data() {
     return {
-      displayOffcanvas: false,
+      triggerId: nextTriggerId(),
+      overlayId: OVERLAY_ID,
     };
   },
   computed: {
     buttonTitle(): string {
       return translate('ChatGPT_AskQuestion', this.aiLabel);
     },
+    isActive(): boolean {
+      return isTriggerActive(this.triggerId);
+    },
   },
   methods: {
     onClick() {
-      this.displayOffcanvas = !this.displayOffcanvas;
-      (this.$refs.offCanvas as InstanceType<typeof InsightOffcanvas>).onSubmit();
-    },
-    onClose() {
-      this.displayOffcanvas = false;
+      toggleInsight({
+        triggerId: this.triggerId,
+        title: String(this.reportTitle),
+        widgetParams: this.widgetParams as Record<string, unknown>,
+      }, this.$refs.button as HTMLElement);
     },
   },
 });
 </script>
 
 <style lang="less" scoped>
-.ai-chat-insight-trigger-button {
-  background-color: transparent;
-  padding: 3px;
-  cursor: pointer;
-  float: right;
-  border: 1px solid v-bind(aiColor);
-  color: v-bind(aiColor);
+.ai-chat-insight-trigger {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  transition: .2s ease all;
-  width: 1.5rem;
-  height: 1.5rem;
+}
 
-  &:hover,
-  &:focus {
-    color: #fff;
-    background-color: v-bind(aiColor);
-  }
+.ai-chat-insight-trigger-button {
+  color: v-bind(aiColor);
 
-  svg {
-    width: 12px;
-    height: auto;
+  // Square box the size of the Matomo icon font in the other buttons, a wide logo fits inside it.
+  // :deep() as IconAi has several root nodes, its svg never gets this scope attribute
+  :deep(svg) {
+    display: block;
+    width: 16px;
+    height: 16px;
   }
 }
 </style>

@@ -1,0 +1,93 @@
+// Design tokens of the chat surfaces (insights panel, chat page). They follow the Matomo theme
+// variables, which switch with [data-theme-mode], and only the accent comes from the AI brand colour.
+.ai-chat-theme {
+  --ai-chat-surface: var(--theme-color-background-contrast, #fff);
+  --ai-chat-surface-sunken: var(--theme-color-background-base, #f5f5f5);
+  --ai-chat-surface-raised: var(--theme-color-background-tinyContrast, #f2f2f2);
+  --ai-chat-text: var(--theme-color-text, #212121);
+  --ai-chat-text-strong: var(--theme-color-text-highContrast, #000);
+  --ai-chat-text-muted: var(--theme-color-text-lighter, #646464);
+  --ai-chat-border: var(--theme-color-border, #ccc);
+  --ai-chat-link: var(--theme-color-link, #1976d2);
+  --ai-chat-danger: var(--theme-color-danger, #c0322e);
+  --ai-chat-focus: var(--theme-color-focus-ring, #0969da);
+  --ai-chat-accent: #00a67e;
+  // the raw brand green is under 4.5:1 on white: text and filled buttons use a darker mix
+  --ai-chat-accent-strong: color-mix(in srgb, var(--ai-chat-accent) 70%, #000);
+  --ai-chat-on-accent: #fff;
+  --ai-chat-accent-soft: color-mix(in srgb, var(--ai-chat-accent) 12%, var(--ai-chat-surface));
+  --ai-chat-hairline: color-mix(in srgb, var(--ai-chat-text) 12%, transparent);
+  --ai-chat-zebra: color-mix(in srgb, var(--ai-chat-text) 4%, transparent);
+  --ai-chat-radius: 14px;
+  --ai-chat-radius-small: 8px;
+  --ai-chat-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  color: var(--ai-chat-text);
+}
+
+.ai-chat-theme-dark() {
+  --ai-chat-accent-strong: color-mix(in srgb, var(--ai-chat-accent) 80%, #fff);
+  --ai-chat-on-accent: #04130e;
+  --ai-chat-accent-soft: color-mix(in srgb, var(--ai-chat-accent) 18%, var(--ai-chat-surface));
+  --ai-chat-hairline: color-mix(in srgb, var(--ai-chat-text) 16%, transparent);
+  --ai-chat-zebra: color-mix(in srgb, var(--ai-chat-text) 6%, transparent);
+}
+
+[data-theme-mode="dark"] .ai-chat-theme {
+  .ai-chat-theme-dark();
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme-mode="auto"] .ai-chat-theme {
+    .ai-chat-theme-dark();
+  }
+}
+
+.ai-chat-theme :focus-visible {
+  outline: 2px solid var(--ai-chat-focus);
+  outline-offset: 2px;
+}
+
+.ai-chat-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// shared look of the small icon buttons (close, copy, scroll to latest)
+.ai-chat-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  min-width: 32px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0 .5rem;
+  border: 1px solid transparent;
+  border-radius: var(--ai-chat-radius-small);
+  background: transparent;
+  color: var(--ai-chat-text-muted);
+  font: inherit;
+  font-size: .8125rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+  text-transform: none;
+
+  &:hover {
+    background: var(--ai-chat-surface-raised);
+    color: var(--ai-chat-text);
+  }
+
+  svg {
+    display: block;
+    flex-shrink: 0;
+  }
+}

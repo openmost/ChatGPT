@@ -1,7 +1,7 @@
 {
     "name": "ChatGPT",
-    "description": "AI chat and report insights for Matomo, with an agent that queries your data and performs actions through the Matomo MCP tools",
-    "version": "6.0.2",
+    "description": "AI chat and insights on any Matomo report with ChatGPT, plus an agent that queries your live data.",
+    "version": "6.1.0",
     "theme": false,
     "require": {
         "matomo": ">=6.0.0-b1,<7.0.0-b1",
@@ -11,15 +11,18 @@
         {
             "name": "Openmost",
             "email": "ronan@openmost.com",
-            "homepage": "https:\/\/openmost.com"
+            "homepage": "https://openmost.com"
         }
     ],
     "support": {
         "email": "ronan@openmost.com",
-        "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
-        "source": "https:\/\/github.com\/openmost\/ChatGPT"
+        "issues": "https://github.com/openmost/ChatGPT/issues",
+        "source": "https://github.com/openmost/ChatGPT"
     },
-    "homepage": "https:\/\/openmost.com\/matomo\/extensions\/chatgpt",
+    "homepage": "https://openmost.com/matomo/extensions/chatgpt",
+    "preview": {
+        "video_url": "https://www.youtube-nocookie.com/embed/jy83Ggf9cZw"
+    },
     "license": "GPL v3+",
     "keywords": [
         "chatgpt",
