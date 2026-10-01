@@ -73,6 +73,35 @@ final class SiteSettingsStorage
     }
 
     /**
+     * Whether a website can be answered with its own connection: its own API key, or its own custom host, where the
+     * key is optional.
+     */
+    public static function hasAnySiteConnection(): bool
+    {
+        if (self::hasAnySiteApiKey()) {
+            return true;
+        }
+
+        try {
+            $sql = sprintf(
+                "SELECT setting_value FROM `%s` WHERE plugin_name = ? AND setting_name = 'host' AND setting_value NOT IN ('', '\"\"')",
+                Common::prefixTable('site_setting')
+            );
+
+            foreach (Db::fetchAll($sql, [self::PLUGIN_NAME]) as $row) {
+                $host = trim((string) $row['setting_value']);
+                if ($host !== '' && !Config::isDefaultHost($host)) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
      * @param array<string, mixed> $storedValues setting name => stored value
      * @return array<string, string>
      */

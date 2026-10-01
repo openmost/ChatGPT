@@ -17,6 +17,8 @@
 - Website settings moved from the website edit form to a dedicated *Administration > Websites > ChatGPT* page. New API methods `ChatGPT.getSiteSettings`, `ChatGPT.setSiteSettings` and `ChatGPT.setSystemSettings`. Saved API keys are never sent back to the browser.
 - New default chat and insight prompts, written for analytics. Default prompts of previous versions are upgraded automatically in the language of each user, custom prompts are kept, and a *Reset to default* button restores the defaults.
 - New "Latest recommended" model, the default for new installs (currently GPT 6 Astra), and an updated model list without the models deprecated by OpenAI. A deprecated or unavailable model is explained in the chat with a link to the settings. The model saved by previous versions is kept.
+- The API key is optional on a custom host (self-hosted or compatible endpoint), as the documentation states: the chat, the insights and the plugin assets work with a keyless custom host, and no Authorization header is sent without a key. The default OpenAI host still requires a key.
+- The host is checked with the same HTTPS rule when the settings are saved and when a request is sent, and the configuration errors of a request (host, API key, model, HTTPS) are translated.
 
 **Chat and insights**
 

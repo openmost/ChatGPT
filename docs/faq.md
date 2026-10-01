@@ -10,7 +10,7 @@ You can also download the plugin from [GitHub](https://github.com/openmost/ChatG
 
 __What do I need to make it work?__
 
-One of: an OpenAI API key (https://platform.openai.com/), an OpenAI-compatible endpoint served over HTTPS, or a provider connected in AI Providers. On a custom host, the API key is optional.
+One of: an OpenAI API key (https://platform.openai.com/), an OpenAI-compatible endpoint served over HTTPS, or a provider connected in AI Providers. On a custom host, the API key is optional: without a key, no Authorization header is sent.
 
 __Which API key is used?__
 
