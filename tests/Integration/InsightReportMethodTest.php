@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Matomo - free/libre analytics platform
  *
@@ -9,7 +10,11 @@
 namespace Piwik\Plugins\ChatGPT\tests\Integration;
 
 use Piwik\API\Request;
+use Piwik\Plugin\ReportsProvider;
+use Piwik\Plugins\ChatGPT\Services\InsightNotAvailableException;
+use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
+use Piwik\Plugins\UsersManager\Model as UsersModel;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\Mock\FakeAccess;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
@@ -25,7 +30,6 @@ class InsightReportMethodTest extends IntegrationTestCase
 {
     private $idSite;
     private $originalGet;
-    private $originalPost;
 
     public function setUp(): void
     {
@@ -37,16 +41,14 @@ class InsightReportMethodTest extends IntegrationTestCase
         // a website that could be deleted, the only one cannot
         $this->idSite = (int) Fixture::createWebsite('2024-01-01 00:00:00');
 
-        // the API methods read the site and the widget from the request, as when called over HTTP
+        // the API methods read the site from the request, as when called over HTTP
         $this->originalGet = $_GET;
-        $this->originalPost = $_POST;
         $_GET['idSite'] = (string) $this->idSite;
     }
 
     public function tearDown(): void
     {
         $_GET = $this->originalGet;
-        $_POST = $this->originalPost;
 
         parent::tearDown();
     }
@@ -54,57 +56,58 @@ class InsightReportMethodTest extends IntegrationTestCase
     /**
      * @dataProvider getApiMethodsThatAreNotReports
      */
-    public function test_insights_refuseApiMethodsThatAreNotReports_withoutCallingThem(string $apiMethod, array $widgetParams): void
+    public function test_insightReport_onlyResolvesToMatomoReports(array $widgetParams): void
     {
-        $_POST['widgetParams'] = json_encode($widgetParams);
-
         try {
-            Request::processRequest('ChatGPT.' . $apiMethod, [
+            $request = (new InsightReport())->buildReportRequest($widgetParams, $this->idSite, 'yesterday', 'day');
+        } catch (InsightNotAvailableException $e) {
+            $this->addToAssertionCount(1);
+            return;
+        }
+
+        [$module, $action] = explode('.', $request['method'], 2);
+        $this->assertNotNull(ReportsProvider::factory($module, $action), $request['method'] . ' is not a Matomo report');
+    }
+
+    /**
+     * @dataProvider getApiMethodsThatAreNotReports
+     */
+    public function test_getInsights_neverCallsApiMethodsThatAreNotReports(array $widgetParams): void
+    {
+        try {
+            Request::processRequest('ChatGPT.getInsights', [
                 'idSite' => $this->idSite,
                 'period' => 'day',
                 'date' => 'yesterday',
+                'widgetParams' => json_encode($widgetParams),
             ]);
-            $this->fail('An API method that is not a report must be refused');
         } catch (\Exception $e) {
-            $this->assertStringContainsString('Insights are only available for Matomo reports', $e->getMessage());
+            // refused, or stopped later by the missing model configuration: both are fine
         }
 
         $this->assertSame($this->idSite, (int) SitesManagerAPI::getInstance()->getSiteFromId($this->idSite)['idsite']);
+        $this->assertNotEmpty((new UsersModel())->getUser('superUserLogin'));
     }
 
     public function getApiMethodsThatAreNotReports(): array
     {
-        $widgets = [
-            'write method' => ['module' => 'SitesManager', 'action' => 'deleteSite'],
-            'users write method' => ['module' => 'UsersManager', 'action' => 'deleteUser'],
-            'read method that is not a report' => ['module' => 'API', 'action' => 'getMatomoVersion'],
-            'write method as evolution api method' => ['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'apiMethod' => 'SitesManager.deleteSite'],
+        return [
+            'write method' => [['module' => 'SitesManager', 'action' => 'deleteSite']],
+            'users write method' => [['module' => 'UsersManager', 'action' => 'deleteUser', 'userLogin' => 'superUserLogin']],
+            'read method that is not a report' => [['module' => 'API', 'action' => 'getMatomoVersion']],
+            'write method as evolution api method' => [['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'apiMethod' => 'SitesManager.deleteSite']],
+            'injected api method' => [['module' => 'KPIWidgets', 'action' => 'kPIWidgetsVisits', 'apiMethod' => 'UsersManager.deleteUser']],
         ];
-
-        $cases = [];
-        foreach (['getInsights', 'getStreamingResponse'] as $apiMethod) {
-            foreach ($widgets as $name => $widgetParams) {
-                $cases[$apiMethod . ' ' . $name] = [$apiMethod, $widgetParams];
-            }
-        }
-        return $cases;
     }
 
     /**
      * @dataProvider getReportWidgets
      */
-    public function test_insights_fetchReports_beforeRequiringTheModelConfiguration(array $widgetParams): void
+    public function test_insightReport_fetchesReports(array $widgetParams): void
     {
-        $_POST['widgetParams'] = json_encode($widgetParams);
+        $data = (new InsightReport())->fetch($widgetParams, $this->idSite, 'yesterday', 'day');
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('ChatGPT API key is not configured');
-
-        Request::processRequest('ChatGPT.getInsights', [
-            'idSite' => $this->idSite,
-            'period' => 'day',
-            'date' => 'yesterday',
-        ]);
+        $this->assertIsArray(json_decode($data, true));
     }
 
     public function getReportWidgets(): array

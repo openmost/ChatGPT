@@ -9,6 +9,7 @@
              ai-label="ChatGPT"
              ai-color="#00A67E"
              api-method="ChatGPT.getResponse"
+             model-notice="{{ model_notice|json_encode|e('html_attr') }}"
         ></div>
 
     {% else %}
@@ -16,6 +17,9 @@
         <div class="alert alert-info">
             <strong>{{ 'ChatGPT_PluginNotConfigured'|translate }}</strong>
             {{ 'ChatGPT_PluginNotConfiguredDescription'|translate }}
+            {% if settings_url %}
+                <a href="{{ settings_url }}">{{ 'ChatGPT_SystemSettingsLink'|translate }}</a>
+            {% endif %}
         </div>
 
     {% endif %}

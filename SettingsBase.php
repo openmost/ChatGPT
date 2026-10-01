@@ -13,7 +13,6 @@ use Piwik\Settings\FieldConfig;
 
 /**
  * Shared settings configuration for ChatGPT plugin.
- * Used by both SystemSettings and MeasurableSettings.
  */
 trait SettingsBase
 {
@@ -40,24 +39,41 @@ trait SettingsBase
     /**
      * Configure model preset field
      */
-    protected function configureModelPresetField(FieldConfig $field, bool $isMeasurable = false): void
+    protected function configureModelPresetField(FieldConfig $field, string $currentValue = ''): void
     {
         $field->title = Piwik::translate('ChatGPT_ModelPreset');
         $field->uiControl = FieldConfig::UI_CONTROL_SINGLE_SELECT;
-        $field->description = Piwik::translate($isMeasurable ? 'ChatGPT_ModelPresetDescriptionMeasurable' : 'ChatGPT_ModelPresetDescription');
-        $field->availableValues = $isMeasurable
-            ? ['' => Piwik::translate('ChatGPT_UseSystemDefault')] + Config::getAvailableModels()
-            : Config::getAvailableModels();
+        $field->description = Piwik::translate('ChatGPT_ModelPresetDescription');
+        $field->availableValues = self::getModelPresetOptions($currentValue);
+    }
+
+    /**
+     * Latest recommended option first, then the preset models. A saved model that is no longer listed stays
+     * selectable, flagged as deprecated, so the other settings can still be saved.
+     *
+     * @return array<string, string> model => label
+     */
+    public static function getModelPresetOptions(string $currentValue = ''): array
+    {
+        $options = [
+            Config::LATEST_RECOMMENDED_MODEL => Piwik::translate('ChatGPT_ModelLatestRecommended', [Config::getModelLabel(Config::RECOMMENDED_MODEL)]),
+        ] + Config::getAvailableModels();
+
+        if ($currentValue !== '' && !isset($options[$currentValue])) {
+            $options[$currentValue] = Piwik::translate('ChatGPT_ModelDeprecatedOption', [$currentValue]);
+        }
+
+        return $options;
     }
 
     /**
      * Configure model custom field
      */
-    protected function configureModelCustomField(FieldConfig $field, bool $isMeasurable = false): void
+    protected function configureModelCustomField(FieldConfig $field): void
     {
         $field->title = Piwik::translate('ChatGPT_ModelCustom');
         $field->uiControl = FieldConfig::UI_CONTROL_TEXT;
-        $field->description = Piwik::translate($isMeasurable ? 'ChatGPT_ModelCustomDescriptionMeasurable' : 'ChatGPT_ModelCustomDescription');
+        $field->description = Piwik::translate('ChatGPT_ModelCustomDescription');
     }
 
     /**

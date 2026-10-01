@@ -1,0 +1,3 @@
+node_modules
+/vue/dist/*.common.js
+/vue/dist/*.common.js.map

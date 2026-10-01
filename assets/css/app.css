@@ -3,3 +3,9 @@
     margin-left: 5px;
     margin-top: 5px;
 }
+
+/* the insights panel scrolls on its own, lock the page scroll while it is open */
+html.ai-chat-page-scroll-locked,
+html.ai-chat-page-scroll-locked body {
+    overflow: hidden !important;
+}

@@ -1,0 +1,24 @@
+{% extends 'admin.twig' %}
+
+{% block topcontrols %}
+    <div class="top_bar_sites_selector piwikTopControl">
+        <div vue-entry="CoreHome.SiteSelector"
+             show-selected-site="true"
+             show-all-sites-item="false"
+             only-sites-with-admin-access="true"
+             class="sites_autocomplete"
+        ></div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div vue-entry="ChatGPT.ManageSiteSettings"
+         id-site="{{ idSite|json_encode|e('html_attr') }}"
+         fields="{{ fields|json_encode|e('html_attr') }}"
+         settings="{{ values|json_encode|e('html_attr') }}"
+         general-settings-url="{{ generalSettingsUrl|json_encode|e('html_attr') }}"
+         ai-providers-connected="{{ aiProvidersConnected|json_encode|e('html_attr') }}"
+         ai-providers-link="{{ aiProvidersLink|json_encode|e('html_attr') }}"
+         general-prompts="{{ generalPrompts|json_encode|e('html_attr') }}"
+    ></div>
+{% endblock %}
