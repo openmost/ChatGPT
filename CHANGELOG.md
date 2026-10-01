@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.6.2
+
+- Security: restrict insight requests to Matomo reports.
+
 ### 5.6.1
 
 Support fallback color value for Matomo < 5.10

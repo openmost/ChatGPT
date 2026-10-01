@@ -13,6 +13,7 @@ use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugin\ReportsProvider;
 use Exception;
 
 /**
@@ -95,6 +96,8 @@ class API extends \Piwik\Plugin\API
             throw new Exception('Invalid API method format');
         }
 
+        $this->checkIsReportMethod($apiMethod);
+
         // Matomo's Request::processRequest handles permission checks internally
         $data = Request::processRequest($apiMethod, $requestParams);
 
@@ -144,6 +147,8 @@ class API extends \Piwik\Plugin\API
             if (!preg_match('/^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/', $apiMethod)) {
                 throw new Exception('Invalid API method format');
             }
+
+            $this->checkIsReportMethod($apiMethod);
 
             // Fetch report data
             $data = Request::processRequest($apiMethod, $requestParams);
@@ -340,6 +345,19 @@ class API extends \Piwik\Plugin\API
         }
 
         return $reportId;
+    }
+
+    /**
+     * Only Matomo reports can be requested for an insight, never any other API method
+     * @throws Exception if the API method is not a report
+     */
+    private function checkIsReportMethod(string $apiMethod): void
+    {
+        [$module, $action] = explode('.', $apiMethod, 2);
+
+        if (ReportsProvider::factory($module, $action) === null) {
+            throw new Exception('Insights are only available for Matomo reports');
+        }
     }
 
     /**
