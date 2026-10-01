@@ -146,4 +146,40 @@ class InsightReportTest extends TestCase
             'injected evolution api method' => [['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'apiMethod' => 'UsersManager.deleteUser&login=x']],
         ];
     }
+
+    /**
+     * @dataProvider getApiMethodsThatAreNotReports
+     */
+    public function test_fetch_refusesApiMethodsThatAreNotReports_withoutCallingThem(array $widgetParams, string $expectedMethod): void
+    {
+        $insightReport = new class () extends InsightReport {
+            /** @var string[] */
+            public array $checkedMethods = [];
+
+            protected function isReport(string $method): bool
+            {
+                $this->checkedMethods[] = $method;
+                return false;
+            }
+        };
+
+        try {
+            $insightReport->fetch($widgetParams, 1, 'today', 'day');
+            $this->fail('An API method that is not a report must be refused');
+        } catch (\Exception $e) {
+            $this->assertSame('Insights are only available for Matomo reports', $e->getMessage());
+        }
+
+        $this->assertSame([$expectedMethod], $insightReport->checkedMethods);
+    }
+
+    public function getApiMethodsThatAreNotReports(): array
+    {
+        return [
+            'write method' => [['module' => 'SitesManager', 'action' => 'deleteSite'], 'SitesManager.deleteSite'],
+            'users write method' => [['module' => 'UsersManager', 'action' => 'deleteUser'], 'UsersManager.deleteUser'],
+            'read method that is not a report' => [['module' => 'API', 'action' => 'getMatomoVersion'], 'API.getMatomoVersion'],
+            'write method as evolution api method' => [['module' => 'VisitsSummary', 'action' => 'getEvolutionGraph', 'apiMethod' => 'SitesManager.deleteSite'], 'SitesManager.deleteSite'],
+        ];
+    }
 }

@@ -1,7 +1,7 @@
 {
     "name": "ChatGPT",
     "description": "AI chat and report insights for Matomo, with an agent that queries your data and performs actions through the Matomo MCP tools",
-    "version": "6.0.1",
+    "version": "6.0.2",
     "theme": false,
     "require": {
         "matomo": ">=6.0.0-b1,<7.0.0-b1",

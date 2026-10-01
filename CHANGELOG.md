@@ -1,5 +1,9 @@
 ## Changelog
 
+### 6.0.2
+
+- Security: restrict insight requests to Matomo reports.
+
 ### 6.0.1
 
 - Insights no longer send an API error (for example a missing access to the website) to the AI model as if it was the report data: the error is displayed in the chat.

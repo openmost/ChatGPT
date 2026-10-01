@@ -13,6 +13,7 @@ namespace Piwik\Plugins\ChatGPT\Services;
 use Exception;
 use Piwik\API\Request;
 use Piwik\Common;
+use Piwik\Plugin\ReportsProvider;
 
 /**
  * Fetches the data of the report widget an insight is requested for
@@ -60,6 +61,10 @@ class InsightReport
     public function fetch(array $widgetParams, int $idSite, string $date, string $period): string
     {
         $reportRequest = $this->buildReportRequest($widgetParams, $idSite, $date, $period);
+
+        if (!$this->isReport($reportRequest['method'])) {
+            throw new Exception('Insights are only available for Matomo reports');
+        }
 
         // Matomo's Request::processRequest handles permission checks internally
         $data = Request::processRequest($reportRequest['method'], $reportRequest['parameters']);
@@ -116,6 +121,16 @@ class InsightReport
         }
 
         return ['method' => $method, 'parameters' => $parameters];
+    }
+
+    /**
+     * Only Matomo reports can be requested for an insight, never any other API method
+     */
+    protected function isReport(string $method): bool
+    {
+        [$module, $action] = explode('.', $method, 2);
+
+        return ReportsProvider::factory($module, $action) !== null;
     }
 
     private function sanitizeParam($value, string $type)
