@@ -144,7 +144,7 @@ final class EffectiveSettings
 
     public function isCustomHost(): bool
     {
-        return $this->host !== Config::DEFAULT_HOST;
+        return !Config::isDefaultHost($this->host);
     }
 
     /**

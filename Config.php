@@ -17,6 +17,15 @@ class Config
     public const DEFAULT_HOST = 'https://api.openai.com/v1/chat/completions';
 
     /**
+     * Whether a host is the API of the provider, which always needs a key. Any other host is a custom host
+     * (self-hosted or compatible endpoint), where the key is optional.
+     */
+    public static function isDefaultHost(string $host): bool
+    {
+        return rtrim(strtolower(trim($host)), '/') === self::DEFAULT_HOST;
+    }
+
+    /**
      * Model option resolved to RECOMMENDED_MODEL when a request is sent, so the installs using it follow the
      * recommendation of each plugin release without changing their settings.
      */

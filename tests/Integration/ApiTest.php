@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Piwik\Plugins\ChatGPT\tests\Integration;
 
 use Piwik\API\Request;
+use Piwik\Container\StaticContainer;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\SystemSettings;
 use Piwik\Tests\Framework\Fixture;
@@ -39,6 +40,9 @@ class ApiTest extends IntegrationTestCase
         Fixture::createSuperUser();
         FakeAccess::clearAccess(true);
         $this->idSite = (int) Fixture::createWebsite('2024-01-01 00:00:00');
+
+        // the test environment only loads the translations of the core plugins
+        StaticContainer::get('Piwik\Translation\Translator')->addDirectory(__DIR__ . '/../../lang');
 
         // the API methods read the site from the request, as when called over HTTP
         $this->originalGet = $_GET;
