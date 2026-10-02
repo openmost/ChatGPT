@@ -18,6 +18,7 @@ use Piwik\Plugins\ChatGPT\Agent\McpAgent;
 use Piwik\Plugins\ChatGPT\Agent\PluginDependencies;
 use Piwik\Plugins\ChatGPT\Services\ChatRequestParser;
 use Piwik\Plugins\ChatGPT\Services\InsightNotAvailableException;
+use Piwik\Plugins\ChatGPT\Services\RateLimitExceededException;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\Services\RateLimiter;
 use Piwik\Plugins\ChatGPT\Services\SafeErrorMessage;
@@ -181,6 +182,8 @@ class Controller extends \Piwik\Plugin\Controller
                 if ($messages === [] || $messages[0]['role'] !== 'user') {
                     array_unshift($messages, ['role' => 'user', 'content' => Piwik::translate('ChatGPT_InsightAgentPrompt')]);
                 }
+                // opened again on the same report, the panel posts its previous answer last
+                $messages = $parser->endWithQuestion($messages, Piwik::translate('ChatGPT_InsightAgentPrompt'));
                 $systemPrompt = $agent->buildSystemPrompt((string) $basePrompt, $idSite, $period, $date, $reportData, $withTools);
                 $featureKey = 'insights';
             } else {
@@ -276,13 +279,13 @@ class Controller extends \Piwik\Plugin\Controller
         flush();
 
         $emit = static function (string $type, array $data = []): void {
-            echo 'data: ' . json_encode(['type' => $type] + $data) . "\n\n";
+            echo 'data: ' . json_encode(['type' => $type] + $data, JSON_INVALID_UTF8_SUBSTITUTE) . "\n\n";
             flush();
         };
 
         try {
             $producer($emit);
-        } catch (AIProviderException | InsightNotAvailableException $e) {
+        } catch (AIProviderException | InsightNotAvailableException | RateLimitExceededException $e) {
             $emit('error', ['message' => SafeErrorMessage::fromThrowable($e)]);
         } catch (\Throwable $e) {
             StaticContainer::get(LoggerInterface::class)->error('ChatGPT agent error: {message}', [

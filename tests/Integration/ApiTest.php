@@ -12,6 +12,8 @@ namespace Piwik\Plugins\ChatGPT\tests\Integration;
 
 use Piwik\API\Request;
 use Piwik\Container\StaticContainer;
+use Piwik\Option;
+use Piwik\Piwik;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\SystemSettings;
 use Piwik\Tests\Framework\Fixture;
@@ -167,5 +169,27 @@ class ApiTest extends IntegrationTestCase
         return [
             'Piwik\Access' => new FakeAccess(),
         ];
+    }
+
+    public function test_getResponseAndGetInsights_answerWithTheRateLimitMessage_onceTheLimitIsReached(): void
+    {
+        Option::set('ChatGPT_ratelimit_' . $this->idSite . '_' . Piwik::getCurrentUserLogin(), json_encode(['window_start' => time(), 'count' => 30]));
+
+        foreach (['ChatGPT.getResponse', 'ChatGPT.getInsights'] as $method) {
+            $result = Request::processRequest($method, [
+                'idSite' => $this->idSite,
+                'period' => 'day',
+                'date' => 'yesterday',
+                'messages' => json_encode([['role' => 'user', 'content' => 'Hello']]),
+                'widgetParams' => json_encode(['module' => 'VisitsSummary', 'action' => 'get']),
+            ]);
+
+            $this->assertIsArray($result, $method);
+            $this->assertSame(
+                1,
+                preg_match('/^Rate limit exceeded\. Please wait \d+ seconds before making another request\.$/', $result['error']['message']),
+                $method
+            );
+        }
     }
 }

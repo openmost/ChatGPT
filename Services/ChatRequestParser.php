@@ -64,6 +64,36 @@ class ChatRequestParser
         return $sanitized;
     }
 
+    /**
+     * The conversation ending with a question, as the AI APIs expect: Mistral AI refuses a conversation that ends with
+     * an answer and the Anthropic models read it as the start of the answer to continue. The insights panel opened
+     * again on the same report posts its previous answer last: it asks for the analysis again.
+     *
+     * @param list<array{role: string, content: string}> $messages
+     * @param string|null $question asked when the conversation does not end with a question, without one the trailing
+     *                              answers are dropped
+     * @return list<array{role: string, content: string}>
+     */
+    public function endWithQuestion(array $messages, ?string $question = null): array
+    {
+        $messages = array_values($messages);
+        $last = end($messages);
+        if (is_array($last) && ($last['role'] ?? '') === 'user') {
+            return $messages;
+        }
+
+        if ($question !== null && $question !== '') {
+            $messages[] = ['role' => 'user', 'content' => $question];
+            return $messages;
+        }
+
+        while ($messages !== [] && ($messages[count($messages) - 1]['role'] ?? '') === 'assistant') {
+            array_pop($messages);
+        }
+
+        return $messages;
+    }
+
     private function parseJsonParam(string $name, $value): array
     {
         // First check $_POST directly

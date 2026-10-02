@@ -39,12 +39,14 @@ class SafeErrorMessage
      */
     public static function clean(string $message): string
     {
-        $parts = preg_split('/\R|\s#\d+\s/', $message);
+        // UTF-8 mode: in byte mode \R also matches the 0x85 byte inside a character such as the Arabic letter meem, the
+        // message was cut in the middle of that character and json_encode then refused the invalid UTF-8
+        $parts = preg_split('/\R|\s#\d+\s/u', mb_scrub($message, 'UTF-8'));
         $message = trim(strip_tags(is_array($parts) ? (string) $parts[0] : ''));
         // a trailing " in" is left when the file and line follow on the next line
         $message = (string) preg_replace('/\s+in$/', '', $message);
 
-        $hasPath = preg_match('~[A-Za-z]:[\\\\/]|\\\\[\w.-]+\\\\[\w.-]+\.php|/[\w.-]+/[\w./-]*\.php|\.php\b|\.php:\d+~', $message);
+        $hasPath = preg_match('~[A-Za-z]:[\\\\/]|\\\\[\w.-]+\\\\[\w.-]+\.php|/[\w.-]+/[\w./-]*\.php|\.php\b|\.php:\d+~u', $message);
         if ($message === '' || $hasPath || mb_strlen($message) > self::MAX_LENGTH) {
             return '';
         }

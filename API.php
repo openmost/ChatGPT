@@ -17,6 +17,7 @@ use Piwik\Plugins\ChatGPT\Services\ApiConnection;
 use Piwik\Plugins\ChatGPT\Services\ChatRequestParser;
 use Piwik\Plugins\ChatGPT\Services\InsightNotAvailableException;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
+use Piwik\Plugins\ChatGPT\Services\RateLimitExceededException;
 use Piwik\Plugins\ChatGPT\Services\RateLimiter;
 use Piwik\Plugins\ChatGPT\Services\SafeErrorMessage;
 use Piwik\Plugins\ChatGPT\Settings\DefaultPrompts;
@@ -59,7 +60,10 @@ class API extends \Piwik\Plugin\API
         // Get messages from request if not passed or if passed as JSON string
         $messages = $this->requestParser->parseMessages($messages);
 
-        $this->rateLimiter->check($idSite);
+        $rateLimitError = $this->getRateLimitError($idSite);
+        if ($rateLimitError !== null) {
+            return ['error' => $rateLimitError];
+        }
 
         $settings = EffectiveSettings::forSite($idSite);
         $chatBasePrompt = $settings->getChatBasePrompt();
@@ -90,7 +94,10 @@ class API extends \Piwik\Plugin\API
         $messages = $this->requestParser->parseMessages($messages);
         $widgetParams = $this->requestParser->parseWidgetParams($widgetParams);
 
-        $this->rateLimiter->check($idSite);
+        $rateLimitError = $this->getRateLimitError($idSite);
+        if ($rateLimitError !== null) {
+            return ['error' => $rateLimitError];
+        }
 
         $settings = EffectiveSettings::forSite($idSite);
         $insightBasePrompt = $settings->getInsightBasePrompt();
@@ -131,7 +138,11 @@ class API extends \Piwik\Plugin\API
         $messages = $this->requestParser->parseMessages($messages);
         $widgetParams = $this->requestParser->parseWidgetParams($widgetParams);
 
-        $this->rateLimiter->check($idSite);
+        $rateLimitError = $this->getRateLimitError($idSite);
+        if ($rateLimitError !== null) {
+            $this->streamAnswer(['error' => $rateLimitError]);
+            return;
+        }
 
         $settings = EffectiveSettings::forSite($idSite);
 
@@ -447,7 +458,7 @@ class API extends \Piwik\Plugin\API
 
         if ($error) {
             $this->logger->error('ChatGPT streaming curl error: ' . $error);
-            echo "data: " . json_encode(['error' => ['message' => 'Connection error: ' . $error]]) . "\n\n";
+            echo "data: " . json_encode(['error' => ['message' => 'Connection error: ' . $error]], JSON_INVALID_UTF8_SUBSTITUTE) . "\n\n";
             flush();
         } elseif ($errorBuffer !== '' || ($httpCode !== 0 && $httpCode !== 200)) {
             $reason = ModelUpgradeNotice::classifyApiError((int) $httpCode, $errorBuffer);
@@ -457,7 +468,7 @@ class API extends \Piwik\Plugin\API
                 $error = ['message' => $this->extractApiErrorMessage($errorBuffer, $httpCode, $config['model'])];
             }
             $this->logger->warning('ChatGPT streaming API error (HTTP ' . $httpCode . '): ' . $error['message']);
-            echo "data: " . json_encode(['error' => $error]) . "\n\n";
+            echo "data: " . json_encode(['error' => $error], JSON_INVALID_UTF8_SUBSTITUTE) . "\n\n";
             flush();
         }
 
@@ -516,10 +527,10 @@ class API extends \Piwik\Plugin\API
         $this->startEventStream();
 
         if (isset($answer['error'])) {
-            echo "data: " . json_encode(['error' => $answer['error']]) . "\n\n";
+            echo "data: " . json_encode(['error' => $answer['error']], JSON_INVALID_UTF8_SUBSTITUTE) . "\n\n";
         } else {
             $content = (string) ($answer['choices'][0]['message']['content'] ?? '');
-            echo "data: " . json_encode(['choices' => [['delta' => ['role' => 'assistant', 'content' => $content]]]]) . "\n\n";
+            echo "data: " . json_encode(['choices' => [['delta' => ['role' => 'assistant', 'content' => $content]]]], JSON_INVALID_UTF8_SUBSTITUTE) . "\n\n";
         }
         echo "data: [DONE]\n\n";
         flush();
@@ -574,4 +585,19 @@ class API extends \Piwik\Plugin\API
         return 'API request failed (HTTP ' . $httpCode . ') for model "' . $model . '" with no response body';
     }
 
+    /**
+     * The refusal of a request over the rate limit, answered like the other errors so the user reads it
+     *
+     * @return array{message: string}|null
+     */
+    private function getRateLimitError(int $idSite): ?array
+    {
+        try {
+            $this->rateLimiter->check($idSite);
+        } catch (RateLimitExceededException $e) {
+            return ['message' => $e->getMessage()];
+        }
+
+        return null;
+    }
 }

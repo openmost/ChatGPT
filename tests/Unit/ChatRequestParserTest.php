@@ -124,4 +124,44 @@ class ChatRequestParserTest extends TestCase
             $this->parser->sanitizeConversation($conversation, ['user', 'assistant'])
         );
     }
+
+    public function test_endWithQuestion_keepsAConversationThatEndsWithAQuestion(): void
+    {
+        $messages = [
+            ['role' => 'user', 'content' => 'Question'],
+            ['role' => 'assistant', 'content' => 'Answer'],
+            ['role' => 'user', 'content' => 'Follow-up'],
+        ];
+
+        $this->assertSame($messages, $this->parser->endWithQuestion($messages, 'Analyse the report'));
+        $this->assertSame($messages, $this->parser->endWithQuestion($messages));
+    }
+
+    public function test_endWithQuestion_asksTheQuestionAgain_afterThePreviousAnswer(): void
+    {
+        // the insights panel opened again on the same report
+        $messages = [
+            ['role' => 'user', 'content' => 'Analyse the report'],
+            ['role' => 'assistant', 'content' => 'Previous analysis'],
+        ];
+
+        $this->assertSame(
+            array_merge($messages, [['role' => 'user', 'content' => 'Analyse the report']]),
+            $this->parser->endWithQuestion($messages, 'Analyse the report')
+        );
+        $this->assertSame([['role' => 'user', 'content' => 'Analyse the report']], $this->parser->endWithQuestion([], 'Analyse the report'));
+    }
+
+    public function test_endWithQuestion_dropsTheTrailingAnswers_withoutAQuestionToAsk(): void
+    {
+        $this->assertSame(
+            [['role' => 'user', 'content' => 'Question']],
+            $this->parser->endWithQuestion([
+                ['role' => 'user', 'content' => 'Question'],
+                ['role' => 'assistant', 'content' => 'Answer'],
+                ['role' => 'assistant', 'content' => 'Second answer'],
+            ])
+        );
+        $this->assertSame([], $this->parser->endWithQuestion([['role' => 'assistant', 'content' => 'Answer']]));
+    }
 }

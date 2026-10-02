@@ -12,6 +12,7 @@ namespace Piwik\Plugins\ChatGPT\tests\Unit;
 
 use Exception;
 use PHPUnit\Framework\TestCase;
+use Piwik\Plugins\ChatGPT\Services\RateLimitExceededException;
 use Piwik\Plugins\ChatGPT\Services\SafeErrorMessage;
 
 /**
@@ -51,5 +52,47 @@ class SafeErrorMessageTest extends TestCase
             'empty' => ['', self::FALLBACK],
             'too long' => [str_repeat('a', 400), self::FALLBACK],
         ];
+    }
+
+    /**
+     * @dataProvider getRateLimitTranslations
+     */
+    public function test_fromThrowable_keepsTheRateLimitMessage_inEveryLanguage(string $language, string $message): void
+    {
+        $shown = SafeErrorMessage::fromThrowable(new RateLimitExceededException($message), self::FALLBACK);
+
+        $this->assertSame($message, $shown, $language);
+        $this->assertNotFalse(json_encode(['message' => $shown]), $language);
+    }
+
+    public function getRateLimitTranslations(): array
+    {
+        $translations = [];
+        foreach (glob(__DIR__ . '/../../lang/*.json') ?: [] as $file) {
+            $strings = json_decode((string) file_get_contents($file), true);
+            $message = $strings['ChatGPT']['RateLimitExceeded'] ?? null;
+            if (is_string($message)) {
+                $language = basename($file, '.json');
+                $translations[$language] = [$language, vsprintf($message, [942])];
+            }
+        }
+
+        return $translations;
+    }
+
+    public function test_fromThrowable_neverCutsAMultibyteCharacter(): void
+    {
+        // the UTF-8 encoding of the Arabic letter meem ends with the 0x85 byte, a line break for \R in byte mode
+        $message = "\u{062A}\u{0645} 942 \u{0445}";
+
+        $this->assertSame($message, SafeErrorMessage::fromThrowable(new Exception($message), self::FALLBACK));
+    }
+
+    public function test_fromThrowable_replacesInvalidUtf8_soTheMessageCanBeEncoded(): void
+    {
+        $shown = SafeErrorMessage::fromThrowable(new Exception("Invalid \xff byte"), self::FALLBACK);
+
+        $this->assertNotFalse(json_encode(['message' => $shown]));
+        $this->assertStringStartsWith('Invalid ', $shown);
     }
 }
