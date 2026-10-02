@@ -262,6 +262,52 @@ class PromptSettingsTest extends IntegrationTestCase
         $_GET = [];
     }
 
+    public function test_thePreviousMultiLineDefaults_areUpgradedToTheRulesOnPartialPeriodsAndComputedFigures(): void
+    {
+        $this->storeSystemPrompts(
+            $this->getPreviousDefault(LegacyPrompts::CHAT, 'en'),
+            $this->getPreviousDefault(LegacyPrompts::INSIGHT, 'fr')
+        );
+
+        $settings = EffectiveSettings::forSite($this->idSite);
+        $this->assertSame($this->defaults['en']['chatBasePrompt'], $settings->getChatBasePrompt());
+        $this->assertSame($this->defaults['en']['insightBasePrompt'], $settings->getInsightBasePrompt());
+        $this->assertStringContainsString('has not ended yet', $settings->getChatBasePrompt());
+        $this->assertStringContainsString('Compute every difference, percentage and ratio', $settings->getInsightBasePrompt());
+
+        // the settings page shows the new default, so saving it does not keep the previous one
+        $this->assertSame($this->defaults['en']['chatBasePrompt'], (new SystemSettingsForm())->getValues()['chatBasePrompt']);
+
+        // nothing is written to the database
+        $stored = (new PluginSettingsTable('ChatGPT', ''))->load();
+        $this->assertSame($this->getPreviousDefault(LegacyPrompts::CHAT, 'en'), $stored['chatBasePrompt']);
+    }
+
+    public function test_thePreviousMultiLineDefault_savedForAWebsite_withCrlfLineBreaks_followsTheGeneralPrompt(): void
+    {
+        (new MeasurableSettingsTable($this->idSite, 'ChatGPT'))->save([
+            'chatBasePrompt' => str_replace("\n", "\r\n", $this->getPreviousDefault(LegacyPrompts::CHAT, 'de')),
+        ]);
+        SettingsCache::clearCache();
+
+        $this->assertSame($this->defaults['en']['chatBasePrompt'], EffectiveSettings::forSite($this->idSite)->getChatBasePrompt());
+    }
+
+    public function test_aCustomisedPreviousMultiLineDefault_isKept(): void
+    {
+        $custom = $this->getPreviousDefault(LegacyPrompts::CHAT, 'en') . "\n- Always answer in French.";
+        $this->storeSystemPrompts($custom, 'My insight prompt:');
+
+        $this->assertSame($custom, EffectiveSettings::forSite($this->idSite)->getChatBasePrompt());
+        $this->assertSame($custom, (new SystemSettingsForm())->getValues()['chatBasePrompt']);
+
+        $this->saveSiteSettings(['chatBasePrompt' => $custom]);
+        $this->assertSame('', SiteSettingsStorage::read($this->idSite)['chatBasePrompt']);
+        $this->saveSystemSettings(['chatBasePrompt' => 'General chat prompt']);
+        $this->saveSiteSettings(['chatBasePrompt' => $custom]);
+        $this->assertSame($custom, EffectiveSettings::forSite($this->idSite)->getChatBasePrompt());
+    }
+
     public function provideContainerConfig()
     {
         return [
@@ -292,6 +338,13 @@ class PromptSettingsTest extends IntegrationTestCase
     private function saveSiteSettings(array $values): void
     {
         Request::processRequest('ChatGPT.setSiteSettings', ['idSite' => $this->idSite] + $values);
+    }
+
+    private function getPreviousDefault(string $kind, string $language): string
+    {
+        $prompts = LegacyPrompts::DEFAULTS[$kind][$language];
+
+        return (string) end($prompts);
     }
 
     private function getTranslator(): Translator
