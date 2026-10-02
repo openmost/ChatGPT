@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace Piwik\Plugins\ChatGPT\Services;
 
-use Exception;
 use Piwik\Option;
 use Piwik\Piwik;
 
@@ -23,7 +22,7 @@ class RateLimiter
     private const WINDOW_SECONDS = 3600;
 
     /**
-     * @throws Exception if the rate limit is exceeded
+     * @throws RateLimitExceededException if the rate limit is exceeded
      */
     public function check(int $idSite): void
     {
@@ -44,7 +43,7 @@ class RateLimiter
 
             if (($rateData['count'] ?? 0) >= self::MAX_REQUESTS) {
                 $resetTime = $windowStart + self::WINDOW_SECONDS - $currentTime;
-                throw new Exception(Piwik::translate('ChatGPT_RateLimitExceeded', [$resetTime]));
+                throw new RateLimitExceededException(Piwik::translate('ChatGPT_RateLimitExceeded', [$resetTime]));
             }
         } else {
             $rateData = ['window_start' => $currentTime, 'count' => 0];

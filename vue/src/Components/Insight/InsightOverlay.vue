@@ -205,6 +205,7 @@ export default defineComponent({
   --ai-chat-accent: v-bind(aiColor);
   --ai-chat-column-padding: 1rem 1.25rem 1.25rem;
   --ai-chat-composer-padding: .5rem 1rem .875rem;
+  --ai-chat-table-cell-min-width: 6ch;
 
   position: fixed;
   top: 0;

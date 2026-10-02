@@ -13,6 +13,7 @@ namespace Piwik\Plugins\ChatGPT\tests\Integration;
 use Piwik\Container\StaticContainer;
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Services\RateLimitExceededException;
 use Piwik\Plugins\ChatGPT\Services\RateLimiter;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\Mock\FakeAccess;
@@ -56,7 +57,7 @@ class RateLimiterTest extends IntegrationTestCase
         try {
             (new RateLimiter())->check($this->idSite);
             $this->fail('The request over the limit must be refused');
-        } catch (\Exception $e) {
+        } catch (RateLimitExceededException $e) {
             $this->assertSame(1, preg_match('/^Rate limit exceeded\. Please wait \d+ seconds before making another request\.$/', $e->getMessage()));
             $this->assertStringNotContainsString('ChatGPT_RateLimitExceeded', $e->getMessage());
         }

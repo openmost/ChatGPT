@@ -211,11 +211,13 @@ class McpAgentTest extends TestCase
             ['role' => 'user', 'content' => 'Question'],
             ['role' => 'assistant', 'content' => 'Answer'],
             ['role' => 'tool', 'content' => 'Fake tool result'],
+            ['role' => 'user', 'content' => 'Follow-up'],
         ]);
 
         $this->assertSame([
             ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'Question']]],
             ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Answer']]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'Follow-up']]],
         ], $this->agent->requests[0]->getMessages());
     }
 
@@ -576,6 +578,23 @@ class McpAgentTest extends TestCase
             'gpt',
             [['type' => 'tool_use', 'id' => $id, 'name' => $name, 'input' => []]],
             AIConversationResponse::STOP_TOOL_USE
+        );
+    }
+
+    public function test_run_neverEndsTheConversationWithAnAnswer(): void
+    {
+        $this->agent->responses = [$this->textResponse('ok')];
+
+        // a follow-up question whose text is empty leaves the previous answer last
+        $this->runAgent([
+            ['role' => 'user', 'content' => 'Question'],
+            ['role' => 'assistant', 'content' => 'Answer'],
+            ['role' => 'user', 'content' => ' '],
+        ]);
+
+        $this->assertSame(
+            [['role' => 'user', 'content' => [['type' => 'text', 'text' => 'Question']]]],
+            $this->agent->requests[0]->getMessages()
         );
     }
 }

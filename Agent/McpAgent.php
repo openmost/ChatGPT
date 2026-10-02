@@ -450,6 +450,11 @@ class McpAgent
             ];
         }
 
+        // the APIs refuse a conversation that ends with an answer (Mistral AI) or continue that answer (Anthropic)
+        while ($canonical !== [] && $canonical[count($canonical) - 1]['role'] === 'assistant') {
+            array_pop($canonical);
+        }
+
         return $canonical;
     }
 }

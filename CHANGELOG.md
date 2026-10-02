@@ -28,6 +28,8 @@
 - The send button and the logo tiles use the ChatGPT brand colour.
 - The insight panels of ChatGPT, Mistral AI, Claude and Ask AI close each other when one opens, and closing one no longer lets the page scroll under the panel that is still open.
 - Insights analyse the full report as a compact payload with its totals, follow the active segment, period and comparisons, and also work on evolution graphs, goals, custom reports and more. Errors are displayed as clean messages, without technical details.
+- Wide answer tables fit the insight panel, their columns wrap or scroll sideways instead of being cut off on the right.
+- Once the limit of 30 requests per hour is reached, the chat and the insight panel show the rate limit message in the language of the user instead of a generic error.
 - Interface translated into 13 languages, including the rate limit message. The help texts point to *Administration > System > AI Providers*.
 
 **Security**

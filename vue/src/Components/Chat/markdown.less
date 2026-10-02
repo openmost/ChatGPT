@@ -220,9 +220,10 @@
     line-height: 1.45;
     font-variant-numeric: tabular-nums;
 
-    // cells wrap long tokens, a minimum width keeps such a column readable instead of one letter wide
+    // cells wrap long tokens, a minimum width keeps such a column readable instead of one letter
+    // wide, the narrow insights panel lowers it so a few columns fit without scrolling
     th, td {
-      min-width: 14ch;
+      min-width: var(--ai-chat-table-cell-min-width, 14ch);
       max-width: 32ch;
       padding: .5em .75em;
       border: 0;
@@ -238,7 +239,10 @@
       background: var(--ai-chat-surface-raised, transparent);
       color: var(--ai-chat-text-strong, inherit);
       font-weight: 650;
-      white-space: nowrap;
+      // headers wrap between words only, a header never widens its column past the panel
+      white-space: normal;
+      overflow-wrap: normal;
+      hyphens: manual;
     }
 
     th[align="right"], td[align="right"] {
