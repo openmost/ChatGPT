@@ -81,7 +81,7 @@ English, Arabic, Chinese (Simplified and Traditional), Dutch, French, German, It
 
 __What are the requirements?__
 
-- Matomo 5.10.0 or higher, below 6
+- Matomo 5.0.0 or higher, below 6
 - For the agent mode: a provider connected in AI Providers (bundled with Matomo 5.13 and later) and the McpServer plugin (Matomo 5.8 or higher, PHP 8.1 or higher). On older setups, the chat keeps working with the plugin settings.
 
 __How do I get support?__

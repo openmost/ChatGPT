@@ -37,7 +37,7 @@
 
 **Compatibility**
 
-- Requires Matomo 5.10.0 or higher, for the theme variables used by the chat. The agent mode needs AI Providers (Matomo 5.13 or higher) and McpServer (Matomo 5.8 or higher, PHP 8.1 or higher).
+- Compatible again with Matomo 5.0.0 or higher, below 6: every Matomo theme variable used by the chat and the insight panel keeps the light theme value of Matomo as a fallback, so the releases without these variables show the light look. The agent mode needs AI Providers (Matomo 5.13 or higher) and McpServer (Matomo 5.8 or higher, PHP 8.1 or higher).
 - Smaller package: the Vue source maps, which Matomo does not load, are no longer shipped.
 
 ### 5.6.2
@@ -46,7 +46,7 @@
 
 ### 5.6.1
 
-Support fallback color value for Matomo < 5.10
+Support fallback color values for the Matomo releases without the theme variables
 
 ### 5.6.0
 

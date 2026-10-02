@@ -63,7 +63,7 @@ export default defineComponent({
   props: {
     aiName: { type: String, required: true },
     aiLabel: { type: String, required: true },
-    aiColor: { type: String, default: '#3450a3' },
+    aiColor: { type: String, default: '#00A67E' },
     apiMethod: { type: String, required: true },
     // the configured model is outdated, with the settings link for super users
     modelNotice: { type: Object as PropType<ApiError | null>, default: null },
@@ -156,7 +156,7 @@ body:has(.ai-chat-page) {
   height: 30px;
   border-radius: 8px;
   background: var(--ai-chat-accent-soft);
-  color: var(--ai-chat-accent-strong);
+  color: var(--ai-chat-accent);
 
   :deep(svg) {
     display: block;

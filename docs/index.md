@@ -55,7 +55,7 @@ The agent mode is optional. Without AI Providers or McpServer, the plugin keeps 
 
 ### Requirements
 
-- Matomo 5.10.0 or higher, below 6 (`>=5.10.0,<6.0.0-b1`). Matomo 5.10 is required for the theme variables used by the chat.
+- Matomo 5.0.0 or higher, below 6 (`>=5.0.0,<6.0.0-b1`).
 - PHP: the version required by your Matomo 5 (PHP 8.1 or higher for the agent mode, required by McpServer)
 - One of: an OpenAI API key, an OpenAI-compatible HTTPS endpoint, or a provider connected in AI Providers
 - Optional, for the agent mode: the **AI Providers** plugin (bundled with Matomo 5.13 and later) with a connected provider, and the **McpServer** plugin from the Marketplace (Matomo 5.8 or higher, PHP 8.1 or higher). On older setups the agent mode is not offered and the chat keeps working with the plugin settings. Write actions also require write methods to be allowed in the McpServer settings (Raw Matomo API tool access).

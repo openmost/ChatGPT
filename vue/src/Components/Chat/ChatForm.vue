@@ -172,7 +172,7 @@ export default defineComponent({
   padding: 0;
   border: 0;
   border-radius: 10px;
-  background: var(--ai-chat-accent-strong);
+  background: var(--ai-chat-accent);
   color: var(--ai-chat-on-accent);
   box-shadow: none;
   cursor: pointer;

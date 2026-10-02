@@ -5,7 +5,7 @@
 }
 
 /* the insights panel scrolls on its own, lock the page scroll while it is open */
-html.ai-chat-page-scroll-locked,
-html.ai-chat-page-scroll-locked body {
+html.ai-chat-page-scroll-locked-chatgpt,
+html.ai-chat-page-scroll-locked-chatgpt body {
     overflow: hidden !important;
 }

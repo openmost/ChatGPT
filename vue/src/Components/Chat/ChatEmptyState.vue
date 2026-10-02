@@ -70,7 +70,7 @@ export default defineComponent({
   margin: 0 0 1.25rem;
   border-radius: 12px;
   background: var(--ai-chat-accent-soft);
-  color: var(--ai-chat-accent-strong);
+  color: var(--ai-chat-accent);
 
   :deep(svg) {
     display: block;

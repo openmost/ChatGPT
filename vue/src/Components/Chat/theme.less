@@ -1,19 +1,21 @@
 // Design tokens of the chat surfaces (insights panel, chat page). They follow the Matomo theme
-// variables (Matomo 5.10 or higher), which switch with [data-theme-mode], and only the accent comes
-// from the AI brand colour. The danger colour only exists from Matomo 5.14.1, it keeps a fallback.
+// variables, which switch with [data-theme-mode], and only the accent comes from the AI brand
+// colour. Those variables only exist in recent Matomo 5 releases: each one keeps the light theme
+// value of Matomo as a fallback, so older releases render the light look.
 .ai-chat-theme {
-  --ai-chat-surface: var(--theme-color-background-contrast);
-  --ai-chat-surface-sunken: var(--theme-color-background-base);
-  --ai-chat-surface-raised: var(--theme-color-background-tinyContrast);
-  --ai-chat-text: var(--theme-color-text);
-  --ai-chat-text-strong: var(--theme-color-text-highContrast);
-  --ai-chat-text-muted: var(--theme-color-text-lighter);
-  --ai-chat-border: var(--theme-color-border);
-  --ai-chat-link: var(--theme-color-link);
+  --ai-chat-surface: var(--theme-color-background-contrast, #fff);
+  --ai-chat-surface-sunken: var(--theme-color-background-base, #f5f5f5);
+  --ai-chat-surface-raised: var(--theme-color-background-tinyContrast, #f2f2f2);
+  --ai-chat-text: var(--theme-color-text, #212121);
+  --ai-chat-text-strong: var(--theme-color-text-highContrast, #000);
+  --ai-chat-text-muted: var(--theme-color-text-lighter, #646464);
+  --ai-chat-border: var(--theme-color-border, #cccccc);
+  --ai-chat-link: var(--theme-color-link, #1976D2);
   --ai-chat-danger: var(--theme-color-danger, #c0322e);
-  --ai-chat-focus: var(--theme-color-focus-ring);
+  --ai-chat-focus: var(--theme-color-focus-ring, #0969da);
   --ai-chat-accent: #00a67e;
-  // the raw brand green is under 4.5:1 on white: text and filled buttons use a darker mix
+  // text uses a darker mix as a raw brand colour can be under 4.5:1 on white, the logos and the
+  // icon-only send button keep the raw colour as non-text content only needs 3:1
   --ai-chat-accent-strong: color-mix(in srgb, var(--ai-chat-accent) 70%, #000);
   --ai-chat-on-accent: #fff;
   --ai-chat-accent-soft: color-mix(in srgb, var(--ai-chat-accent) 12%, var(--ai-chat-surface));

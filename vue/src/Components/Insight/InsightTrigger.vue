@@ -46,7 +46,7 @@ export default defineComponent({
     },
     aiColor: {
       type: String,
-      default: '#3450a3',
+      default: '#00A67E',
     },
     // vue-entry parses attributes as JSON, a numeric title arrives as a number
     reportTitle: {
@@ -91,8 +91,8 @@ export default defineComponent({
   width: 38px;
   height: 38px;
   padding: 8px;
-  background-color: var(--theme-color-background-contrast);
-  border: 1px solid var(--theme-color-border);
+  background-color: var(--theme-color-background-contrast, #fff);
+  border: 1px solid var(--theme-color-border, #cccccc);
   border-radius: 8px;
   color: v-bind(aiColor);
   cursor: pointer;
@@ -101,7 +101,7 @@ export default defineComponent({
   &:hover,
   &:focus-visible,
   &[aria-expanded="true"] {
-    border-color: var(--theme-color-link);
+    border-color: var(--theme-color-link, #1976D2);
   }
 
   &:focus {
@@ -109,7 +109,7 @@ export default defineComponent({
   }
 
   &:focus-visible {
-    outline: 2px solid var(--theme-color-focus-ring);
+    outline: 2px solid var(--theme-color-focus-ring, #0969da);
   }
 
   // :deep() as IconAi has several root nodes, its svg never gets this scope attribute

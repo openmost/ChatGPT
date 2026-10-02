@@ -14,7 +14,7 @@ let watching = false;
 
 function isSurfaceDark(): boolean {
   const probe = document.createElement('span');
-  probe.style.color = 'var(--theme-color-background-contrast)';
+  probe.style.color = 'var(--theme-color-background-contrast, #fff)';
   probe.style.display = 'none';
   document.body.appendChild(probe);
   const channels = (window.getComputedStyle(probe).color.match(/[\d.]+/g) || []).map(Number);

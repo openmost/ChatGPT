@@ -23,7 +23,7 @@ interface InsightState {
   requestId: number;
 }
 
-// other AI plugins (MistralAI) dispatch the same event, so their panel and this one never overlap
+// the other Openmost AI plugins dispatch the same event, so their panel and this one never overlap
 export const OVERLAY_OPEN_EVENT = 'matomo-ai-insight-overlay:open';
 const OWNER = 'ChatGPT';
 
