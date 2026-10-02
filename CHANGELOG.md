@@ -17,6 +17,7 @@
 - New *Administration > System > ChatGPT* page for the general settings, with a *Connection* card and a *Prompts* card saved separately, and a *Delete key* button. The settings are no longer listed in *Administration > General settings*.
 - Website settings moved from the website edit form to a dedicated *Administration > Websites > ChatGPT* page. New API methods `ChatGPT.getSiteSettings`, `ChatGPT.setSiteSettings` and `ChatGPT.setSystemSettings`. Saved API keys are never sent back to the browser.
 - New default chat and insight prompts, written for analytics. Default prompts of previous versions are upgraded automatically in the language of each user, custom prompts are kept, and a *Reset to default* button restores the defaults.
+- The default prompts ask the assistant to flag the figures of a period that has not ended yet as partial and to compare the same number of elapsed days instead of calling a drop a decline, and to compute every difference, percentage and ratio from the exact numbers. Installs still on a previous default prompt get the new one, custom prompts are kept.
 - New "Latest recommended" model, the default for new installs (currently GPT 6 Astra), and an updated model list without the models deprecated by OpenAI. A deprecated or unavailable model is explained in the chat with a link to the settings. The model saved by previous versions is kept.
 - The API key is optional on a custom host (self-hosted or compatible endpoint), as the documentation states: the chat, the insights and the plugin assets work with a keyless custom host, and no Authorization header is sent without a key. The default OpenAI host still requires a key.
 - The host is checked with the same HTTPS rule when the settings are saved and when a request is sent, and the configuration errors of a request (host, API key, model, HTTPS) are translated.
@@ -24,9 +25,10 @@
 **Chat and insights**
 
 - Redesigned chat: accessible, keyboard friendly insight panel, copy buttons, scrollable tables and code blocks, a timeline of the tools used by the agent, ChatGPT-like auto-scroll, and suggested questions on the ChatGPT page.
+- The send button and the logo tiles use the ChatGPT brand colour.
+- The insight panels of ChatGPT, Mistral AI, Claude and Ask AI close each other when one opens, and closing one no longer lets the page scroll under the panel that is still open.
 - Insights analyse the full report as a compact payload with its totals, follow the active segment, period and comparisons, and also work on evolution graphs, goals, custom reports and more. Errors are displayed as clean messages, without technical details.
 - Interface translated into 13 languages, including the rate limit message. The help texts point to *Administration > System > AI Providers*.
-- Openmost messages can appear in Matomo, for example on the Events page, once whatever the number of Openmost plugins activated. Banners can be dismissed and link to the Openmost website in the language of the user.
 
 **Security**
 
