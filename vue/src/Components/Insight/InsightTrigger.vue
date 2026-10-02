@@ -51,7 +51,7 @@ export default defineComponent({
     },
     aiColor: {
       type: String,
-      default: '#3450a3',
+      default: '#00A67E',
     },
     // vue-entry parses attributes as JSON, a numeric title arrives as a number
     reportTitle: {

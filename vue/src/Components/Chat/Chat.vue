@@ -88,7 +88,7 @@ export default defineComponent({
   props: {
     aiName: { type: String, required: true },
     aiLabel: { type: String, required: true },
-    aiColor: { type: String, default: '#3450a3' },
+    aiColor: { type: String, default: '#00A67E' },
     apiMethod: { type: String, required: true },
     streamingApiMethod: { type: String, default: 'ChatGPT.getStreamingResponse' },
     widgetParams: { type: Object, default: () => ({}) },

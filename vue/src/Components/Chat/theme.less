@@ -12,7 +12,8 @@
   --ai-chat-danger: var(--theme-color-danger, #c0322e);
   --ai-chat-focus: var(--theme-color-focus-ring, #0969da);
   --ai-chat-accent: #00a67e;
-  // the raw brand green is under 4.5:1 on white: text and filled buttons use a darker mix
+  // text uses a darker mix as a raw brand colour can be under 4.5:1 on white, the logos and the
+  // icon-only send button keep the raw colour as non-text content only needs 3:1
   --ai-chat-accent-strong: color-mix(in srgb, var(--ai-chat-accent) 70%, #000);
   --ai-chat-on-accent: #fff;
   --ai-chat-accent-soft: color-mix(in srgb, var(--ai-chat-accent) 12%, var(--ai-chat-surface));
