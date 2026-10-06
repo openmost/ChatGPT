@@ -46,6 +46,10 @@
 - The general API key is only sent to the general host, a website using its own host never receives it.
 - The general host must be an HTTPS URL: an `http://` host, which made every request fail, is now refused on save with a clear error.
 
+**Documentation**
+
+- README: the plugin description now shows in the Description tab of the Matomo Marketplace.
+
 ### 6.0.2
 
 - Security: restrict insight requests to Matomo reports.
