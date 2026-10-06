@@ -161,7 +161,13 @@ class McpAgentTest extends TestCase
             $this->toolUseResponse('call_1', 'matomo_site_list'),
             $this->textResponse('The tool failed.'),
         ];
-        $this->agent->toolResults = [new \RuntimeException('No access to this website')];
+        $this->agent->toolResults = [new \RuntimeException('Table not found in /var/www/matomo/core/Db.php:42')];
+        $this->logger->expects($this->once())->method('error')
+            ->with($this->stringContains('tool {tool} failed'), $this->callback(
+                function (array $context): bool {
+                    return strpos($context['message'], '/var/www/matomo') !== false;
+                }
+            ));
 
         $this->runAgent([['role' => 'user', 'content' => 'Sites?']]);
 
@@ -169,10 +175,11 @@ class McpAgentTest extends TestCase
 
         $toolMessage = $this->agent->requests[1]->getMessages()[2];
         $this->assertSame('tool', $toolMessage['role']);
-        $this->assertSame(
-            [['type' => 'text', 'text' => 'No access to this website']],
-            $toolMessage['content'][0]['content']
-        );
+        $this->assertCount(1, $toolMessage['content'][0]['content']);
+        $this->assertSame(1, preg_match(
+            '/^The tool call failed \(error reference [0-9a-f]{8}\)\./',
+            $toolMessage['content'][0]['content'][0]['text']
+        ));
         $this->assertTrue($toolMessage['content'][0]['is_error']);
     }
 
@@ -570,13 +577,46 @@ class McpAgentTest extends TestCase
         return new AIConversationResponse('openai', 'OpenAI', 'gpt', [['type' => 'text', 'text' => $text]], AIConversationResponse::STOP_END_TURN);
     }
 
-    private function toolUseResponse(string $id, string $name): AIConversationResponse
+    public function test_run_masksThePersonalDataOfTheToolResults(): void
+    {
+        $this->agent->responses = [
+            $this->toolUseResponse('call_1', 'matomo_report_processed'),
+            $this->textResponse('Done.'),
+        ];
+        $this->agent->toolResults = [
+            ['content' => [['type' => 'text', 'text' => 'jane@example.com from 10.1.2.3 on /cart?token=abc']], 'isError' => false],
+        ];
+
+        $this->runAgent([['role' => 'user', 'content' => 'Top visitors?']]);
+
+        $text = $this->agent->requests[1]->getMessages()[2]['content'][0]['content'][0]['text'];
+        $this->assertStringContainsString('[email] from [ip] on /cart', $text);
+        $this->assertStringNotContainsString('jane@example.com', $text);
+        $this->assertStringNotContainsString('token=abc', $text);
+    }
+
+    public function test_run_refusesTheVisitorLevelTools_whenThePrivacySettingsExcludeThem(): void
+    {
+        $this->agent->privacyOptions = ['excludeVisitorData' => true];
+        $this->agent->responses = [
+            $this->toolUseResponse('call_1', 'matomo_api_call_read', ['method' => 'Live.getLastVisitsDetails']),
+            $this->textResponse('I cannot read the visits.'),
+        ];
+
+        $this->runAgent([['role' => 'user', 'content' => 'Last visits?']]);
+
+        $this->assertSame([], $this->agent->toolCalls);
+        $this->assertSame(['tool_result', ['id' => 'call_1', 'isError' => true]], $this->events[1]);
+        $this->assertStringContainsString('visitor-level data', $this->agent->requests[1]->getMessages()[2]['content'][0]['content'][0]['text']);
+    }
+
+    private function toolUseResponse(string $id, string $name, array $input = []): AIConversationResponse
     {
         return new AIConversationResponse(
             'openai',
             'OpenAI',
             'gpt',
-            [['type' => 'tool_use', 'id' => $id, 'name' => $name, 'input' => []]],
+            [['type' => 'tool_use', 'id' => $id, 'name' => $name, 'input' => $input]],
             AIConversationResponse::STOP_TOOL_USE
         );
     }

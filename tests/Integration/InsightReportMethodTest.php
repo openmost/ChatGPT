@@ -44,6 +44,9 @@ class InsightReportMethodTest extends IntegrationTestCase
         // the API methods read the site from the request, as when called over HTTP
         $this->originalGet = $_GET;
         $_GET['idSite'] = (string) $this->idSite;
+
+        // off by default, see test_getResponse_answersWithTheConsentMessage_untilASuperUserAllowsTheDataSharing
+        Request::processRequest('ChatGPT.setSystemSettings', ['dataSharingAllowed' => '1']);
     }
 
     public function tearDown(): void

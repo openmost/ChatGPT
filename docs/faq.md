@@ -3,10 +3,14 @@
 __How do I install and configure this plugin?__
 
 1. Install and activate **ChatGPT** from **Administration > Platform > Marketplace**.
-2. As a super user, open **Administration > System > ChatGPT** and set the host, API key and model in the **Connection** card, or connect a provider in **Administration > System > AI Providers**.
+2. As a super user, open **Administration > System > ChatGPT** and set the host, API key and model in the **Connection** card, or connect a provider in **Administration > System > AI Providers**. In the **Privacy** card, check **Allow sending Matomo data to the AI provider**: it is off by default.
 3. Optionally, override the settings for a website in **Administration > Websites > ChatGPT**.
 
 You can also download the plugin from [GitHub](https://github.com/openmost/ChatGPT), extract it to your `plugins/` folder and activate it.
+
+__The chat says that data sharing is not allowed__
+
+No Matomo data leaves your instance without an explicit decision: a super user must check **Allow sending Matomo data to the AI provider** in **Administration > System > ChatGPT**, **Privacy** card. Other users are asked to contact a super user.
 
 __What do I need to make it work?__
 

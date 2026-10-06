@@ -2,7 +2,19 @@
 
 {% block content %}
 
-    {% if is_configured %}
+    {% if is_configured and not data_sharing_allowed %}
+
+        <div class="alert alert-info">
+            <strong>{{ 'ChatGPT_DataSharingNotAllowedTitle'|translate }}</strong>
+            {{ 'ChatGPT_DataSharingNotAllowed'|translate }}
+            {% if settings_url %}
+                <a href="{{ settings_url }}#chatGptPrivacy">{{ 'ChatGPT_DataSharingSettingsLink'|translate }}</a>
+            {% else %}
+                {{ 'ChatGPT_AskAdministrator'|translate }}
+            {% endif %}
+        </div>
+
+    {% elseif is_configured %}
 
         <div vue-entry="ChatGPT.ChatIndexPage"
              ai-name="chat-gpt"

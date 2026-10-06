@@ -100,6 +100,7 @@
         "AgentStepError": "Misslyckades",
         "EmptyStateTitle": "Vad vill du veta om din trafik?",
         "EmptyStateText": "Fråga %s om din statistik, eller börja med en av de här frågorna.",
+        "DataNotice": "Dina frågor, och de Matomo-data som läses för att besvara dem (rapporter, sidtitlar, hänvisningar...), skickas till den AI-leverantör som din Matomo-administratör har konfigurerat.",
         "SuggestionsLabel": "Föreslagna frågor",
         "SuggestionWeeklyKpis": "Sammanfatta mina viktigaste mått för den här veckan",
         "SuggestionTopPages": "Vilka sidor visades mest?",
@@ -109,6 +110,23 @@
         "ScrollableTable": "Tabell, rulla horisontellt för att se alla kolumner",
         "ScrollableCode": "Kodblock, rulla horisontellt för att läsa långa rader",
         "CopyCode": "Kopiera kod",
-        "CodeCopied": "Koden har kopierats"
+        "CodeCopied": "Koden har kopierats",
+        "SettingsPrivacyTitle": "Integritet",
+        "PrivacySettingsIntro": "Allt som skickas till AI-leverantören lämnar denna Matomo: frågorna, promptarna, rapportdata för insikterna och, i agentläge, resultaten från Matomo-verktygen. Leverantören behandlar dessa data och kan lagra dem enligt sina egna villkor: kontrollera dess policy för datalagring och integritet innan du tillåter det.",
+        "DataDestinationHost": "Mottagare: %s",
+        "DataDestinationAiProviders": "Mottagare: leverantören %s som är ansluten i AI Providers, med sina egna inställningar och villkor.",
+        "DataDestinationSiteHosts": "En webbplats med en egen värd i sina ChatGPT-inställningar skickar sina data till den värden.",
+        "PrivacySetting_dataSharingAllowed": "Tillåt att Matomo-data skickas till AI-leverantören",
+        "PrivacySetting_dataSharingAllowedHelp": "Av som standard: chatten och insikterna är otillgängliga, och inget skickas, tills en superanvändare tillåter det.",
+        "PrivacySetting_maskPersonalData": "Maskera e-post- och IP-adresser",
+        "PrivacySetting_maskPersonalDataHelp": "Ersätter e-post- och IP-adresser i rapportdata och verktygsresultat med [email] och [ip] innan de skickas.",
+        "PrivacySetting_stripUrlQueryStrings": "Ta bort URL-parametrar",
+        "PrivacySetting_stripUrlQueryStringsHelp": "Tar bort parametrarna efter ? i URL:er, som kan innehålla identifierare eller tokens, innan de skickas.",
+        "PrivacySetting_excludeVisitorData": "Uteslut data på besökarnivå",
+        "PrivacySetting_excludeVisitorDataHelp": "Insikterna och agenten kan inte läsa besöksloggen, besökarprofilerna, realtidsrapporterna eller User ID:n.",
+        "VisitorDataExcluded": "Integritetsinställningarna utesluter data på besökarnivå: insikter är inte tillgängliga för den här rapporten.",
+        "DataSharingNotAllowedTitle": "Datadelning är inte tillåten ännu.",
+        "DataSharingNotAllowed": "Inget skickas till AI-leverantören förrän en superanvändare tillåter det i de allmänna inställningarna för ChatGPT, avsnittet Integritet.",
+        "DataSharingSettingsLink": "Öppna integritetsinställningarna"
     }
 }

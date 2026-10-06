@@ -8,7 +8,9 @@
 
 namespace Piwik\Plugins\ChatGPT\Settings;
 
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Agent\PluginDependencies;
 use Piwik\Plugins\ChatGPT\SystemSettings;
 use Piwik\Settings\Setting;
 use Piwik\Url;
@@ -89,6 +91,22 @@ final class SystemSettingsForm
             'message' => Piwik::translate('ChatGPT_AiProvidersTakeover'),
             'link' => SystemSettings::getAiProvidersLink(),
         ];
+    }
+
+    /**
+     * Where the data goes, displayed above the privacy settings so the super user knows what the consent covers
+     *
+     * @return list<string>
+     */
+    public function getDataDestination(): array
+    {
+        if ($this->settings->isTakenOverByAiProviders()) {
+            $destination = Piwik::translate('ChatGPT_DataDestinationAiProviders', $this->getAiProviderName());
+        } else {
+            $destination = Piwik::translate('ChatGPT_DataDestinationHost', SingleValue::toString($this->settings->host->getValue()));
+        }
+
+        return [$destination, Piwik::translate('ChatGPT_DataDestinationSiteHosts')];
     }
 
     /**
@@ -184,6 +202,25 @@ final class SystemSettingsForm
             'modelCustom' => $this->settings->modelCustom,
             'chatBasePrompt' => $this->settings->chatBasePrompt,
             'insightBasePrompt' => $this->settings->insightBasePrompt,
+            'dataSharingAllowed' => $this->settings->dataSharingAllowed,
+            'maskPersonalData' => $this->settings->maskPersonalData,
+            'stripUrlQueryStrings' => $this->settings->stripUrlQueryStrings,
+            'excludeVisitorData' => $this->settings->excludeVisitorData,
         ];
+    }
+
+    /**
+     * ChatGPT accepts any provider connected in AI Providers, so the destination is the one connected there
+     */
+    private function getAiProviderName(): string
+    {
+        try {
+            $availability = StaticContainer::get(PluginDependencies::class)->getAiProvidersAvailability();
+            $name = $availability['providerName'] ?? $availability['providerId'] ?? '';
+        } catch (\Throwable $e) {
+            $name = '';
+        }
+
+        return $name !== '' ? $name : 'AI';
     }
 }
