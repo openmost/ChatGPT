@@ -18,6 +18,7 @@ use Piwik\Piwik;
 use Piwik\Plugins\AIProviders\AIConversationRequest;
 use Piwik\Plugins\AIProviders\AIConversationResponse;
 use Piwik\Plugins\AIProviders\CanonicalMessage;
+use Piwik\Plugins\ChatGPT\Services\DataPrivacy;
 use Piwik\Plugins\ChatGPT\Settings\EffectiveSettings;
 use Piwik\Site;
 
@@ -57,6 +58,8 @@ class McpAgent
 
     public const CONFIRMATION_RULE = 'Before any tool call that creates, modifies or deletes something in Matomo, describe the exact change and ask the user to confirm it explicitly in the conversation. Only make that tool call after the user has confirmed it in a later message.';
 
+    public const VISITOR_DATA_EXCLUDED = 'The privacy settings of this Matomo exclude visitor-level data (Visits Log, visitor profiles, real-time and User ID reports). Answer with aggregated reports instead.';
+
     // referenced by name: McpServer is an optional Marketplace plugin
     private const MCP_UNAVAILABLE_EXCEPTION = 'Piwik\Plugins\McpServer\Support\Access\McpUnavailableException';
 
@@ -72,6 +75,9 @@ class McpAgent
      * @var PluginDependencies
      */
     private $dependencies;
+
+    /** @var DataPrivacy|null */
+    private $privacy = null;
 
     public function __construct(LoggerInterface $logger, ?PluginDependencies $dependencies = null)
     {
@@ -415,22 +421,54 @@ class McpAgent
      */
     private function callTool(string $name, array $arguments, string $sessionKey): array
     {
-        try {
-            $result = $this->callInternalTool($name, $arguments, $sessionKey);
-
+        $privacy = $this->getPrivacy();
+        if ($privacy->isToolCallExcluded($arguments)) {
             return [
-                'content' => is_array($result['content'] ?? null) ? $result['content'] : [],
-                'structuredContent' => is_array($result['structuredContent'] ?? null) ? $result['structuredContent'] : null,
-                'isError' => !empty($result['isError']),
-            ];
-        } catch (\Throwable $e) {
-            // reported to the model, which can explain the failure or try something else
-            return [
-                'content' => [['type' => 'text', 'text' => $e->getMessage()]],
-                'structuredContent' => null,
+                'content' => [['type' => 'text', 'text' => self::VISITOR_DATA_EXCLUDED]],
+                'structuredContent' => ['error' => 'visitor_data_excluded', 'message' => self::VISITOR_DATA_EXCLUDED],
                 'isError' => true,
             ];
         }
+
+        try {
+            $result = $this->callInternalTool($name, $arguments, $sessionKey);
+
+            // the tool results are Matomo data too, they get the masking of the privacy settings
+            return [
+                'content' => is_array($result['content'] ?? null) ? $privacy->redactValue($result['content']) : [],
+                'structuredContent' => is_array($result['structuredContent'] ?? null) ? $privacy->redactValue($result['structuredContent']) : null,
+                'isError' => !empty($result['isError']),
+            ];
+        } catch (\Throwable $e) {
+            // the raw message can carry server paths or backend diagnostics: it stays in the Matomo logs and the model only
+            // gets a reference the user can quote when reporting the problem
+            $reference = bin2hex(random_bytes(4));
+            $message = sprintf('The tool call failed (error reference %s). Check the arguments or try another tool.', $reference);
+            $this->logger->error('ChatGPT agent: tool {tool} failed [{reference}]: {message}', [
+                'tool' => $name,
+                'reference' => $reference,
+                'message' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+
+            return [
+                'content' => [['type' => 'text', 'text' => $message]],
+                'structuredContent' => ['error' => 'tool_call_failed', 'reference' => $reference, 'message' => $message],
+                'isError' => true,
+            ];
+        }
+    }
+
+    /**
+     * Overridden by the tests, which have no general settings
+     */
+    protected function getPrivacy(): DataPrivacy
+    {
+        if ($this->privacy === null) {
+            $this->privacy = new DataPrivacy();
+        }
+
+        return $this->privacy;
     }
 
     /**

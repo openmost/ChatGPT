@@ -52,6 +52,8 @@ class ChatGPT extends \Piwik\Plugin
         $translationKeys[] = 'ChatGPT_SystemSettingsIntro';
         $translationKeys[] = 'ChatGPT_SystemSettingsLink';
         $translationKeys[] = 'ChatGPT_SettingsConnectionTitle';
+        $translationKeys[] = 'ChatGPT_SettingsPrivacyTitle';
+        $translationKeys[] = 'ChatGPT_PrivacySettingsIntro';
         $translationKeys[] = 'ChatGPT_SettingsPromptsTitle';
         $translationKeys[] = 'ChatGPT_ResetPromptToDefault';
         $translationKeys[] = 'ChatGPT_ResetPromptToDefaultHelp';
@@ -78,6 +80,7 @@ class ChatGPT extends \Piwik\Plugin
         $translationKeys[] = 'ChatGPT_AgentStepError';
         $translationKeys[] = 'ChatGPT_EmptyStateTitle';
         $translationKeys[] = 'ChatGPT_EmptyStateText';
+        $translationKeys[] = 'ChatGPT_DataNotice';
         $translationKeys[] = 'ChatGPT_SuggestionsLabel';
         $translationKeys[] = 'ChatGPT_SuggestionWeeklyKpis';
         $translationKeys[] = 'ChatGPT_SuggestionTopPages';

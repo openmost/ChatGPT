@@ -8,5 +8,6 @@
          settings="{{ values|json_encode|e('html_attr') }}"
          ai-providers-notice="{{ aiProvidersNotice|json_encode|e('html_attr') }}"
          default-prompts="{{ defaultPrompts|json_encode|e('html_attr') }}"
+         destination="{{ destination|json_encode|e('html_attr') }}"
     ></div>
 {% endblock %}

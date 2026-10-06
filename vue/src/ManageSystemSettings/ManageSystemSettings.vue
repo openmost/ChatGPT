@@ -56,6 +56,42 @@
       </div>
     </ContentBlock>
 
+    <ContentBlock
+      id="chatGptPrivacy"
+      :content-title="translate('ChatGPT_SettingsPrivacyTitle')"
+    >
+      <p>{{ translate('ChatGPT_PrivacySettingsIntro') }}</p>
+      <ul class="chatGptDestination">
+        <li
+          v-for="line in destination"
+          :key="line"
+        >{{ line }}</li>
+      </ul>
+
+      <div
+        v-for="field in privacyFields"
+        :key="field.name"
+      >
+        <Field
+          :uicontrol="field.uicontrol"
+          :name="`chatGptSystem_${field.name}`"
+          :title="field.title"
+          :description="field.description"
+          :disabled="field.disabled"
+          v-model="privacy[field.name]"
+        />
+      </div>
+
+      <div id="chatGptSystemNotice_privacy" />
+      <div class="chatGptActions">
+        <SaveButton
+          class="chatGptSavePrivacy"
+          :saving="isSaving.privacy"
+          @confirm="save('privacy')"
+        />
+      </div>
+    </ContentBlock>
+
     <ContentBlock :content-title="translate('ChatGPT_SettingsPromptsTitle')">
       <div
         v-for="field in promptFields"
@@ -115,6 +151,7 @@
 import {
   computed,
   defineComponent,
+  onMounted,
   PropType,
   reactive,
   ref,
@@ -133,7 +170,14 @@ const API_KEY_PLACEHOLDER = '******';
 
 export const PROMPT_FIELDS = ['chatBasePrompt', 'insightBasePrompt'];
 
-type Card = 'connection' | 'prompts';
+export const PRIVACY_FIELDS = [
+  'dataSharingAllowed',
+  'maskPersonalData',
+  'stripUrlQueryStrings',
+  'excludeVisitorData',
+];
+
+type Card = 'connection' | 'privacy' | 'prompts';
 
 export interface SystemSettingOption {
   key: string;
@@ -185,16 +229,32 @@ export default defineComponent({
       type: Object as PropType<Record<string, string>>,
       default: () => ({}),
     },
+    // where the data goes, so the super user knows what the consent covers
+    destination: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
   },
   setup(props) {
     const values = reactive<Record<string, string>>({ ...props.settings });
-    const isSaving = reactive<Record<Card, boolean>>({ connection: false, prompts: false });
+    const isSaving = reactive<Record<Card, boolean>>({
+      connection: false,
+      privacy: false,
+      prompts: false,
+    });
+    const privacy = reactive<Record<string, boolean>>({});
+    PRIVACY_FIELDS.forEach((name) => {
+      privacy[name] = props.settings[name] === '1';
+    });
     const hasApiKey = ref(!!props.settings.apiKey);
     const isDeletingApiKey = ref(false);
     const confirmDeleteApiKeyModal = ref<HTMLElement | null>(null);
 
-    const connectionFields = computed(
-      () => props.fields.filter((field) => !PROMPT_FIELDS.includes(field.name)),
+    const connectionFields = computed(() => props.fields.filter(
+      (field) => !PROMPT_FIELDS.includes(field.name) && !PRIVACY_FIELDS.includes(field.name),
+    ));
+    const privacyFields = computed(
+      () => props.fields.filter((field) => PRIVACY_FIELDS.includes(field.name)),
     );
     const promptFields = computed(
       () => props.fields.filter((field) => PROMPT_FIELDS.includes(field.name)),
@@ -232,10 +292,19 @@ export default defineComponent({
 
       // the fields that cannot be edited and the fields of the other card are left out, they keep
       // their saved values
-      const cardFields = card === 'prompts' ? promptFields.value : connectionFields.value;
+      const cardFields = {
+        connection: connectionFields.value,
+        privacy: privacyFields.value,
+        prompts: promptFields.value,
+      }[card];
       const postParams: Record<string, string> = {};
       cardFields.forEach((field) => {
-        if (!field.disabled) {
+        if (field.disabled) {
+          return;
+        }
+        if (card === 'privacy') {
+          postParams[field.name] = privacy[field.name] ? '1' : '0';
+        } else {
           postParams[field.name] = values[field.name] || '';
         }
       });
@@ -291,6 +360,15 @@ export default defineComponent({
       });
     };
 
+    onMounted(() => {
+      if (window.location.hash === '#chatGptPrivacy') {
+        const privacyCard = document.getElementById('chatGptPrivacy');
+        if (privacyCard) {
+          privacyCard.scrollIntoView();
+        }
+      }
+    });
+
     return {
       translate,
       values,
@@ -300,6 +378,8 @@ export default defineComponent({
       confirmDeleteApiKeyModal,
       confirmDeleteApiKey,
       connectionFields,
+      privacy,
+      privacyFields,
       promptFields,
       hasCustomPrompt,
       resetPrompts,
@@ -316,5 +396,15 @@ export default defineComponent({
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
+}
+
+.chatGptDestination {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0 0 .25rem;
+  }
 }
 </style>

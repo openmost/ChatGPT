@@ -67,6 +67,7 @@ The agent mode is optional. Without AI Providers or McpServer, the plugin keeps 
 1. Install and activate **ChatGPT** from **Administration > Platform > Marketplace**.
 2. As a super user, open **Administration > System > ChatGPT**:
    - **Connection** card: host (an HTTPS URL), API key and model. Each card is saved on its own. The saved key is never displayed, and a **Delete key** button removes it.
+   - **Privacy** card: check **Allow sending Matomo data to the AI provider**, off by default. Until a super user checks it, nothing is sent to the provider. The card shows where the data goes, and masks e-mail and IP addresses, removes URL query strings and excludes visitor-level data, all three on by default.
    - **Prompts** card: chat and insight base prompts, with a **Reset to default** button.
    - If a provider is connected in **Administration > System > AI Providers**, the connection fields are read-only and AI Providers is used.
 3. Optionally, override the settings for a website in **Administration > Websites > ChatGPT** (website admin access): host, API key, model and prompts, with a **Delete key** button and a **Use the general prompts** button. Empty fields use the general settings.
@@ -78,7 +79,12 @@ Then open the **ChatGPT** page in the main menu, or click the **Insights** butto
 
 - Insights send the data of the report you are looking at (labels, metrics and totals), its period, segment and comparisons, and the conversation, to the configured endpoint: OpenAI by default, your custom host, or the provider connected in AI Providers.
 - The chat sends your messages and the prompt. In agent mode, the results of the Matomo tools the agent calls are also sent to the provider.
-- Raw visitor data is never sent, unless the report itself contains it, for example the Visits Log (limited to 100 visits).
+- Nothing is sent to the AI provider until a super user checks **Allow sending Matomo data to the AI provider** in **Administration > System > ChatGPT**, **Privacy** card. It is off by default: until then, the chat and the insights tell users to ask a super user to allow it.
+- Before sending, e-mail and IP addresses are replaced with `[email]` and `[ip]`, and URL query strings are removed, in the report data and in the results of the Matomo tools. Both are on by default and can be turned off in the same **Privacy** card.
+- Visitor-level data (Visits Log, visitor profiles, real-time and User ID reports) is excluded by default: the insights and the agent cannot read it until a super user unchecks **Exclude visitor-level data**.
+- Report labels can hold values set by visitors (page titles, URLs, referrers, campaign names, custom dimensions). Check the retention and privacy terms of the provider before connecting it, and prefer a self-hosted or EU-hosted endpoint when your data policy requires it.
+- The chat shows every user a notice stating that their questions, and the Matomo data read to answer them, are sent to the AI provider configured by the Matomo administrator.
+- When a Matomo tool fails in agent mode, the model only receives a generic error with a reference: the details stay in the Matomo logs.
 - Insight requests are restricted to the report and data methods of widgets declared by Matomo, never to an arbitrary API method, and run with the permissions of the current user.
 - API keys are stored in the Matomo settings and are never sent back to the browser. Conversations are not stored by the plugin.
 

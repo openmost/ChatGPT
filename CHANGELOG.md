@@ -2,7 +2,15 @@
 
 ### 5.7.0
 
-> **No action required.** Settings saved for your websites are kept, and custom prompts are not changed.
+> **Action required.** Nothing is sent to the AI provider any more until a super user checks *Allow sending Matomo data to the AI provider* in *Administration > System > ChatGPT*, Privacy card. Until then, the chat and the insights ask users to contact a super user. Settings saved for your websites are kept, and custom prompts are not changed.
+
+**Privacy**
+
+- New privacy settings in *Administration > System > ChatGPT*, *Privacy* card: nothing is sent to the AI provider until a super user checks *Allow sending Matomo data to the AI provider*, off by default. They also show where the data goes.
+- Before sending, e-mail and IP addresses are masked and URL query strings are removed, in the report data and in the results of the Matomo tools. Both are on by default.
+- Visitor-level data (Visits Log, visitor profiles, real-time and User ID reports) is excluded by default from the insights and the agent.
+- The chat tells users that their questions, and the Matomo data read to answer them, are sent to the AI provider configured by the administrator.
+- When a Matomo tool fails in agent mode, the AI provider only receives a generic error with a reference: the details stay in the Matomo logs.
 
 **New: agent mode with the McpServer plugin**
 

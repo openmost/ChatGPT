@@ -17,6 +17,7 @@ use Piwik\Plugins\AIProviders\Exception\AIProviderException;
 use Piwik\Plugins\ChatGPT\Agent\McpAgent;
 use Piwik\Plugins\ChatGPT\Agent\PluginDependencies;
 use Piwik\Plugins\ChatGPT\Services\ChatRequestParser;
+use Piwik\Plugins\ChatGPT\Services\DataPrivacy;
 use Piwik\Plugins\ChatGPT\Services\InsightNotAvailableException;
 use Piwik\Plugins\ChatGPT\Services\RateLimitExceededException;
 use Piwik\Plugins\ChatGPT\Services\InsightReport;
@@ -43,6 +44,7 @@ class Controller extends \Piwik\Plugin\Controller
         return $this->renderTemplate('index', [
             // any one key is enough: website key, AI Providers or general key
             'is_configured' => $settings->isConfigured(),
+            'data_sharing_allowed' => StaticContainer::get(DataPrivacy::class)->isDataSharingAllowed(),
             'is_custom_host' => $settings->isCustomHost(),
             'settings_url' => Piwik::hasUserSuperUserAccess() ? SystemSettingsForm::getUrl(['idSite' => $idSite]) : '',
             // with AI Providers, the model of the plugin settings is not used
@@ -107,6 +109,7 @@ class Controller extends \Piwik\Plugin\Controller
         $view->values = $form->getValues();
         $view->aiProvidersNotice = $form->getAiProvidersNotice();
         $view->defaultPrompts = SystemSettingsForm::getDefaultPrompts();
+        $view->destination = $form->getDataDestination();
 
         return $view->render();
     }
@@ -158,6 +161,12 @@ class Controller extends \Piwik\Plugin\Controller
         Session::close();
 
         $this->streamEvents(function (callable $emit) use ($idSite, $period, $date, $sessionKey) {
+            $dataSharingError = StaticContainer::get(DataPrivacy::class)->getDataSharingError();
+            if ($dataSharingError !== null) {
+                $emit('error', ['message' => $dataSharingError]);
+                return;
+            }
+
             StaticContainer::get(RateLimiter::class)->check($idSite);
 
             $parser = StaticContainer::get(ChatRequestParser::class);

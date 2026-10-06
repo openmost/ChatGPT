@@ -96,6 +96,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "0247":
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+
+/***/ }),
+
 /***/ "0645":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -136,13 +143,6 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__19dc__;
 /* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatIndexPage_vue_vue_type_style_index_0_id_12181830_lang_less__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatIndexPage_vue_vue_type_style_index_0_id_12181830_lang_less__WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
 
-
-/***/ }),
-
-/***/ "3a71":
-/***/ (function(module, exports, __webpack_require__) {
-
-// extracted by mini-css-extract-plugin
 
 /***/ }),
 
@@ -5424,28 +5424,6 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__8bbf__;
 
 /***/ }),
 
-/***/ "9fdb":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_12ea8cf4_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("be4e");
-/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_12ea8cf4_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_12ea8cf4_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__);
-/* unused harmony reexport * */
-
-
-/***/ }),
-
-/***/ "a38f":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_1027163c_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("3a71");
-/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_1027163c_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_1027163c_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__);
-/* unused harmony reexport * */
-
-
-/***/ }),
-
 /***/ "a5a2":
 /***/ (function(module, exports) {
 
@@ -5474,7 +5452,18 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_a5a2__;
 
 /***/ }),
 
-/***/ "be4e":
+/***/ "ba58":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_4a3ad6ba_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("be2e");
+/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_4a3ad6ba_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ManageSystemSettings_vue_vue_type_style_index_0_id_4a3ad6ba_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+
+
+/***/ }),
+
+/***/ "be2e":
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
@@ -7995,6 +7984,17 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_a5a2__;
 
 /***/ }),
 
+/***/ "d769":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_26f68881_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("0247");
+/* harmony import */ var _node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_26f68881_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_cli_service_node_modules_mini_css_extract_plugin_dist_loader_js_ref_11_oneOf_1_0_node_modules_vue_cli_service_node_modules_css_loader_dist_cjs_js_ref_11_oneOf_1_1_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_11_oneOf_1_2_node_modules_less_loader_dist_cjs_js_ref_11_oneOf_1_3_node_modules_vue_cli_service_node_modules_cache_loader_dist_cjs_js_ref_1_0_node_modules_vue_cli_service_node_modules_vue_loader_v16_dist_index_js_ref_1_1_ChatEmptyState_vue_vue_type_style_index_0_id_26f68881_lang_less_scoped_true__WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+
+
+/***/ }),
+
 /***/ "e717":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -9362,29 +9362,32 @@ ChatMessagesListvue_type_script_lang_ts.render = ChatMessagesListvue_type_templa
 ChatMessagesListvue_type_script_lang_ts.__scopeId = "data-v-ea3eff4a"
 
 /* harmony default export */ var ChatMessagesList = (ChatMessagesListvue_type_script_lang_ts);
-// CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-babel/node_modules/cache-loader/dist/cjs.js??ref--13-0!./node_modules/@vue/cli-plugin-babel/node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist/templateLoader.js??ref--6!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=template&id=12ea8cf4&scoped=true
+// CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-babel/node_modules/cache-loader/dist/cjs.js??ref--13-0!./node_modules/@vue/cli-plugin-babel/node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist/templateLoader.js??ref--6!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=template&id=26f68881&scoped=true
 
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_withScopeId = n => (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["pushScopeId"])("data-v-12ea8cf4"), n = n(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["popScopeId"])(), n);
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_1 = {
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_withScopeId = n => (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["pushScopeId"])("data-v-26f68881"), n = n(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["popScopeId"])(), n);
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_1 = {
   class: "ai-chat-empty"
 };
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_2 = {
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_2 = {
   class: "ai-chat-empty__mark",
   "aria-hidden": "true"
 };
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_3 = {
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_3 = {
   class: "ai-chat-empty__title"
 };
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_4 = {
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_4 = {
   class: "ai-chat-empty__text"
 };
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_5 = ["aria-label"];
-const ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_6 = ["onClick"];
-function ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_render(_ctx, _cache, $props, $setup, $data, $options) {
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_5 = ["aria-label"];
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_6 = ["onClick"];
+const ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_7 = {
+  class: "ai-chat-empty__notice"
+};
+function ChatEmptyStatevue_type_template_id_26f68881_scoped_true_render(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_IconAi = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["resolveComponent"])("IconAi");
-  return Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("div", ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_1, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("span", ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_2, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_IconAi, {
+  return Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("div", ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_1, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("span", ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_2, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_IconAi, {
     "ai-name": _ctx.aiName
-  }, null, 8, ["ai-name"])]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("h2", ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_3, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_EmptyStateTitle')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_4, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_EmptyStateText', _ctx.aiLabel)), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("ul", {
+  }, null, 8, ["ai-name"])]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("h2", ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_3, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_EmptyStateTitle')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_4, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_EmptyStateText', _ctx.aiLabel)), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("ul", {
     class: "ai-chat-empty__suggestions",
     "aria-label": _ctx.translate('ChatGPT_SuggestionsLabel')
   }, [(Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(true), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])(external_commonjs_vue_commonjs2_vue_root_Vue_["Fragment"], null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["renderList"])(_ctx.suggestions, suggestion => {
@@ -9394,10 +9397,10 @@ function ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_render(_ctx, _c
       type: "button",
       class: "ai-chat-empty__suggestion",
       onClick: $event => _ctx.$emit('suggest', suggestion)
-    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(suggestion), 9, ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_6)]);
-  }), 128))], 8, ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_hoisted_5)]);
+    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(suggestion), 9, ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_6)]);
+  }), 128))], 8, ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_5), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", ChatEmptyStatevue_type_template_id_26f68881_scoped_true_hoisted_7, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DataNotice')), 1)]);
 }
-// CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=template&id=12ea8cf4&scoped=true
+// CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=template&id=26f68881&scoped=true
 
 // CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-typescript/node_modules/cache-loader/dist/cjs.js??ref--15-0!./node_modules/babel-loader/lib!./node_modules/@vue/cli-plugin-typescript/node_modules/ts-loader??ref--15-2!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=script&lang=ts
 
@@ -9429,8 +9432,8 @@ function ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_render(_ctx, _c
 }));
 // CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=script&lang=ts
  
-// EXTERNAL MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=style&index=0&id=12ea8cf4&lang=less&scoped=true
-var ChatEmptyStatevue_type_style_index_0_id_12ea8cf4_lang_less_scoped_true = __webpack_require__("9fdb");
+// EXTERNAL MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue?vue&type=style&index=0&id=26f68881&lang=less&scoped=true
+var ChatEmptyStatevue_type_style_index_0_id_26f68881_lang_less_scoped_true = __webpack_require__("d769");
 
 // CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/ChatEmptyState.vue
 
@@ -9438,8 +9441,8 @@ var ChatEmptyStatevue_type_style_index_0_id_12ea8cf4_lang_less_scoped_true = __w
 
 
 
-ChatEmptyStatevue_type_script_lang_ts.render = ChatEmptyStatevue_type_template_id_12ea8cf4_scoped_true_render
-ChatEmptyStatevue_type_script_lang_ts.__scopeId = "data-v-12ea8cf4"
+ChatEmptyStatevue_type_script_lang_ts.render = ChatEmptyStatevue_type_template_id_26f68881_scoped_true_render
+ChatEmptyStatevue_type_script_lang_ts.__scopeId = "data-v-26f68881"
 
 /* harmony default export */ var ChatEmptyState = (ChatEmptyStatevue_type_script_lang_ts);
 // CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/Components/Chat/markdownToPlainText.ts
@@ -10375,31 +10378,40 @@ ManageSiteSettingsvue_type_script_lang_ts.render = ManageSiteSettingsvue_type_te
 ManageSiteSettingsvue_type_script_lang_ts.__scopeId = "data-v-13b4342b"
 
 /* harmony default export */ var ManageSiteSettings = (ManageSiteSettingsvue_type_script_lang_ts);
-// CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-babel/node_modules/cache-loader/dist/cjs.js??ref--13-0!./node_modules/@vue/cli-plugin-babel/node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist/templateLoader.js??ref--6!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=template&id=1027163c&scoped=true
+// CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-babel/node_modules/cache-loader/dist/cjs.js??ref--13-0!./node_modules/@vue/cli-plugin-babel/node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist/templateLoader.js??ref--6!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=template&id=4a3ad6ba&scoped=true
 
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_withScopeId = n => (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["pushScopeId"])("data-v-1027163c"), n = n(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["popScopeId"])(), n);
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_1 = ["innerHTML"];
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_2 = /*#__PURE__*/ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_withScopeId(() => /*#__PURE__*/Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_withScopeId = n => (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["pushScopeId"])("data-v-4a3ad6ba"), n = n(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["popScopeId"])(), n);
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_1 = ["innerHTML"];
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_2 = /*#__PURE__*/ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_withScopeId(() => /*#__PURE__*/Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", {
   id: "chatGptSystemNotice_connection"
 }, null, -1));
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_3 = {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_3 = {
   class: "chatGptActions"
 };
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_4 = ["disabled"];
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_5 = /*#__PURE__*/ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_withScopeId(() => /*#__PURE__*/Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_4 = ["disabled"];
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_5 = {
+  class: "chatGptDestination"
+};
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_6 = /*#__PURE__*/ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_withScopeId(() => /*#__PURE__*/Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", {
+  id: "chatGptSystemNotice_privacy"
+}, null, -1));
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_7 = {
+  class: "chatGptActions"
+};
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_8 = /*#__PURE__*/ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_withScopeId(() => /*#__PURE__*/Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", {
   id: "chatGptSystemNotice_prompts"
 }, null, -1));
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_6 = {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_9 = {
   class: "chatGptActions"
 };
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_7 = ["title"];
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_8 = {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_10 = ["title"];
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_11 = {
   class: "ui-confirm",
   ref: "confirmDeleteApiKeyModal"
 };
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_9 = ["value"];
-const ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_10 = ["value"];
-function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_ctx, _cache, $props, $setup, $data, $options) {
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_12 = ["value"];
+const ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_13 = ["value"];
+function ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_render(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Alert = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["resolveComponent"])("Alert");
   const _component_Field = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["resolveComponent"])("Field");
   const _component_SaveButton = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["resolveComponent"])("SaveButton");
@@ -10414,7 +10426,7 @@ function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_c
       default: Object(external_commonjs_vue_commonjs2_vue_root_Vue_["withCtx"])(() => [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createTextVNode"])(Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.aiProvidersNotice.message) + " ", 1), _ctx.aiProvidersNotice.link ? (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("span", {
         key: 0,
         innerHTML: _ctx.$sanitize(_ctx.aiProvidersNotice.link)
-      }, null, 8, ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_1)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)]),
+      }, null, 8, ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_1)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)]),
       _: 1
     })) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true), (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(true), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])(external_commonjs_vue_commonjs2_vue_root_Vue_["Fragment"], null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["renderList"])(_ctx.connectionFields, field => {
       return Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("div", {
@@ -10429,7 +10441,7 @@ function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_c
         modelValue: _ctx.values[field.name],
         "onUpdate:modelValue": $event => _ctx.values[field.name] = $event
       }, null, 8, ["uicontrol", "name", "title", "description", "options", "disabled", "modelValue", "onUpdate:modelValue"])]);
-    }), 128)), ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_2, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_3, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_SaveButton, {
+    }), 128)), ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_2, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_3, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_SaveButton, {
       class: "chatGptSaveConnection",
       saving: _ctx.isSaving.connection,
       onConfirm: _cache[0] || (_cache[0] = $event => _ctx.save('connection'))
@@ -10439,7 +10451,33 @@ function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_c
       class: "btn btn-outline chatGptDeleteApiKey",
       disabled: _ctx.isDeletingApiKey,
       onClick: _cache[1] || (_cache[1] = $event => _ctx.confirmDeleteApiKey())
-    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKey')), 9, ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_4)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)])]),
+    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKey')), 9, ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_4)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)])]),
+    _: 1
+  }, 8, ["content-title"]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_ContentBlock, {
+    id: "chatGptPrivacy",
+    "content-title": _ctx.translate('ChatGPT_SettingsPrivacyTitle')
+  }, {
+    default: Object(external_commonjs_vue_commonjs2_vue_root_Vue_["withCtx"])(() => [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_PrivacySettingsIntro')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("ul", ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_5, [(Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(true), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])(external_commonjs_vue_commonjs2_vue_root_Vue_["Fragment"], null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["renderList"])(_ctx.destination, line => {
+      return Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("li", {
+        key: line
+      }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(line), 1);
+    }), 128))]), (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(true), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])(external_commonjs_vue_commonjs2_vue_root_Vue_["Fragment"], null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["renderList"])(_ctx.privacyFields, field => {
+      return Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("div", {
+        key: field.name
+      }, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_Field, {
+        uicontrol: field.uicontrol,
+        name: `chatGptSystem_${field.name}`,
+        title: field.title,
+        description: field.description,
+        disabled: field.disabled,
+        modelValue: _ctx.privacy[field.name],
+        "onUpdate:modelValue": $event => _ctx.privacy[field.name] = $event
+      }, null, 8, ["uicontrol", "name", "title", "description", "disabled", "modelValue", "onUpdate:modelValue"])]);
+    }), 128)), ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_6, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_7, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_SaveButton, {
+      class: "chatGptSavePrivacy",
+      saving: _ctx.isSaving.privacy,
+      onConfirm: _cache[2] || (_cache[2] = $event => _ctx.save('privacy'))
+    }, null, 8, ["saving"])])]),
     _: 1
   }, 8, ["content-title"]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_ContentBlock, {
     "content-title": _ctx.translate('ChatGPT_SettingsPromptsTitle')
@@ -10457,29 +10495,29 @@ function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_c
         modelValue: _ctx.values[field.name],
         "onUpdate:modelValue": $event => _ctx.values[field.name] = $event
       }, null, 8, ["uicontrol", "name", "title", "description", "disabled", "modelValue", "onUpdate:modelValue"])]);
-    }), 128)), ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_5, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_6, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_SaveButton, {
+    }), 128)), ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_8, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_9, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createVNode"])(_component_SaveButton, {
       class: "chatGptSavePrompts",
       saving: _ctx.isSaving.prompts,
-      onConfirm: _cache[2] || (_cache[2] = $event => _ctx.save('prompts'))
+      onConfirm: _cache[3] || (_cache[3] = $event => _ctx.save('prompts'))
     }, null, 8, ["saving"]), _ctx.hasCustomPrompt ? (Object(external_commonjs_vue_commonjs2_vue_root_Vue_["openBlock"])(), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementBlock"])("button", {
       key: 0,
       type: "button",
       class: "btn btn-outline chatGptResetPrompts",
       title: _ctx.translate('ChatGPT_ResetPromptToDefaultHelp'),
-      onClick: _cache[3] || (_cache[3] = $event => _ctx.resetPrompts())
-    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_ResetPromptToDefault')), 9, ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_7)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)])]),
+      onClick: _cache[4] || (_cache[4] = $event => _ctx.resetPrompts())
+    }, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_ResetPromptToDefault')), 9, ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_10)) : Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createCommentVNode"])("", true)])]),
     _: 1
-  }, 8, ["content-title"]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_8, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("h2", null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKeyConfirmTitle')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKeyConfirmText')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("input", {
+  }, 8, ["content-title"]), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("div", ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_11, [Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("h2", null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKeyConfirmTitle')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("p", null, Object(external_commonjs_vue_commonjs2_vue_root_Vue_["toDisplayString"])(_ctx.translate('ChatGPT_DeleteApiKeyConfirmText')), 1), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("input", {
     role: "yes",
     type: "button",
     value: _ctx.translate('General_Yes')
-  }, null, 8, ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_9), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("input", {
+  }, null, 8, ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_12), Object(external_commonjs_vue_commonjs2_vue_root_Vue_["createElementVNode"])("input", {
     role: "no",
     type: "button",
     value: _ctx.translate('General_No')
-  }, null, 8, ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_hoisted_10)], 512)]);
+  }, null, 8, ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_hoisted_13)], 512)]);
 }
-// CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=template&id=1027163c&scoped=true
+// CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=template&id=4a3ad6ba&scoped=true
 
 // CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-typescript/node_modules/cache-loader/dist/cjs.js??ref--15-0!./node_modules/babel-loader/lib!./node_modules/@vue/cli-plugin-typescript/node_modules/ts-loader??ref--15-2!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=script&lang=ts
 
@@ -10487,6 +10525,7 @@ function ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render(_c
 
 const ManageSystemSettingsvue_type_script_lang_ts_API_KEY_PLACEHOLDER = '******';
 const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBasePrompt', 'insightBasePrompt'];
+const PRIVACY_FIELDS = ['dataSharingAllowed', 'maskPersonalData', 'stripUrlQueryStrings', 'excludeVisitorData'];
 /**
  * General settings of the plugin, rendered on the ChatGPT page of the System administration.
  * Each card saves only its own fields, the unsaved edits of the other card are kept.
@@ -10516,18 +10555,29 @@ const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBaseProm
     defaultPrompts: {
       type: Object,
       default: () => ({})
+    },
+    // where the data goes, so the super user knows what the consent covers
+    destination: {
+      type: Array,
+      default: () => []
     }
   },
   setup(props) {
     const values = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["reactive"])(Object.assign({}, props.settings));
     const isSaving = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["reactive"])({
       connection: false,
+      privacy: false,
       prompts: false
+    });
+    const privacy = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["reactive"])({});
+    PRIVACY_FIELDS.forEach(name => {
+      privacy[name] = props.settings[name] === '1';
     });
     const hasApiKey = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["ref"])(!!props.settings.apiKey);
     const isDeletingApiKey = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["ref"])(false);
     const confirmDeleteApiKeyModal = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["ref"])(null);
-    const connectionFields = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["computed"])(() => props.fields.filter(field => !ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS.includes(field.name)));
+    const connectionFields = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["computed"])(() => props.fields.filter(field => !ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS.includes(field.name) && !PRIVACY_FIELDS.includes(field.name)));
+    const privacyFields = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["computed"])(() => props.fields.filter(field => PRIVACY_FIELDS.includes(field.name)));
     const promptFields = Object(external_commonjs_vue_commonjs2_vue_root_Vue_["computed"])(() => props.fields.filter(field => ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS.includes(field.name)));
     const isDefaultPrompt = name => (values[name] || '').trim() === (props.defaultPrompts[name] || '').trim();
     // a prompt set in the config file cannot be edited, it is left as is
@@ -10552,10 +10602,19 @@ const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBaseProm
       isSaving[card] = true;
       // the fields that cannot be edited and the fields of the other card are left out, they keep
       // their saved values
-      const cardFields = card === 'prompts' ? promptFields.value : connectionFields.value;
+      const cardFields = {
+        connection: connectionFields.value,
+        privacy: privacyFields.value,
+        prompts: promptFields.value
+      }[card];
       const postParams = {};
       cardFields.forEach(field => {
-        if (!field.disabled) {
+        if (field.disabled) {
+          return;
+        }
+        if (card === 'privacy') {
+          postParams[field.name] = privacy[field.name] ? '1' : '0';
+        } else {
           postParams[field.name] = values[field.name] || '';
         }
       });
@@ -10609,6 +10668,14 @@ const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBaseProm
         yes: deleteApiKey
       });
     };
+    Object(external_commonjs_vue_commonjs2_vue_root_Vue_["onMounted"])(() => {
+      if (window.location.hash === '#chatGptPrivacy') {
+        const privacyCard = document.getElementById('chatGptPrivacy');
+        if (privacyCard) {
+          privacyCard.scrollIntoView();
+        }
+      }
+    });
     return {
       translate: external_CoreHome_["translate"],
       values,
@@ -10618,6 +10685,8 @@ const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBaseProm
       confirmDeleteApiKeyModal,
       confirmDeleteApiKey,
       connectionFields,
+      privacy,
+      privacyFields,
       promptFields,
       hasCustomPrompt,
       resetPrompts,
@@ -10627,8 +10696,8 @@ const ManageSystemSettingsvue_type_script_lang_ts_PROMPT_FIELDS = ['chatBaseProm
 }));
 // CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=script&lang=ts
  
-// EXTERNAL MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=style&index=0&id=1027163c&lang=less&scoped=true
-var ManageSystemSettingsvue_type_style_index_0_id_1027163c_lang_less_scoped_true = __webpack_require__("a38f");
+// EXTERNAL MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue?vue&type=style&index=0&id=4a3ad6ba&lang=less&scoped=true
+var ManageSystemSettingsvue_type_style_index_0_id_4a3ad6ba_lang_less_scoped_true = __webpack_require__("ba58");
 
 // CONCATENATED MODULE: ./plugins/ChatGPT/vue/src/ManageSystemSettings/ManageSystemSettings.vue
 
@@ -10636,8 +10705,8 @@ var ManageSystemSettingsvue_type_style_index_0_id_1027163c_lang_less_scoped_true
 
 
 
-ManageSystemSettingsvue_type_script_lang_ts.render = ManageSystemSettingsvue_type_template_id_1027163c_scoped_true_render
-ManageSystemSettingsvue_type_script_lang_ts.__scopeId = "data-v-1027163c"
+ManageSystemSettingsvue_type_script_lang_ts.render = ManageSystemSettingsvue_type_template_id_4a3ad6ba_scoped_true_render
+ManageSystemSettingsvue_type_script_lang_ts.__scopeId = "data-v-4a3ad6ba"
 
 /* harmony default export */ var ManageSystemSettings = (ManageSystemSettingsvue_type_script_lang_ts);
 // CONCATENATED MODULE: ./node_modules/@vue/cli-plugin-babel/node_modules/cache-loader/dist/cjs.js??ref--13-0!./node_modules/@vue/cli-plugin-babel/node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist/templateLoader.js??ref--6!./node_modules/@vue/cli-service/node_modules/cache-loader/dist/cjs.js??ref--1-0!./node_modules/@vue/cli-service/node_modules/vue-loader-v16/dist??ref--1-1!./plugins/ChatGPT/vue/src/Components/Insight/InsightTrigger.vue?vue&type=template&id=660adc52&scoped=true

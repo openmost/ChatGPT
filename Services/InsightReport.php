@@ -120,13 +120,19 @@ class InsightReport
             throw new InsightNotAvailableException(Piwik::translate('ChatGPT_InsightNotAvailable'));
         }
 
+        $privacy = StaticContainer::get(DataPrivacy::class);
+        $apiModule = is_string($request['parameters']['apiModule'] ?? null) ? $request['parameters']['apiModule'] : '';
+        if ($privacy->isMethodExcluded($request['method']) || ($apiModule !== '' && $privacy->isMethodExcluded($apiModule))) {
+            throw new InsightNotAvailableException(Piwik::translate('ChatGPT_VisitorDataExcluded'));
+        }
+
         // an empty default request: nothing of the current request (limit, offset, segment) leaks into the report
         $data = Request::processRequest($request['method'], $request['parameters'] + [
             'format' => 'original',
             'format_metrics' => 'bc',
         ], []);
 
-        $payload = $this->payload->build($data, $this->getReportMetadata($request), $this->describe($request));
+        $payload = $privacy->redactValue($this->payload->build($data, $this->getReportMetadata($request), $this->describe($request)));
 
         return $this->payload->encode($payload);
     }

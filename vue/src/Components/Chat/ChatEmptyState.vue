@@ -23,6 +23,7 @@
         >{{ suggestion }}</button>
       </li>
     </ul>
+    <p class="ai-chat-empty__notice">{{ translate('ChatGPT_DataNotice') }}</p>
   </div>
 </template>
 
@@ -138,5 +139,14 @@ export default defineComponent({
     border-color: var(--ai-chat-accent-strong);
     background: var(--ai-chat-accent-soft);
   }
+}
+
+.ai-chat-empty__notice {
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  color: var(--ai-chat-text-muted);
+  font-size: .8125rem;
+  line-height: 1.5;
 }
 </style>

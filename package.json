@@ -11,7 +11,7 @@
         }
     },
     "dependencies": {
-        "dompurify": "^3.4.15",
+        "dompurify": "^3.4.16",
         "showdown": "^2.1.0"
     },
     "devDependencies": {

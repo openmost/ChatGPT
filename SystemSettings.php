@@ -11,6 +11,7 @@ namespace Piwik\Plugins\ChatGPT;
 use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Plugins\ChatGPT\Agent\PluginDependencies;
+use Piwik\Plugins\ChatGPT\Services\DataPrivacy;
 use Piwik\Plugins\ChatGPT\Settings\AiProvidersTakeover;
 use Piwik\Plugins\ChatGPT\Settings\DefaultPrompts;
 use Piwik\Plugins\ChatGPT\Settings\LegacyPrompts;
@@ -34,6 +35,10 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     public $modelCustom;
     public $chatBasePrompt;
     public $insightBasePrompt;
+    public $dataSharingAllowed;
+    public $maskPersonalData;
+    public $stripUrlQueryStrings;
+    public $excludeVisitorData;
 
     /** @var bool|null */
     private $isTakenOver = null;
@@ -93,6 +98,15 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
                 return DefaultPrompts::toStoredGeneralPrompt(LegacyPrompts::INSIGHT, $value);
             };
         });
+
+        // nothing is sent to the AI provider until a super user allows it
+        foreach (DataPrivacy::DEFAULTS as $name => $default) {
+            $this->$name = $this->makeSetting($name, $default, FieldConfig::TYPE_BOOL, function (FieldConfig $field) use ($name) {
+                $field->title = Piwik::translate('ChatGPT_PrivacySetting_' . $name);
+                $field->description = Piwik::translate('ChatGPT_PrivacySetting_' . $name . 'Help');
+                $field->uiControl = FieldConfig::UI_CONTROL_CHECKBOX;
+            });
+        }
     }
 
     /**

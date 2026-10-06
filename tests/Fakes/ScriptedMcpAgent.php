@@ -11,6 +11,7 @@ namespace Piwik\Plugins\ChatGPT\tests\Fakes;
 use Piwik\Plugins\AIProviders\AIConversationRequest;
 use Piwik\Plugins\AIProviders\AIConversationResponse;
 use Piwik\Plugins\ChatGPT\Agent\McpAgent;
+use Piwik\Plugins\ChatGPT\Services\DataPrivacy;
 use Piwik\Plugins\ChatGPT\Settings\EffectiveSettings;
 
 /**
@@ -50,6 +51,14 @@ class ScriptedMcpAgent extends McpAgent
         $this->requests[] = $request;
 
         return array_shift($this->responses);
+    }
+
+    /** @var array<string, bool> privacy settings, the defaults when empty */
+    public $privacyOptions = [];
+
+    protected function getPrivacy(): DataPrivacy
+    {
+        return new DataPrivacy($this->privacyOptions);
     }
 
     protected function fetchToolCatalog(): array
