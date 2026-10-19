@@ -312,4 +312,61 @@ class InsightReportTest extends TestCase
             'flat' => 0,
         ], $this->insightReport->describe($request));
     }
+
+    public function test_getSegmentFromRequest_keepsThePostedSegmentAsIs(): void
+    {
+        $this->withRequest([], ['segment' => 'pageTitle==<b>"Tom & Jerry"</b>'], function () {
+            $this->assertSame('pageTitle==<b>"Tom & Jerry"</b>', InsightReport::getSegmentFromRequest());
+        });
+    }
+
+    public function test_getSegmentFromRequest_isEmpty_withoutSegment(): void
+    {
+        $this->withRequest([], ['segment' => ['browserCode==FF']], function () {
+            $this->assertSame('', InsightReport::getSegmentFromRequest());
+        });
+    }
+
+    public function test_getComparisonsFromRequest_keepsTheComparedSegmentsAsIs_andBlanksInvalidValues(): void
+    {
+        $this->withRequest([
+            'comparePeriods' => ['day', ['week']],
+            'compareDates' => ['2024-01-01'],
+            'compareSegments' => ['', 'pageTitle==<b>"Tom & Jerry"</b>', ['browserCode==FF']],
+        ], [], function () {
+            $this->assertSame([
+                'periods' => [
+                    ['period' => 'day', 'date' => '2024-01-01'],
+                    ['period' => '', 'date' => ''],
+                ],
+                'segments' => ['', 'pageTitle==<b>"Tom & Jerry"</b>', ''],
+            ], InsightReport::getComparisonsFromRequest());
+        });
+    }
+
+    public function test_getComparisonsFromRequest_isEmpty_whenTheComparisonsAreNotLists(): void
+    {
+        $this->withRequest(['comparePeriods' => 'day', 'compareDates' => '2024-01-01', 'compareSegments' => ''], [], function () {
+            $this->assertSame([], InsightReport::getComparisonsFromRequest());
+        });
+    }
+
+    private function withRequest(array $get, array $post, callable $assertions): void
+    {
+        $original = [$_GET, $_POST, $_SERVER['QUERY_STRING'] ?? null];
+        $_GET = $get;
+        $_POST = $post;
+        $_SERVER['QUERY_STRING'] = '';
+
+        try {
+            $assertions();
+        } finally {
+            [$_GET, $_POST] = $original;
+            if ($original[2] === null) {
+                unset($_SERVER['QUERY_STRING']);
+            } else {
+                $_SERVER['QUERY_STRING'] = $original[2];
+            }
+        }
+    }
 }

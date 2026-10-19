@@ -14,7 +14,6 @@ use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 use Piwik\API\Request;
-use Piwik\Common;
 use Piwik\Container\StaticContainer;
 use Piwik\Log\LoggerInterface;
 use Piwik\Piwik;
@@ -238,7 +237,7 @@ class InsightReport
             if (is_string($raw) && $raw !== '') {
                 return urldecode($raw);
             }
-            return Common::unsanitizeInputValue(Common::getRequestVar('segment', '', 'string'));
+            return \Piwik\Request::fromRequest()->getStringParameter('segment', '');
         } catch (Exception $e) {
             return '';
         }
@@ -249,13 +248,10 @@ class InsightReport
      */
     public static function getComparisonsFromRequest(): array
     {
-        try {
-            $periods = Common::getRequestVar('comparePeriods', [], 'array');
-            $dates = Common::getRequestVar('compareDates', [], 'array');
-            $segments = Common::getRequestVar('compareSegments', [], 'array');
-        } catch (Exception $e) {
-            return [];
-        }
+        $request = \Piwik\Request::fromRequest();
+        $periods = $request->getArrayParameter('comparePeriods', []);
+        $dates = $request->getArrayParameter('compareDates', []);
+        $segments = $request->getArrayParameter('compareSegments', []);
 
         $comparisons = [];
         foreach (array_values($periods) as $index => $comparePeriod) {
@@ -265,7 +261,7 @@ class InsightReport
             ];
         }
         foreach ($segments as $compareSegment) {
-            $comparisons['segments'][] = is_string($compareSegment) ? Common::unsanitizeInputValue($compareSegment) : '';
+            $comparisons['segments'][] = is_string($compareSegment) ? $compareSegment : '';
         }
         return $comparisons;
     }
