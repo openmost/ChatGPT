@@ -164,4 +164,24 @@ class ChatRequestParserTest extends TestCase
         );
         $this->assertSame([], $this->parser->endWithQuestion([['role' => 'assistant', 'content' => 'Answer']]));
     }
+
+    public function test_parseMessages_keepsThePostedContentAsIs(): void
+    {
+        $_POST['messages'] = '[{"role":"user","content":"<script>alert(\"x\")</script> & \'q\'"}]';
+
+        $this->assertSame(
+            [['role' => 'user', 'content' => '<script>alert("x")</script> & \'q\'']],
+            $this->parser->parseMessages([])
+        );
+    }
+
+    public function test_parseMessages_usesTheArgument_whenThePostedMessagesAreInvalid(): void
+    {
+        $_POST['messages'] = '{not json';
+
+        $this->assertSame(
+            [['role' => 'user', 'content' => 'From argument']],
+            $this->parser->parseMessages('[{"role":"user","content":"From argument"}]')
+        );
+    }
 }

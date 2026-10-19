@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace Piwik\Plugins\ChatGPT\Services;
 
-use Piwik\Common;
-
 /**
  * Reads the conversation and widget parameters posted by the chat, as JSON strings or arrays
  */
@@ -99,15 +97,6 @@ class ChatRequestParser
         // First check $_POST directly
         if (!empty($_POST[$name])) {
             $decoded = $this->decode($_POST[$name]);
-            if ($decoded !== null) {
-                return $decoded;
-            }
-        }
-
-        // Fallback to the request parameters
-        if (empty($value) || !is_array($value)) {
-            $postValue = Common::getRequestVar($name, '', 'string', $_POST);
-            $decoded = $this->decode($postValue);
             if ($decoded !== null) {
                 return $decoded;
             }
