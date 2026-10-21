@@ -69,6 +69,9 @@ jobs:
         with:
           lfs: false
           persist-credentials: false
+      # Markdown.vue imports showdown and dompurify from the plugin's own package.json, the action does not install them.
+      - name: install plugin dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: running tests
         uses: matomo-org/github-action-tests@64f58dd678ee4d5b5f0f194a496d3bb8c15adc45 # main as of 2026-10-06
         with:
