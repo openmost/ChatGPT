@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.7.1
+
+- Request parameters are read with `Piwik\Request` instead of the deprecated `Common::getRequestVar`, ready for the next Matomo versions.
+
 ### 5.7.0
 
 > **Action required.** Nothing is sent to the AI provider any more until a super user checks *Allow sending Matomo data to the AI provider* in *Administration > System > ChatGPT*, Privacy card. Until then, the chat and the insights ask users to contact a super user. Settings saved for your websites are kept, and custom prompts are not changed.
