@@ -146,9 +146,7 @@ final class LegacyPrompts
     public static function isLegacyDefault(string $kind, string $prompt): bool
     {
         // a textarea may submit its line breaks as CRLF, the multi-line defaults are listed with LF
-        $prompt = str_replace("
-", "
-", trim($prompt));
+        $prompt = str_replace("\r\n", "\n", trim($prompt));
         foreach (self::DEFAULTS[$kind] ?? [] as $legacyPrompts) {
             if (in_array($prompt, $legacyPrompts, true)) {
                 return true;
