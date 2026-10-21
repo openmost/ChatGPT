@@ -1,5 +1,9 @@
 ## Changelog
 
+### 5.7.2
+
+- Fix: a default prompt saved with Windows (CRLF) line breaks is recognised again on Linux servers, so it follows the new default instead of being kept as a custom prompt.
+
 ### 5.7.1
 
 - Request parameters are read with `Piwik\Request` instead of the deprecated `Common::getRequestVar`, ready for the next Matomo versions.
