@@ -29,6 +29,13 @@ class ReportPayload
     public const MAX_BYTES = 60000;
 
     private const MIN_ROWS = 5;
+
+    /**
+     * The column the report was sorted by in the request, kept when rows are truncated, null to rank by SORT_METRICS
+     *
+     * @var string|null
+     */
+    private $requestSortColumn;
     private const MAX_LABEL_LENGTH = 200;
 
     /**
@@ -45,13 +52,16 @@ class ReportPayload
      * @param mixed $data the report: a DataTable, a DataTable\Map, an array or a scalar
      * @param array|null $metadata the API.getMetadata entry of the report
      * @param array<string, mixed> $request the API request the data comes from
+     * @param int $maxBytes size of the encoded payload
      */
-    public function build($data, ?array $metadata, array $request): array
+    public function build($data, ?array $metadata, array $request, int $maxBytes = self::MAX_BYTES): array
     {
+        $this->requestSortColumn = isset($request['filter_sort_column']) && is_string($request['filter_sort_column']) ? $request['filter_sort_column'] : null;
+
         $rowLimit = self::MAX_ROWS;
         while (true) {
             $payload = $this->compose($data, $metadata, $request, $rowLimit);
-            if (strlen($this->encode($payload)) <= self::MAX_BYTES) {
+            if (strlen($this->encode($payload)) <= $maxBytes) {
                 return $payload;
             }
             if ($rowLimit <= self::MIN_ROWS) {
@@ -61,7 +71,7 @@ class ReportPayload
         }
 
         $payload = $this->compose($data, $metadata, $request, 0);
-        if (strlen($this->encode($payload)) <= self::MAX_BYTES) {
+        if (strlen($this->encode($payload)) <= $maxBytes) {
             return $payload;
         }
 
@@ -216,11 +226,16 @@ class ReportPayload
         $rowCount = count($rows);
 
         $sortMetric = null;
-        if ($rowCount > $rowLimit) {
+        if ($rowCount > $rowLimit && $this->requestSortColumn !== null) {
+            // the order the user sorted the table by
+            $sortMetric = $this->requestSortColumn;
+        } elseif ($rowCount > $rowLimit) {
             $sortMetric = $this->getSortMetric($rows, $allowedColumns);
             if ($sortMetric !== null) {
                 $rows = $this->sortRows($rows, $sortMetric);
             }
+        }
+        if ($rowCount > $rowLimit) {
             $rows = array_slice($rows, 0, $rowLimit, true);
         }
 

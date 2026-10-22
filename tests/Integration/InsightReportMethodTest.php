@@ -113,6 +113,33 @@ class InsightReportMethodTest extends IntegrationTestCase
         $this->assertIsArray(json_decode($data, true));
     }
 
+    public function test_insightReport_analysesTheSearchedRows_andTheExpandedSubtables(): void
+    {
+        $tracker = Fixture::getTracker($this->idSite, '2024-03-10 10:00:00', true, true);
+        foreach (['spring-sale' => 'shoes', 'winter' => 'coats'] as $campaign => $keyword) {
+            $tracker->setForceNewVisit();
+            $tracker->setUrl('http://example.com/?mtm_campaign=' . $campaign . '&mtm_kwd=' . $keyword);
+            Fixture::checkResponse($tracker->doTrackPageView('Home'));
+        }
+
+        $campaigns = Request::processRequest('Referrers.getCampaigns', ['idSite' => $this->idSite, 'period' => 'day', 'date' => '2024-03-10', 'format' => 'original'], []);
+        $idSubtable = (int) $campaigns->getRowFromLabel('spring-sale')->getIdSubDataTable();
+
+        $payload = json_decode((new InsightReport())->fetch([
+            'module' => 'Referrers',
+            'action' => 'getCampaigns',
+            'filter_column' => 'label',
+            'filter_pattern' => 'spring',
+            'expandedSubtables' => [$idSubtable],
+        ], $this->idSite, '2024-03-10', 'day', '', []), true);
+
+        $this->assertSame(['spring-sale'], array_column($payload['rows'], 'label'));
+        $this->assertSame('spring', $payload['request']['filter_pattern']);
+        $this->assertCount(1, $payload['expandedRows']);
+        $this->assertSame('spring-sale', $payload['expandedRows'][0]['parentLabel']);
+        $this->assertSame(['shoes'], array_column($payload['expandedRows'][0]['rows'], 'label'));
+    }
+
     public function getReportWidgets(): array
     {
         return [

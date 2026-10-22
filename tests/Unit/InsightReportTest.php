@@ -75,9 +75,87 @@ class InsightReportTest extends TestCase
             'date' => 'yesterday',
             'idGoal' => 3,
             'flat' => 1,
+            'filter_sort_column' => 'nb_visits',
             'filter_limit' => -1,
         ], $request['parameters']);
         $this->assertFalse($request['evolution']);
+    }
+
+    public function test_buildReportRequest_keepsTheSearchAndSort_ofTheTable(): void
+    {
+        $request = $this->insightReport->buildReportRequest([
+            'module' => 'Referrers',
+            'action' => 'getReferrerType',
+            'filter_column' => 'label',
+            'filter_pattern' => 'spring (sale|promo)',
+            'filter_sort_column' => 'nb_conversions',
+            'filter_sort_order' => 'ASC',
+            'expandedSubtables' => [3, 4],
+        ], 1, 'today', 'day');
+
+        $this->assertSame('label', $request['parameters']['filter_column']);
+        $this->assertSame('spring (sale|promo)', $request['parameters']['filter_pattern']);
+        $this->assertSame('nb_conversions', $request['parameters']['filter_sort_column']);
+        $this->assertSame('asc', $request['parameters']['filter_sort_order']);
+        $this->assertArrayNotHasKey('expandedSubtables', $request['parameters']);
+    }
+
+    public function test_getExpandedSubtableIds_validatesAndCapsTheIds(): void
+    {
+        $this->assertSame([], $this->insightReport->getExpandedSubtableIds([]));
+        $this->assertSame([3, 7], $this->insightReport->getExpandedSubtableIds(['expandedSubtables' => ['3', 7, 3, 0]]));
+        $this->assertCount(InsightReport::MAX_EXPANDED_SUBTABLES, $this->insightReport->getExpandedSubtableIds(['expandedSubtables' => range(1, 20)]));
+    }
+
+    /**
+     * @dataProvider getInvalidExpandedSubtables
+     * @param mixed $ids
+     */
+    public function test_getExpandedSubtableIds_rejectsInvalidIds($ids): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->insightReport->getExpandedSubtableIds(['expandedSubtables' => $ids]);
+    }
+
+    public function getInvalidExpandedSubtables(): array
+    {
+        return [
+            'not a list' => ['3'],
+            'not a number' => [['3 OR 1=1']],
+            'nested' => [[[3]]],
+        ];
+    }
+
+    public function test_buildSubtableRequest_usesTheSubtableMethod_withoutTheSearchOfTheTable(): void
+    {
+        $request = $this->insightReport->buildReportRequest([
+            'module' => 'Referrers',
+            'action' => 'getReferrerType',
+            'filter_pattern' => 'search',
+            'filter_sort_column' => 'nb_visits',
+        ], 1, 'today', 'day', 'browserCode==CH');
+
+        $subtable = $this->insightReport->buildSubtableRequest($request, ['actionToLoadSubTables' => 'getAll'], 12);
+
+        $this->assertSame('Referrers.getAll', $subtable['method']);
+        $this->assertSame([
+            'idSite' => 1,
+            'period' => 'day',
+            'date' => 'today',
+            'segment' => 'browserCode==CH',
+            'filter_limit' => -1,
+            'idSubtable' => 12,
+        ], $subtable['parameters']);
+    }
+
+    public function test_buildSubtableRequest_returnsNull_forReportsWithoutSubtables(): void
+    {
+        $request = $this->insightReport->buildReportRequest(['module' => 'DevicesDetection', 'action' => 'getType'], 1, 'today', 'day');
+
+        $this->assertNull($this->insightReport->buildSubtableRequest($request, null, 1));
+        $this->assertNull($this->insightReport->buildSubtableRequest($request, ['name' => 'Device type'], 1));
+        $this->assertNull($this->insightReport->buildSubtableRequest($request, ['actionToLoadSubTables' => 'get;drop'], 1));
     }
 
     public function test_buildReportRequest_limitsTheVisitLog_whichHasOneRowPerVisit(): void
@@ -125,6 +203,9 @@ class InsightReportTest extends TestCase
             'boolean' => [['flat' => 'maybe']],
             'name' => [['secondaryDimension' => 'event Action;']],
             'label with control characters' => [['label' => "a\nb"]],
+            'sort order' => [['filter_sort_order' => 'random']],
+            'search with control characters' => [['filter_pattern' => "a\nb"]],
+            'filter column' => [['filter_column' => 'label;']],
         ];
     }
 

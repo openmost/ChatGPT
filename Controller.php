@@ -24,6 +24,7 @@ use Piwik\Plugins\ChatGPT\Services\InsightReport;
 use Piwik\Plugins\ChatGPT\Services\RateLimiter;
 use Piwik\Plugins\ChatGPT\Services\SafeErrorMessage;
 use Piwik\Plugins\ChatGPT\Settings\EffectiveSettings;
+use Piwik\Plugins\ChatGPT\Settings\IniConfig;
 use Piwik\Plugins\ChatGPT\Settings\ModelUpgradeNotice;
 use Piwik\Plugins\ChatGPT\Settings\SiteSettingsStorage;
 use Piwik\Plugins\ChatGPT\Settings\SystemSettingsForm;
@@ -44,6 +45,7 @@ class Controller extends \Piwik\Plugin\Controller
         return $this->renderTemplate('index', [
             // any one key is enough: website key, AI Providers or general key
             'is_configured' => $settings->isConfigured(),
+            'display_name' => IniConfig::getDisplayName(),
             'data_sharing_allowed' => StaticContainer::get(DataPrivacy::class)->isDataSharingAllowed(),
             'is_custom_host' => $settings->isCustomHost(),
             'settings_url' => Piwik::hasUserSuperUserAccess() ? SystemSettingsForm::getUrl(['idSite' => $idSite]) : '',

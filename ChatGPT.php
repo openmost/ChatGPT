@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\ChatGPT;
 
 use Piwik\Plugins\ChatGPT\Agent\McpAgent;
+use Piwik\Plugins\ChatGPT\Settings\IniConfig;
 use Piwik\Plugins\ChatGPT\Settings\SiteSettingsStorage;
 
 class ChatGPT extends \Piwik\Plugin
@@ -22,6 +23,7 @@ class ChatGPT extends \Piwik\Plugin
             'AssetManager.getJavaScriptFiles' => 'getJavaScriptFiles',
             'AssetManager.getStylesheetFiles' => 'getStylesheetFiles',
             'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys',
+            'Template.jsGlobalVariables' => 'addJsGlobalVariables',
         );
     }
 
@@ -95,6 +97,12 @@ class ChatGPT extends \Piwik\Plugin
             $translationKeys[] = 'ChatGPT_Recommend' . $step;
             $translationKeys[] = 'ChatGPT_Recommend' . $step . 'Action';
         }
+    }
+
+    public function addJsGlobalVariables(&$out)
+    {
+        // read by assets/js/app.js, which labels the insight buttons and panel
+        $out .= 'piwik.chatGptDisplayName = ' . json_encode(IniConfig::getDisplayName(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ";\n";
     }
 
     public function getJavaScriptFiles(&$files)

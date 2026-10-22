@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Piwik\Plugins\ChatGPT\tests\Integration;
 
+use Piwik\Config;
 use Piwik\Container\StaticContainer;
 use Piwik\Option;
 use Piwik\Piwik;
@@ -38,6 +39,13 @@ class RateLimiterTest extends IntegrationTestCase
         $this->idSite = (int) Fixture::createWebsite('2024-01-01 00:00:00');
 
         StaticContainer::get('Piwik\Translation\Translator')->addDirectory(__DIR__ . '/../../lang');
+    }
+
+    public function tearDown(): void
+    {
+        Config::getInstance()->ChatGPT = [];
+
+        parent::tearDown();
     }
 
     public function test_check_countsTheRequests_belowTheLimit(): void
@@ -71,6 +79,33 @@ class RateLimiterTest extends IntegrationTestCase
 
         $stored = json_decode((string) Option::get($this->getOptionName()), true);
         $this->assertSame(1, $stored['count']);
+    }
+
+    public function test_check_appliesTheLimitAndWindow_ofTheConfigFile(): void
+    {
+        Config::getInstance()->ChatGPT = ['rate_limit_requests' => '100', 'rate_limit_window' => '60'];
+        Option::set($this->getOptionName(), json_encode(['window_start' => time() - 30, 'count' => 99]));
+
+        (new RateLimiter())->check($this->idSite);
+
+        try {
+            (new RateLimiter())->check($this->idSite);
+            $this->fail('The request over the configured limit must be refused');
+        } catch (RateLimitExceededException $e) {
+            $this->assertSame(1, preg_match('/wait (\d+) seconds/', $e->getMessage(), $matches));
+            $this->assertLessThanOrEqual(30, (int) $matches[1]);
+        }
+    }
+
+    public function test_check_neverRefuses_whenTheConfigFileDisablesTheLimit(): void
+    {
+        Config::getInstance()->ChatGPT = ['rate_limit_requests' => '0'];
+        Option::set($this->getOptionName(), json_encode(['window_start' => time(), 'count' => 500]));
+
+        (new RateLimiter())->check($this->idSite);
+
+        $stored = json_decode((string) Option::get($this->getOptionName()), true);
+        $this->assertSame(500, $stored['count']);
     }
 
     private function getOptionName(): string
