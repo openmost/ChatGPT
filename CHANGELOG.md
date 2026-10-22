@@ -1,5 +1,11 @@
 ## Changelog
 
+### 6.2.0
+
+- Insights follow the table as you left it: the search, the sort, the flattening and up to 5 expanded rows, whose subtables are added to the analysis ([#16](https://github.com/openmost/ChatGPT/issues/16)).
+- The rate limit is configurable in a `[ChatGPT]` section of `config/config.ini.php`: `rate_limit_requests` (30 by default, 0 disables it) and `rate_limit_window` in seconds (3600 by default) ([#17](https://github.com/openmost/ChatGPT/issues/17)).
+- The name shown in the top menu, on the chat page and in the insights panel is configurable with `display_name` in the same section, for example for a self-hosted model ([#15](https://github.com/openmost/ChatGPT/issues/15)).
+
 ### 6.1.2
 
 - Fix: a default prompt saved with Windows (CRLF) line breaks is recognised again on Linux servers, so it follows the new default instead of being kept as a custom prompt.
