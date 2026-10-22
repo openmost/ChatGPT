@@ -26,6 +26,7 @@ import {
   OVERLAY_ID,
   toggleInsight,
 } from './insightStore';
+import { readReportState } from './reportState';
 
 export default defineComponent({
   components: {
@@ -73,7 +74,10 @@ export default defineComponent({
       toggleInsight({
         triggerId: this.triggerId,
         title: String(this.reportTitle),
-        widgetParams: this.widgetParams as Record<string, unknown>,
+        widgetParams: {
+          ...(this.widgetParams as Record<string, unknown>),
+          ...readReportState(this.$el as Element),
+        },
       }, this.$refs.button as HTMLElement);
     },
   },

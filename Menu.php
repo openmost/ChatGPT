@@ -11,6 +11,7 @@ namespace Piwik\Plugins\ChatGPT;
 use Piwik\Menu\MenuAdmin;
 use Piwik\Menu\MenuTop;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Settings\IniConfig;
 use Piwik\Plugins\ChatGPT\Settings\SystemSettingsForm;
 use Piwik\Plugins\UsersManager\UserPreferences;
 use Piwik\Request;
@@ -25,7 +26,7 @@ class Menu extends \Piwik\Plugin\Menu
 
     public function configureTopMenu(MenuTop $menu)
     {
-        $menu->addItem('ChatGPT', null, $this->urlForDefaultAction(), $orderId = 30);
+        $menu->addItem(IniConfig::getDisplayName(), null, $this->urlForDefaultAction(), $orderId = 30);
     }
 
     public function configureAdminMenu(MenuAdmin $menu)

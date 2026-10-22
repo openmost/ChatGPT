@@ -115,6 +115,24 @@ class ReportPayloadTest extends TestCase
         $this->assertSame(203, mb_strlen($payload['rows'][0]['label']), 'labels are truncated to 200 characters');
     }
 
+    public function test_build_keepsTheOrderTheUserSortedBy_whenRowsAreTruncated(): void
+    {
+        $payload = (new ReportPayload())->build($this->createTable(250), self::METADATA, self::REQUEST + ['filter_sort_column' => 'label', 'filter_sort_order' => 'asc']);
+
+        $this->assertSame("/page-1 & 'more'", $payload['rows'][0]['label']);
+        $this->assertSame(200, $payload['rows'][199]['nb_visits']);
+        $this->assertSame('50 more rows not included, sorted by label.', $payload['note']);
+    }
+
+    public function test_build_boundsThePayload_toTheGivenSize(): void
+    {
+        $payloadBuilder = new ReportPayload();
+        $payload = $payloadBuilder->build($this->createTable(250), self::METADATA, self::REQUEST, 6000);
+
+        $this->assertLessThanOrEqual(6000, strlen($payloadBuilder->encode($payload)));
+        $this->assertSame(250, $payload['rowCount']);
+    }
+
     public function test_build_isDeterministic(): void
     {
         $payloadBuilder = new ReportPayload();

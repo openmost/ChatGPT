@@ -18,7 +18,7 @@
 
         <div vue-entry="ChatGPT.ChatIndexPage"
              ai-name="chat-gpt"
-             ai-label="ChatGPT"
+             ai-label="{{ display_name }}"
              ai-color="#00A67E"
              api-method="ChatGPT.getResponse"
              model-notice="{{ model_notice|json_encode|e('html_attr') }}"

@@ -7,6 +7,7 @@
 - An **Insights** button (AI icon) next to the report header opens an insight panel that analyses the report you are looking at, then lets you ask follow-up questions.
 - The whole report is analysed, not only the rows visible on screen: the plugin sends a compact payload with the rows, the report totals and the names and units of the metrics.
 - The analysis follows what you see: the active segment, the period and date, and the compared periods or segments.
+- The analysis also follows the table as you left it: the search, the sort, the flattening and up to 5 expanded rows, whose subtables are added to the analysis.
 - Works with data tables, evolution graphs, goals, ecommerce, custom dimensions, custom reports, row evolution and the other reports Matomo declares as widgets.
 - When a widget has no report data, or the report cannot be loaded (for example a missing access), a clear message is displayed instead of sending the error to the model.
 - The panel is an accessible dialog: keyboard navigation, focus kept inside the panel, Escape to close.
@@ -50,7 +51,7 @@ The agent mode is optional. Without AI Providers or McpServer, the plugin keeps 
 
 - Interface translated into 13 languages: English, Arabic, Chinese (Simplified and Traditional), Dutch, French, German, Italian, Japanese, Polish, Portuguese, Spanish and Swedish.
 - Follows the Matomo light and dark themes.
-- Rate limit of 30 AI requests per hour, per user and per website.
+- Rate limit of 30 AI requests per hour, per user and per website, configurable in `config/config.ini.php`.
 - HTTP API: `ChatGPT.getResponse`, `ChatGPT.getStreamingResponse`, `ChatGPT.getInsights`, `ChatGPT.getSiteSettings`, `ChatGPT.setSiteSettings` and `ChatGPT.setSystemSettings`.
 
 ### Requirements
@@ -70,6 +71,17 @@ The agent mode is optional. Without AI Providers or McpServer, the plugin keeps 
    - If a provider is connected in **Administration > System > AI Providers**, the connection fields are read-only and AI Providers is used.
 3. Optionally, override the settings for a website in **Administration > Websites > ChatGPT** (website admin access): host, API key, model and prompts, with a **Delete key** button and a **Use the general prompts** button. Empty fields use the general settings.
 4. For the agent mode, connect a provider in AI Providers, then install, activate and enable **McpServer** (**Administration > System > General settings > McpServer**). The chat guides you through each missing step.
+5. Optionally, as a server administrator, tune the plugin in a `[ChatGPT]` section of `config/config.ini.php`. Every key is optional:
+
+   ```ini
+   [ChatGPT]
+   ; name shown in the top menu, on the chat page and in the insights panel, 40 characters max
+   display_name = "Company AI"
+   ; AI requests per user and per website within the window, 0 disables the limit
+   rate_limit_requests = 30
+   ; length of the window, in seconds
+   rate_limit_window = 3600
+   ```
 
 Then open the **ChatGPT** page in the main menu, or click the **Insights** button in the header of a report.
 

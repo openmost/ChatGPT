@@ -1,5 +1,7 @@
 (function () {
   var OVERLAY_HOST_ID = 'ai-chat-insight-overlay-host-chatgpt';
+  // the display_name of the [ChatGPT] section of config.ini.php
+  var DISPLAY_NAME = (window.piwik && piwik.chatGptDisplayName) || 'ChatGPT';
 
   // A single insights panel for the whole page, every report trigger drives it through a shared store
   function mountInsightOverlay() {
@@ -11,7 +13,7 @@
     host.id = OVERLAY_HOST_ID;
     host.setAttribute('vue-entry', 'ChatGPT.InsightOverlay');
     host.setAttribute('ai-name', 'chat-gpt');
-    host.setAttribute('ai-label', 'ChatGPT');
+    host.setAttribute('ai-label', DISPLAY_NAME);
     host.setAttribute('ai-color', '#00A67E');
     host.setAttribute('api-method', 'ChatGPT.getInsights');
     document.body.appendChild(host);
@@ -36,12 +38,15 @@
 
     mountInsightOverlay();
 
+    // the insight trigger reads the search, sort and expanded rows of the report within this element
+    element.setAttribute('data-ai-insight-widget', '');
+
     var insightTrigger = document.createElement('div');
     insightTrigger.classList.add('ai-chat-insight-trigger-vue-wrapper');
     insightTrigger.setAttribute('vue-entry', 'ChatGPT.InsightTrigger');
     insightTrigger.setAttribute('widget-params', JSON.stringify(parameters));
     insightTrigger.setAttribute('ai-name', 'chat-gpt');
-    insightTrigger.setAttribute('ai-label', 'ChatGPT');
+    insightTrigger.setAttribute('ai-label', DISPLAY_NAME);
     insightTrigger.setAttribute('ai-color', '#00A67E');
     insightTrigger.setAttribute('report-title', reportTitle);
     titleWrapper.append(insightTrigger);

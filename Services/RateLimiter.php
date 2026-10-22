@@ -12,20 +12,25 @@ namespace Piwik\Plugins\ChatGPT\Services;
 
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugins\ChatGPT\Settings\IniConfig;
 
 /**
- * Per user and per site request limit shared by the chat API and the agent controller
+ * Per user and per site request limit shared by the chat API and the agent controller, tuned in the [ChatGPT]
+ * section of config.ini.php
  */
 class RateLimiter
 {
-    private const MAX_REQUESTS = 30;
-    private const WINDOW_SECONDS = 3600;
-
     /**
      * @throws RateLimitExceededException if the rate limit is exceeded
      */
     public function check(int $idSite): void
     {
+        $maxRequests = IniConfig::getRateLimitRequests();
+        if ($maxRequests === 0) {
+            return;
+        }
+        $windowSeconds = IniConfig::getRateLimitWindow();
+
         $userLogin = Piwik::getCurrentUserLogin();
         $rateLimitKey = 'ChatGPT_ratelimit_' . $idSite . '_' . $userLogin;
 
@@ -37,12 +42,12 @@ class RateLimiter
             $windowStart = $rateData['window_start'] ?? 0;
 
             // Reset window if expired
-            if ($currentTime - $windowStart > self::WINDOW_SECONDS) {
+            if ($currentTime - $windowStart > $windowSeconds) {
                 $rateData = ['window_start' => $currentTime, 'count' => 0];
             }
 
-            if (($rateData['count'] ?? 0) >= self::MAX_REQUESTS) {
-                $resetTime = $windowStart + self::WINDOW_SECONDS - $currentTime;
+            if (($rateData['count'] ?? 0) >= $maxRequests) {
+                $resetTime = $windowStart + $windowSeconds - $currentTime;
                 throw new RateLimitExceededException(Piwik::translate('ChatGPT_RateLimitExceeded', [$resetTime]));
             }
         } else {

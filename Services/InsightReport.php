@@ -15,6 +15,7 @@ use Exception;
 use InvalidArgumentException;
 use Piwik\API\Request;
 use Piwik\Container\StaticContainer;
+use Piwik\DataTable;
 use Piwik\Log\LoggerInterface;
 use Piwik\Piwik;
 
@@ -24,8 +25,8 @@ use Piwik\Piwik;
 class InsightReport
 {
     /**
-     * Widget parameters forwarded to the report API, with their validation rule. Display parameters (limit, offset,
-     * sort, visualization) are left out: the whole report is analysed.
+     * Widget parameters forwarded to the report API, with their validation rule. The search and the sort of the
+     * table are kept, paging and visualization are left out: every row matching the search is analysed.
      */
     public const PARAMETER_RULES = [
         'idSubtable' => 'int',
@@ -53,7 +54,30 @@ class InsightReport
         'eventDimensionType' => 'name',
         'columns' => 'columns',
         'label' => 'label',
+        'filter_column' => 'name',
+        'filter_pattern' => 'label',
+        'filter_column_recursive' => 'name',
+        'filter_pattern_recursive' => 'label',
+        'filter_sort_column' => 'name',
+        'filter_sort_order' => 'order',
     ];
+
+    /**
+     * Rows the user expanded in the table, their subtables are added to the payload
+     */
+    public const EXPANDED_SUBTABLES_PARAMETER = 'expandedSubtables';
+
+    public const MAX_EXPANDED_SUBTABLES = 5;
+
+    /**
+     * Payload size shared by the expanded subtables, on top of the report itself
+     */
+    private const EXPANDED_SUBTABLES_MAX_BYTES = 30000;
+
+    /**
+     * Parameters of the table the subtables do not inherit, as Matomo resets them when it loads a subtable
+     */
+    private const PARENT_ONLY_PARAMETERS = ['filter_column', 'filter_pattern', 'filter_column_recursive', 'filter_pattern_recursive', 'filter_sort_column', 'filter_sort_order', 'flat', 'expanded', 'idSubtable', 'label'];
 
     /**
      * Points of an evolution graph, Matomo's default (graphs_default_evolution_graph_last_days_amount)
@@ -131,9 +155,120 @@ class InsightReport
             'format_metrics' => 'bc',
         ], []);
 
-        $payload = $privacy->redactValue($this->payload->build($data, $this->getReportMetadata($request), $this->describe($request)));
+        $metadata = $this->getReportMetadata($request);
+        $payload = $this->payload->build($data, $metadata, $this->describe($request));
 
-        return $this->payload->encode($payload);
+        $subtables = $this->fetchExpandedSubtables($request, $this->getExpandedSubtableIds($widgetParams), $data, $metadata);
+        if ($subtables !== []) {
+            $payload['expandedRows'] = $subtables;
+        }
+
+        return $this->payload->encode($privacy->redactValue($payload));
+    }
+
+    /**
+     * The validated ids of the subtables the user expanded, at most MAX_EXPANDED_SUBTABLES
+     *
+     * @return int[]
+     * @throws InvalidArgumentException if an id is invalid
+     */
+    public function getExpandedSubtableIds(array $widgetParams): array
+    {
+        $ids = $widgetParams[self::EXPANDED_SUBTABLES_PARAMETER] ?? [];
+        if (!is_array($ids)) {
+            throw new InvalidArgumentException(sprintf('Invalid value for the parameter %s', self::EXPANDED_SUBTABLES_PARAMETER));
+        }
+
+        $checked = [];
+        foreach (array_slice(array_values($ids), 0, self::MAX_EXPANDED_SUBTABLES) as $id) {
+            $checked[] = $this->sanitizeParam(self::EXPANDED_SUBTABLES_PARAMETER, $id, 'int');
+        }
+
+        return array_values(array_unique(array_filter($checked, function ($id) {
+            return $id > 0;
+        })));
+    }
+
+    /**
+     * The subtable request of an expanded row: the report's subtable method, without the search and sort of the table
+     *
+     * @return array{method: string, parameters: array<string, mixed>}|null null when the report has no subtables
+     */
+    public function buildSubtableRequest(array $request, ?array $metadata, int $idSubtable): ?array
+    {
+        $subtableAction = is_array($metadata) && is_string($metadata['actionToLoadSubTables'] ?? null) ? $metadata['actionToLoadSubTables'] : '';
+        if (!preg_match('/^[A-Za-z0-9_]{1,64}$/', $subtableAction) || $request['evolution'] || !empty($request['comparisons'])) {
+            return null;
+        }
+
+        [$module] = explode('.', $request['method'], 2);
+        $parameters = array_diff_key($request['parameters'], array_flip(self::PARENT_ONLY_PARAMETERS));
+        $parameters['idSubtable'] = $idSubtable;
+
+        return [
+            'method' => $module . '.' . $subtableAction,
+            'parameters' => $parameters,
+        ];
+    }
+
+    /**
+     * @param int[] $ids
+     * @param mixed $parentData
+     * @return list<array<string, mixed>>
+     */
+    private function fetchExpandedSubtables(array $request, array $ids, $parentData, ?array $metadata): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $privacy = StaticContainer::get(DataPrivacy::class);
+        $maxBytes = intdiv(self::EXPANDED_SUBTABLES_MAX_BYTES, count($ids));
+        $subtables = [];
+        foreach ($ids as $idSubtable) {
+            $subtableRequest = $this->buildSubtableRequest($request, $metadata, $idSubtable);
+            if ($subtableRequest === null) {
+                return [];
+            }
+            if ($privacy->isMethodExcluded($subtableRequest['method'])) {
+                continue;
+            }
+
+            try {
+                $data = Request::processRequest($subtableRequest['method'], $subtableRequest['parameters'] + [
+                    'format' => 'original',
+                    'format_metrics' => 'bc',
+                ], []);
+            } catch (Exception $e) {
+                // eg a subtable id from an outdated table, the report itself is still analysed
+                StaticContainer::get(LoggerInterface::class)->info('ChatGPT insight skipped the subtable {idSubtable}: {message}', [
+                    'idSubtable' => $idSubtable,
+                    'message' => $e->getMessage(),
+                ]);
+                continue;
+            }
+
+            $parentLabel = $this->getParentLabel($parentData, $idSubtable);
+            $subtables[] = array_filter(['parentLabel' => $parentLabel], 'is_string')
+                + $this->payload->build($data, $metadata, ['method' => $subtableRequest['method']] + $subtableRequest['parameters'], $maxBytes);
+        }
+
+        return $subtables;
+    }
+
+    /**
+     * @param mixed $parentData
+     */
+    private function getParentLabel($parentData, int $idSubtable): ?string
+    {
+        if (!$parentData instanceof DataTable) {
+            return null;
+        }
+
+        $row = $parentData->getRowFromIdSubDataTable($idSubtable);
+        $label = $row ? $row->getColumn('label') : false;
+
+        return is_scalar($label) && $label !== '' ? (string) $label : null;
     }
 
     /**
@@ -274,7 +409,7 @@ class InsightReport
             return null;
         }
 
-        $apiParameters = array_diff_key($parameters, array_flip(['idSite', 'period', 'date', 'segment', 'filter_limit', 'columns', 'label', 'flat', 'expanded']));
+        $apiParameters = array_diff_key($parameters, array_flip(array_merge(['idSite', 'period', 'date', 'segment', 'filter_limit', 'columns'], self::PARENT_ONLY_PARAMETERS)));
         try {
             $metadata = Request::processRequest('API.getMetadata', [
                 'idSite' => $parameters['idSite'],
@@ -336,6 +471,11 @@ class InsightReport
             case 'label':
                 if (is_string($value) && mb_strlen($value) <= self::MAX_LABEL_LENGTH && !preg_match('/[\x00-\x1F\x7F]/', $value)) {
                     return $value;
+                }
+                break;
+            case 'order':
+                if (is_string($value) && in_array(strtolower($value), ['asc', 'desc'], true)) {
+                    return strtolower($value);
                 }
                 break;
         }
